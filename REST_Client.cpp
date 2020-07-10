@@ -1,36 +1,27 @@
-#ifndef curl
-#include <curl/curl.h>
-#endif
 
-#include <iostream>
 // todo: function that checks all handles arguments
 
 static long _IDLE_TIME_TCP = 120L;
 static long _INTVL_TIME_TCP = 60L;
+Json::CharReaderBuilder _J_BUILDER;
+Json::CharReader* _J_READER = _J_BUILDER.newCharReader();
 
-unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, std::string* container)
-{
-	*container = ""; // flush old data
-	container->append((char*)contents, size * nmemb);
-
-	return size * nmemb;
-};
 
 class RestSession
 {
 private:
 	CURL* _get_handle;
-
 	CURL* _post_handle;
 	CURLcode _post_status; // move from here
-	std::string _req_response; // todo -> make this get_response and flush everytime	
+	std::string _req_raw; // todo -> make this get_response and flush everytime	
+	Json::Value _req_json;
 
 public:
 	RestSession();
 
 	bool status; // bool for whether session is active or not
 
-	std::string _getreq(std::string path);
+	Json::Value _getreq(std::string path);
 	inline void get_timeout(unsigned long interval);
 
 	std::string _postreq(std::string path);
@@ -39,7 +30,26 @@ public:
 
 	void close();
 
+	friend unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self);
+
 	~RestSession();
+};
+
+
+unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self)
+{
+	self->_req_raw.clear(); // flush old data
+	self->_req_json.clear();
+	(&self->_req_raw)->append((char*)contents, size * nmemb);
+
+	std::string parse_errors;
+	_J_READER->parse(self->_req_raw.c_str(),
+		 			self->_req_raw.c_str() + self->_req_raw.size(),
+			 		&self->_req_json,
+			   		&parse_errors);
+	// todo: handle parse_errors
+
+	return size * nmemb;
 };
 
 RestSession::RestSession()
@@ -49,7 +59,7 @@ RestSession::RestSession()
 	curl_easy_setopt(_get_handle, CURLOPT_HTTPGET, 1L);
 	curl_easy_setopt(_get_handle, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
-	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEDATA, &this->_req_response);
+	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEDATA, this);
 
 	if (!(_get_handle)) throw("exc");
 
@@ -63,10 +73,8 @@ RestSession::RestSession()
 	status = 1;
 }
 
-std::string RestSession::_getreq(std::string path)
+Json::Value RestSession::_getreq(std::string path)
 {
-
-
 	curl_easy_setopt(this->_get_handle, CURLOPT_URL, path.c_str());
 
 	CURLcode _get_status;
@@ -77,10 +85,8 @@ std::string RestSession::_getreq(std::string path)
 		std::cout << curl_easy_strerror(_get_status);
 	}
 
-	return this->_req_response;
+	return _req_json;
 };
-
-
 
 
 void RestSession::get_timeout(unsigned long interval) { curl_easy_setopt(this->_get_handle, CURLOPT_TIMEOUT, interval); };
