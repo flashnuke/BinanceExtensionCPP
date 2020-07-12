@@ -1,21 +1,38 @@
 #include "REST_Client.cpp"
 #include "auth_utils.cpp"
 
+struct Params
+	// Params will be stored in a vector of pairs<str, str> and parsed by the query generator.
+	// Note that when passing params to a method, they will be cleared!
+	// todo: copy assignment + copy constructor + move
+	// todo: 
+{
+	std::vector<std::pair<std::string, std::string>> param_vector;
+
+	template <typename PT>
+	void set_param(std::string key, PT value);
+
+	void clear_params(); // define this
+	void empty(); // define this
+};
+
+
 class Client
 {
 private:
-	static std::string _generate_query(std::vector<std::pair<std::string, std::string>> params);
-
-	std::string _api_key;
-	std::string _api_secret;
 	bool const _public_client;
 
 protected:
+	std::string _api_key;
+	std::string _api_secret;
+
 	Client();
 	Client(std::string key, std::string secret);
 	virtual ~Client();
 
 public:
+	static std::string _generate_query(Params& params_obj);
+
 	static const std::string _BASE_REST_FUTURES;
 	static const std::string _BASE_REST_GEN;
 
@@ -29,6 +46,7 @@ public:
 };
 
 
+
 class FuturesClient: public Client
 {
 private:
@@ -40,11 +58,14 @@ public:
 	unsigned long long exchange_time();
 	bool ping_client();
 
-	~FuturesClient()
+	Json::Value send_order(Params &parameter_vec);
+
+	~FuturesClient() // move to external
 	{
 		delete _rest_client;
 	};
 };
+
 
 
 class SpotClient : public Client
@@ -58,7 +79,9 @@ public:
 	unsigned long long exchange_time();
 	bool ping_client();
 
-	~SpotClient()
+	Json::Value send_order(Params& parameter_vec);
+
+	~SpotClient() // move to external
 	{
 		delete _rest_client;
 	};
@@ -81,14 +104,18 @@ Client::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_
 	renew_session();
 };
 
-std::string Client::_generate_query(std::vector<std::pair<std::string, std::string>> params)
+std::string Client::_generate_query(Params& params_obj)
+
 {
+	std::vector<std::pair<std::string, std::string>> params = params_obj.param_vector;
 	std::string query = "?";
 	for (std::pair<std::string, std::string> param : params)
 	{
 		query += (param.first + '=' + param.second);
-		if (!(param == params.back())) query += '?';
+		if (!(param == params.back())) query += '&';
 	}
+
+	return query;
 }
 
 
@@ -149,6 +176,25 @@ bool SpotClient::ping_client()
 	}
 }
 
+Json::Value SpotClient::send_order(Params& parameter_vec)
+{
+	std::string endpoint = "/fapi/v1/order";
+	std::string test_endp = "/api/v3/order/test";
+	std::string query = Client::_generate_query(parameter_vec);
+
+	std::string signature = HMACsha256(query, this->_api_secret);
+	//parameter_vec.set_param() delete?
+	//send order...
+	query += ("&signature=" + signature);
+	std::cout << query;
+
+	parameter_vec.clear_params();
+
+	Json::Value returnme;
+	return returnme;
+
+}
+
 
 
 // FuturesClient definitions
@@ -184,4 +230,40 @@ bool FuturesClient::ping_client()
 	{ 
 		throw("bad_ping");
 	}
+}
+
+Json::Value FuturesClient::send_order(Params& parameter_vec)
+{
+	std::string endpoint = "/fapi/v1/order";
+	std::string query = Client::_generate_query(parameter_vec);
+
+	std::string signature = HMACsha256(query, this->_api_secret);
+	//parameter_vec.set_param() delete?
+	//send order...
+	query += ("&signature=" + signature);
+	std::cout << query;
+
+	parameter_vec.clear_params();
+
+	Json::Value returnme;
+	return returnme;
+
+}
+
+// Params definitions
+
+template <typename PT>
+void Params::set_param(std::string key, PT value)
+{
+	param_vector.push_back(std::make_pair(key, std::to_string(value)));
+}
+template <>
+void Params::set_param<std::string>(std::string key, std::string value)
+{
+	param_vector.push_back(std::make_pair(key, value)); // use std::makepair()?
+}
+
+void Params::clear_params()
+{
+	this->param_vector.clear();
 }
