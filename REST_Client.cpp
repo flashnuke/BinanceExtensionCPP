@@ -9,8 +9,7 @@ Json::CharReader* _J_READER = _J_BUILDER.newCharReader();
 class RestSession
 {
 private:
-	CURL* _get_handle;
-	CURL* _post_handle;
+
 	CURLcode _post_status; // move from here
 	std::string _req_raw; // todo -> make this get_response and flush everytime	
 	Json::Value _req_json;
@@ -19,6 +18,8 @@ public:
 	RestSession();
 
 	bool status; // bool for whether session is active or not
+	CURL* _get_handle;
+	CURL* _post_handle;
 
 	Json::Value _getreq(std::string path);
 	inline void get_timeout(unsigned long interval);
@@ -65,9 +66,10 @@ RestSession::RestSession()
 	_post_handle = curl_easy_init();
 	curl_easy_setopt(_post_handle, CURLOPT_POST, 1L);
 	curl_easy_setopt(_post_handle, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
+	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEDATA, this);
 
 	if (!(_post_handle)) throw("exc");
-
 
 	status = 1;
 }

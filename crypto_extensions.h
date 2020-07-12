@@ -10,4 +10,8 @@
 #include <string>
 #endif
 
+#ifndef std::vector
+#include <vector>
+#endif
+
 #include "Exchange_Client.cpp"

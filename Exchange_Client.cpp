@@ -4,8 +4,11 @@
 class Client
 {
 private:
-	std::string api_key;
-	std::string api_secret;
+	static std::string _generate_query(std::vector<std::pair<std::string, std::string>> params);
+
+	std::string _api_key;
+	std::string _api_secret;
+	bool const _public_client;
 
 protected:
 	Client();
@@ -19,11 +22,10 @@ public:
 	virtual unsigned long long exchange_time() = 0;
 	virtual bool ping_client() = 0;
 
+	RestSession* _rest_client = nullptr;
 
 	void renew_session();
 
-	RestSession* _rest_client = new RestSession{};
-	
 };
 
 
@@ -69,14 +71,41 @@ public:
 const std::string Client::_BASE_REST_FUTURES = "https://fapi.binance.com"; // static
 const std::string Client::_BASE_REST_GEN = "https://api.binance.com"; // static
 
-Client::Client() {};
+Client::Client() : _public_client{ 1 } 
+{
+	renew_session();
+};
 
-Client::Client(std::string key, std::string secret) : api_key{ key }, api_secret{ secret } {};
+Client::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key { key }, _api_secret{ secret }
+{
+	renew_session();
+};
+
+std::string Client::_generate_query(std::vector<std::pair<std::string, std::string>> params)
+{
+	std::string query = "?";
+	for (std::pair<std::string, std::string> param : params)
+	{
+		query += (param.first + '=' + param.second);
+		if (!(param == params.back())) query += '?';
+	}
+}
+
 
 void Client::renew_session()
 {
-	delete this->_rest_client;
-	_rest_client = new RestSession{};
+	if (this->_rest_client) delete this->_rest_client;
+
+	this->_rest_client = new RestSession{};
+	if (!this->_public_client)
+	{
+		std::string key_header = "X-MBX-APIKEY:" + this->_api_key; // header for api key
+		struct curl_slist* auth_headers;
+		auth_headers = curl_slist_append(NULL, key_header.c_str());
+
+		curl_easy_setopt((this->_rest_client)->_get_handle, CURLOPT_HTTPHEADER, auth_headers);
+		curl_easy_setopt((this->_rest_client)->_post_handle, CURLOPT_HTTPHEADER, auth_headers);
+	}
 }
 
 Client::~Client()
