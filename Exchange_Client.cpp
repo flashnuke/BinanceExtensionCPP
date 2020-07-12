@@ -183,8 +183,8 @@ bool SpotClient::ping_client()
 
 Json::Value SpotClient::send_order(Params& parameter_vec)
 {
-	std::string endpoint = "/fapi/v1/order";
-	std::string test_endp = "/api/v3/order/test";
+	std::string endpoint = "/api/v3/order";
+
 	std::string query = Client::_generate_query(parameter_vec);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
@@ -217,8 +217,16 @@ FuturesClient::FuturesClient(std::string key, std::string secret)
 
 unsigned long long FuturesClient::exchange_time()
 {
-	std::string endpoint = "/fapi/v1/time";
-	std::string ex_time = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint)["serverTime"].asString();
+	std::string endpoint = "/fapi/v1/time"; // fix
+	Json::Value response = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint);
+
+	if (!response["status"])
+	{
+		std::cout << response;
+		return 0;
+	}
+	
+	std::string ex_time = response["serverTime"].asString();
 
 	return std::atoll(ex_time.c_str());
 }
@@ -243,17 +251,15 @@ Json::Value FuturesClient::send_order(Params& parameter_vec)
 	std::string query = Client::_generate_query(parameter_vec);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
-	//parameter_vec.set_param() delete?
-	//send order...
 	query += ("&signature=" + signature);
 	std::cout << query;
 
+	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + query, query); // delete??
+	std::cout << response; // delete!
 
-	parameter_vec.clear_params();
+	if (this->flush_params) parameter_vec.clear_params();
 
-	Json::Value returnme;
-	return returnme;
-
+	return response;
 }
 
 // Params definitions
