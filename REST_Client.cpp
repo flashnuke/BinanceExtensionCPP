@@ -2,6 +2,7 @@
 // todo: check response status code, pass "json: status" or something
 // todo: what can you pass to postfields? what is the format?
 // regarding above: always leave an empty json of "status: true" to reduce runtime cost
+// note: if needed, add application/x-www-form-urlencoded to post in request
 
 static long _IDLE_TIME_TCP = 120L;
 static long _INTVL_TIME_TCP = 60L;
@@ -56,15 +57,25 @@ unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 		&self->_req_json_get,
 		&parse_errors);
 
+	self->_req_json_get["request_status"] = 0;
+
+
 	if (self->_get_status != CURLE_OK || self->_get_status == CURLE_HTTP_RETURNED_ERROR)
-
 	{
-		self->_req_json_get["request_status"] = 0;
 		self->_req_json_get["response"] = self->_req_raw_get;
-		self->_req_json_post["parse_errors"] = parse_errors;
-
 
 		return 0;
+	}
+
+	else if (!parse_status)
+	{
+		self->_req_json_get["parse_status"] = parse_errors;
+		return size * nmemb;
+	}
+
+	else if (self->_req_json_get.isMember("code"))
+	{
+		return size * nmemb;
 	}
 
 	self->_req_json_get["request_status"] = 1;
@@ -86,13 +97,24 @@ unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmem
 						&self->_req_json_post,
 						&parse_errors);
 
-	if (self->_post_status != CURLE_OK || self->_post_status == CURLE_HTTP_RETURNED_ERROR || !parse_status)
+	self->_req_json_post["request_status"] = 0;
+
+	if (self->_post_status != CURLE_OK || self->_post_status == CURLE_HTTP_RETURNED_ERROR)
 	{
-		self->_req_json_post["request_status"] = 0;
 		self->_req_json_post["response"] = self->_req_raw_post;
-		self->_req_json_post["parse_status"] = parse_errors;
 
 		return 0;
+	}
+
+	else if (!parse_status)
+	{
+		self->_req_json_post["parse_status"] = parse_errors;
+		return size * nmemb;
+	}
+
+	else if (self->_req_json_post.isMember("code"))
+	{
+		return size * nmemb;
 	}
 
 	self->_req_json_get["request_status"] = 1;
@@ -110,8 +132,6 @@ RestSession::RestSession()
 	curl_easy_setopt(this->_get_handle, CURLOPT_FAILONERROR, 0); // excplicitly set to 0
 
 
-	if (!(this->_get_handle)) throw("exc");
-
 	_post_handle = curl_easy_init();
 	curl_easy_setopt(this->_post_handle, CURLOPT_POST, 1L);
 	curl_easy_setopt(this->_post_handle, CURLOPT_POSTFIELDSIZE, 0);
@@ -120,7 +140,9 @@ RestSession::RestSession()
 	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEDATA, this);
 	curl_easy_setopt(this->_post_handle, CURLOPT_FAILONERROR, 0); // excplicitly set to 0
 
-	if (!(this->_post_handle)) throw("exc");
+
+	if (!(this->_get_handle)) throw("exc"); // handle exc
+	if (!(this->_post_handle)) throw("exc"); // handle exc
 
 	status = 1;
 }
@@ -130,8 +152,6 @@ Json::Value RestSession::_getreq(std::string path)
 	curl_easy_setopt(this->_get_handle, CURLOPT_URL, path.c_str());
 
 	this->_get_status = curl_easy_perform(this->_get_handle);
-
-	if (!this->_req_json_get["request_status"].asBool()) std::cout << this->_req_json_get;
 
 	return this->_req_json_get;
 };

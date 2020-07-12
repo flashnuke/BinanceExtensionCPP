@@ -192,7 +192,7 @@ Json::Value SpotClient::send_order(Params& parameter_vec)
 	query += ("&signature=" + signature);
 	std::cout << query;
 
-	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + query);
+	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_GEN + endpoint + query);
 
 	if (!response["request_status"].asBool())
 	{
@@ -257,9 +257,9 @@ Json::Value FuturesClient::send_order(Params& param_obj)
 
 	std::string signature = HMACsha256(query, this->_api_secret);
 	query += ("&signature=" + signature);
-	std::cout << query;
+	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
 
-	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + query);
+	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + endpoint + query);
 
 	if (!response["request_status"].asBool())
 	{
