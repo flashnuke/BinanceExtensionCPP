@@ -188,15 +188,20 @@ Json::Value SpotClient::send_order(Params& parameter_vec)
 	std::string query = Client::_generate_query(parameter_vec);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
-	//parameter_vec.set_param() delete?
-	//send order...
+
 	query += ("&signature=" + signature);
 	std::cout << query;
 
+	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + query);
+
+	if (!response["request_status"].asBool())
+	{
+		std::cout << response;
+	}
+
 	if (this->flush_params) parameter_vec.clear_params();
 
-	Json::Value returnme;
-	return returnme;
+	return response;
 
 }
 
@@ -220,7 +225,7 @@ unsigned long long FuturesClient::exchange_time()
 	std::string endpoint = "/fapi/v1/time"; // fix
 	Json::Value response = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint);
 
-	if (!response["status"])
+	if (!response["request_status"].asBool())
 	{
 		std::cout << response;
 		return 0;
@@ -245,19 +250,24 @@ bool FuturesClient::ping_client()
 	}
 }
 
-Json::Value FuturesClient::send_order(Params& parameter_vec)
+Json::Value FuturesClient::send_order(Params& param_obj)
 {
 	std::string endpoint = "/fapi/v1/order";
-	std::string query = Client::_generate_query(parameter_vec);
+	std::string query = Client::_generate_query(param_obj);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
 	query += ("&signature=" + signature);
 	std::cout << query;
 
-	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + query, query); // delete??
-	std::cout << response; // delete!
+	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + query);
 
-	if (this->flush_params) parameter_vec.clear_params();
+	if (!response["request_status"].asBool())
+	{
+		std::cout << response;
+		return 0;
+	}
+
+	if (this->flush_params) param_obj.clear_params();
 
 	return response;
 }

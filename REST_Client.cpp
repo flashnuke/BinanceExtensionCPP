@@ -31,7 +31,7 @@ public:
 	Json::Value _getreq(std::string path);
 	inline void get_timeout(unsigned long interval);
 
-	Json::Value _postreq(std::string path, std::string _post_query);
+	Json::Value _postreq(std::string path);
 	inline void post_timeout(unsigned long interval);
 	
 
@@ -50,22 +50,24 @@ unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 	self->_req_json_get.clear();
 	(&self->_req_raw_get)->append((char*)contents, size * nmemb);
 
+	std::string parse_errors;
+	bool parse_status = _J_READER->parse(self->_req_raw_get.c_str(),
+		self->_req_raw_get.c_str() + self->_req_raw_get.size(),
+		&self->_req_json_get,
+		&parse_errors);
 
-	if (self->_get_status != CURLE_OK) // check http code
+	if (self->_get_status != CURLE_OK || self->_get_status == CURLE_HTTP_RETURNED_ERROR)
+
 	{
-		self->_req_json_get["status"] = 0;
-		self->_req_json_get["rsp"] = self->_req_raw_get;
+		self->_req_json_get["request_status"] = 0;
+		self->_req_json_get["response"] = self->_req_raw_get;
+		self->_req_json_post["parse_errors"] = parse_errors;
+
 
 		return 0;
 	}
 
-	std::string parse_errors;
-	_J_READER->parse(self->_req_raw_get.c_str(),
-		 			self->_req_raw_get.c_str() + self->_req_raw_get.size(),
-			 		&self->_req_json_get,
-			   		&parse_errors);
-
-	self->_req_json_get["status"] = 1;
+	self->_req_json_get["request_status"] = 1;
 
 	// todo: handle parse_errors
 
@@ -74,29 +76,26 @@ unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 
 unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self)
 {
-	std::cout << "dele";
 	self->_req_raw_post.clear(); // flush old data
 	self->_req_json_post.clear();
 	(&self->_req_raw_post)->append((char*)contents, size * nmemb);
-	std::cout << self->_req_raw_post; // delete
 
-	if (self->_post_status != CURLE_OK)
+	std::string parse_errors;
+	bool parse_status = _J_READER->parse(self->_req_raw_post.c_str(),
+					  	self->_req_raw_post.c_str() + self->_req_raw_post.size(),
+						&self->_req_json_post,
+						&parse_errors);
+
+	if (self->_post_status != CURLE_OK || self->_post_status == CURLE_HTTP_RETURNED_ERROR || !parse_status)
 	{
-		self->_req_json_post["status"] = 0;
-		self->_req_json_post["rsp"] = self->_req_raw_post;
+		self->_req_json_post["request_status"] = 0;
+		self->_req_json_post["response"] = self->_req_raw_post;
+		self->_req_json_post["parse_status"] = parse_errors;
 
 		return 0;
 	}
 
-	std::string parse_errors;
-	_J_READER->parse(self->_req_raw_post.c_str(),
-		self->_req_raw_post.c_str() + self->_req_raw_post.size(),
-		&self->_req_json_post,
-		&parse_errors);
-
-	self->_req_json_get["status"] = 1;
-
-	// todo: handle parse_errors
+	self->_req_json_get["request_status"] = 1;
 
 	return size * nmemb;
 };
@@ -108,17 +107,18 @@ RestSession::RestSession()
 	curl_easy_setopt(this->_get_handle, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEFUNCTION, _GET_CALLBACK);
 	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEDATA, this);
-	curl_easy_setopt(this->_get_handle, CURLOPT_FAILONERROR, 1L);
+	curl_easy_setopt(this->_get_handle, CURLOPT_FAILONERROR, 0); // excplicitly set to 0
 
 
 	if (!(this->_get_handle)) throw("exc");
 
 	_post_handle = curl_easy_init();
-	curl_easy_setopt(this->_post_handle, CURLOPT_HTTPPOST, 1L);
+	curl_easy_setopt(this->_post_handle, CURLOPT_POST, 1L);
+	curl_easy_setopt(this->_post_handle, CURLOPT_POSTFIELDSIZE, 0);
 	curl_easy_setopt(this->_post_handle, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEFUNCTION, _POST_CALLBACK);
 	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEDATA, this);
-	curl_easy_setopt(this->_post_handle, CURLOPT_FAILONERROR, 1L);
+	curl_easy_setopt(this->_post_handle, CURLOPT_FAILONERROR, 0); // excplicitly set to 0
 
 	if (!(this->_post_handle)) throw("exc");
 
@@ -131,16 +131,17 @@ Json::Value RestSession::_getreq(std::string path)
 
 	this->_get_status = curl_easy_perform(this->_get_handle);
 
+	if (!this->_req_json_get["request_status"].asBool()) std::cout << this->_req_json_get;
+
 	return this->_req_json_get;
 };
 
-Json::Value RestSession::_postreq(std::string path, std::string _post_query)
+Json::Value RestSession::_postreq(std::string path)
 {
 	curl_easy_setopt(this->_post_handle, CURLOPT_URL, path.c_str());
-	curl_easy_setopt(this->_post_handle, CURLOPT_POSTFIELDS, _post_query.c_str()); // delete
-	this->_post_status = curl_easy_perform(this->_post_handle);
 
-	
+	this->_post_status = curl_easy_perform(this->_post_handle);
+		
 	return this->_req_json_post;
 };
 
