@@ -10,5 +10,8 @@
 #include <string>
 #endif
 
-#include "Exchange_Client.cpp"
+#ifndef std::vector
+#include <vector>
+#endif
 
+#include "Exchange_Client.cpp"
