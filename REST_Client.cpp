@@ -24,8 +24,7 @@ public:
 	Json::Value _getreq(std::string path);
 	inline void get_timeout(unsigned long interval);
 
-	std::string _postreq(std::string path);
-
+	Json::Value _postreq(std::string path);
 	inline void post_timeout(unsigned long interval);
 
 	void close();
@@ -85,11 +84,27 @@ Json::Value RestSession::_getreq(std::string path)
 	{
 		std::cout << curl_easy_strerror(_get_status);
 	}
+
 	return _req_json;
 };
 
-void RestSession::get_timeout(unsigned long interval) { curl_easy_setopt(this->_get_handle, CURLOPT_TIMEOUT, interval); };
-void RestSession::post_timeout(unsigned long interval) { curl_easy_setopt(this->_post_handle, CURLOPT_TIMEOUT, interval); };
+Json::Value RestSession::_postreq(std::string path)
+{
+	curl_easy_setopt(this->_post_handle, CURLOPT_URL, path.c_str());
+
+	CURLcode _post_status;
+	_post_status = curl_easy_perform(this->_post_handle);
+
+	if (_post_status != CURLE_OK)
+	{
+		std::cout << curl_easy_strerror(_post_status);
+	}
+
+	return _req_json;
+};
+
+inline void RestSession::get_timeout(unsigned long interval) { curl_easy_setopt(this->_get_handle, CURLOPT_TIMEOUT, interval); };
+inline void RestSession::post_timeout(unsigned long interval) { curl_easy_setopt(this->_post_handle, CURLOPT_TIMEOUT, interval); };
 
 void RestSession::close()
 {
@@ -106,5 +121,5 @@ void RestSession::close()
 RestSession::~RestSession()
 {
 	this->close();
-	std::cout << "des called";
+	std::cout << "des called\n";
 }
