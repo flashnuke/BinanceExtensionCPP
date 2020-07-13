@@ -26,8 +26,8 @@ public:
 	RestSession();
 
 	bool status; // bool for whether session is active or not
-	CURL* _get_handle;
-	CURL* _post_handle;
+	CURL* _get_handle{};
+	CURL* _post_handle{};
 
 	Json::Value _getreq(std::string path);
 	inline void get_timeout(unsigned long interval);
@@ -50,12 +50,15 @@ unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 	self->_req_raw_get.clear(); // flush old data
 	self->_req_json_get.clear();
 	(&self->_req_raw_get)->append((char*)contents, size * nmemb);
+	std::string parse_errors{};
+	bool parse_status;
 
-	std::string parse_errors;
-	bool parse_status = _J_READER->parse(self->_req_raw_get.c_str(),
+	self->_req_json_get["response"] = Json::arrayValue;
+	parse_status = _J_READER->parse(self->_req_raw_get.c_str(),
 		self->_req_raw_get.c_str() + self->_req_raw_get.size(),
-		&self->_req_json_get,
+		&self->_req_json_get["response"],
 		&parse_errors);
+
 
 	self->_req_json_get["request_status"] = 0;
 
@@ -80,8 +83,6 @@ unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 
 	self->_req_json_get["request_status"] = 1;
 
-	// todo: handle parse_errors
-
 	return size * nmemb;
 };
 
@@ -91,11 +92,14 @@ unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmem
 	self->_req_json_post.clear();
 	(&self->_req_raw_post)->append((char*)contents, size * nmemb);
 
-	std::string parse_errors;
-	bool parse_status = _J_READER->parse(self->_req_raw_post.c_str(),
-					  	self->_req_raw_post.c_str() + self->_req_raw_post.size(),
-						&self->_req_json_post,
-						&parse_errors);
+	std::string parse_errors{};
+	bool parse_status;
+
+	self->_req_json_get["response"] = Json::arrayValue;
+	parse_status = _J_READER->parse(self->_req_raw_post.c_str(),
+					self->_req_raw_post.c_str() + self->_req_raw_post.size(),
+					&self->_req_json_post["response"],
+					&parse_errors);
 
 	self->_req_json_post["request_status"] = 0;
 

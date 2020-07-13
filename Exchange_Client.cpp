@@ -5,7 +5,8 @@
 struct Params
 	// Params will be stored in a map of <str, str> and parsed by the query generator.
 	// todo: copy assignment + copy constructor + move
-{
+{	// todo: in documentation, state to pass empty obj for all
+
 	std::map<std::string, std::string> param_map;
 
 	template <typename PT>
@@ -60,6 +61,7 @@ public:
 	bool ping_client();
 
 	Json::Value send_order(Params &parameter_vec);
+	Json::Value fetch_balances(Params& param_obj);
 
 	~FuturesClient() // move to external
 	{
@@ -115,8 +117,7 @@ std::string Client::_generate_query(Params& params_obj)
 		itr != params.end();
 		itr++)
 	{
-		if (itr == params.begin()) query += "?";
-		else query += "&";
+		if (itr != params.begin()) query += "&";
 
 		query += (itr->first + "=" + itr->second);
 	}
@@ -162,7 +163,7 @@ SpotClient::SpotClient(std::string key, std::string secret)
 unsigned long long SpotClient::exchange_time()
 {
 	std::string endpoint = "/api/v3/time";
-	std::string ex_time = (this->_rest_client)->_getreq(this->_BASE_REST_GEN + endpoint)["serverTime"].asString();
+	std::string ex_time = (this->_rest_client)->_getreq(this->_BASE_REST_GEN + endpoint)["response"]["serverTime"].asString();
 
 	return std::atoll(ex_time.c_str());
 }
@@ -172,7 +173,7 @@ bool SpotClient::ping_client()
 	try
 	{
 		std::string endpoint = "/api/v3/ping";
-		Json::Value ping_response = (this->_rest_client)->_getreq(this->_BASE_REST_GEN + endpoint);
+		Json::Value ping_response = (this->_rest_client)->_getreq(this->_BASE_REST_GEN + endpoint)["response"];
 		return (ping_response != Json::nullValue);
 	}
 	catch (...)
@@ -181,25 +182,22 @@ bool SpotClient::ping_client()
 	}
 }
 
-Json::Value SpotClient::send_order(Params& parameter_vec)
+Json::Value SpotClient::send_order(Params& param_obj)
 {
-	std::string endpoint = "/api/v3/order";
 
-	std::string query = Client::_generate_query(parameter_vec);
+	std::string endpoint = "/api/v3/order";
+	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(param_obj);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
-
 	query += ("&signature=" + signature);
+	query = "?" + query;
 	std::cout << query;
 
+	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
 	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_GEN + endpoint + query);
 
-	if (!response["request_status"].asBool())
-	{
-		std::cout << response;
-	}
-
-	if (this->flush_params) parameter_vec.clear_params();
+	if (this->flush_params) param_obj.clear_params();
 
 	return response;
 
@@ -223,16 +221,8 @@ FuturesClient::FuturesClient(std::string key, std::string secret)
 unsigned long long FuturesClient::exchange_time()
 {
 	std::string endpoint = "/fapi/v1/time"; // fix
-	Json::Value response = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint);
-
-	if (!response["request_status"].asBool())
-	{
-		std::cout << response;
-		return 0;
-	}
+	std::string ex_time = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint)["response"]["serverTime"].asString();
 	
-	std::string ex_time = response["serverTime"].asString();
-
 	return std::atoll(ex_time.c_str());
 }
 
@@ -241,7 +231,7 @@ bool FuturesClient::ping_client()
 	try
 	{
 		std::string endpoint = "/fapi/v1/ping";
-		Json::Value ping_response = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint);
+		Json::Value ping_response = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint)["response"];
 		return (ping_response != Json::nullValue);
 	}
 	catch (...)
@@ -253,21 +243,37 @@ bool FuturesClient::ping_client()
 Json::Value FuturesClient::send_order(Params& param_obj)
 {
 	std::string endpoint = "/fapi/v1/order";
+	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
 	std::string query = Client::_generate_query(param_obj);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
 	query += ("&signature=" + signature);
+	query = "?" + query;
+
 	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
-
-	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + endpoint + query);
-
-	if (!response["request_status"].asBool())
-	{
-		std::cout << response;
-		return 0;
-	}
+	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + endpoint + query); // return entire json?
 
 	if (this->flush_params) param_obj.clear_params();
+
+	return response;
+}
+
+Json::Value FuturesClient::fetch_balances(Params& param_obj)
+{
+	std::string endpoint = "/fapi/v2/balance";
+
+	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(param_obj);
+
+	std::string signature = HMACsha256(query, this->_api_secret);
+	query += ("&signature=" + signature);
+	query = "?" + query;
+
+	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
+	Json::Value response = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint + query);
+
+	if (this->flush_params) param_obj.clear_params();
+
 
 	return response;
 }
