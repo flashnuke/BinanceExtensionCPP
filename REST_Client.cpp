@@ -4,46 +4,12 @@
 // regarding above: always leave an empty json of "status: true" to reduce runtime cost
 // note: if needed, add application/x-www-form-urlencoded to post in request
 
-static long _IDLE_TIME_TCP = 120L;
-static long _INTVL_TIME_TCP = 60L;
+#include "CryptoExtensions.h"
+
 Json::CharReaderBuilder _J_BUILDER;
 Json::CharReader* _J_READER = _J_BUILDER.newCharReader();
-
-
-class RestSession
-{
-private:
-
-	std::string _req_raw_get; // todo -> make this get_response and flush everytime	
-	Json::Value _req_json_get;
-	CURLcode _get_status;
-
-	std::string _req_raw_post; // todo -> make this get_response and flush everytime	
-	Json::Value _req_json_post;
-	CURLcode _post_status;
-
-public:
-	RestSession();
-
-	bool status; // bool for whether session is active or not
-	CURL* _get_handle{};
-	CURL* _post_handle{};
-
-	Json::Value _getreq(std::string path);
-	inline void get_timeout(unsigned long interval);
-
-	Json::Value _postreq(std::string path);
-	inline void post_timeout(unsigned long interval);
-	
-
-	void close();
-
-	friend unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self); // different because of members
-	friend unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self);
-
-	~RestSession();
-};
-
+static long _IDLE_TIME_TCP = 120L;
+static long _INTVL_TIME_TCP = 60L;
 
 unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self)
 {

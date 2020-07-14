@@ -1,18 +1,5 @@
-#include <openssl/hmac.h>
-#include <openssl/sha.h>
 
-#ifndef std::string
-#include <string>
-#endif
-
-#ifndef chrono
-#include <chrono>
-#endif
-
-unsigned long long local_timestamp();
-inline auto binary_to_hex_digit(unsigned a) -> char;
-auto binary_to_hex(unsigned char const* binary, unsigned binary_len) -> std::string;
-std::string HMACsha256(std::string const& message, std::string const& key);
+#include "CryptoExtensions.h"
 
 unsigned long long local_timestamp()
 {
