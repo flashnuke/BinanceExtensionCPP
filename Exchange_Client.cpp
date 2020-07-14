@@ -1,102 +1,10 @@
-#include "REST_Client.cpp"
-#include "auth_utils.cpp"
 #include <map>
 
-struct Params
-	// Params will be stored in a map of <str, str> and parsed by the query generator.
-{	// todo: in documentation, state to pass empty obj for all
+#ifndef cout
+#include <iostream>
+#endif
 
-	Params();
-	Params(Params& param_obj); 
-	Params(const Params& param_obj);
-
-	Params& operator=(Params& params_obj);
-	Params& operator=(const Params& params_obj);
-
-	std::map<std::string, std::string> param_map;
-
-	template <typename PT>
-	void set_param(std::string key, PT value);
-
-	void clear_params(); // define this
-	void empty(); // define this
-};
-
-
-class Client
-{
-private:
-	bool const _public_client;
-
-protected:
-	std::string _api_key;
-	std::string _api_secret;
-
-	Client();
-	Client(std::string key, std::string secret);
-	virtual ~Client();
-
-public:
-	static std::string _generate_query(Params& params_obj);
-
-	static const std::string _BASE_REST_FUTURES;
-	static const std::string _BASE_REST_GEN;
-
-	bool flush_params; // if true, param objects passed to functions will be flushed
-
-	virtual unsigned long long exchange_time() = 0;
-	virtual bool ping_client() = 0;
-
-	RestSession* _rest_client = nullptr;
-
-	void renew_session();
-
-};
-
-
-
-class FuturesClient: public Client
-{
-private:
-
-public:
-	FuturesClient();
-	FuturesClient(std::string key, std::string secret);
-
-	unsigned long long exchange_time();
-	bool ping_client();
-
-	Json::Value send_order(Params &parameter_vec);
-	Json::Value fetch_balances(Params& param_obj);
-
-	~FuturesClient() // move to external
-	{
-		delete _rest_client;
-	};
-};
-
-
-
-class SpotClient : public Client
-{
-private:
-
-public:
-	SpotClient();
-	SpotClient(std::string key, std::string secret);
-
-	unsigned long long exchange_time();
-	bool ping_client();
-
-	Json::Value send_order(Params& parameter_vec);
-
-	~SpotClient() // move to external
-	{
-		delete _rest_client;
-	};
-};
-
-
+#include "CryptoExtensions.h"
 
 // Client definitions
 
