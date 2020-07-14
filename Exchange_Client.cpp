@@ -4,8 +4,14 @@
 
 struct Params
 	// Params will be stored in a map of <str, str> and parsed by the query generator.
-	// todo: copy assignment + copy constructor + move
 {	// todo: in documentation, state to pass empty obj for all
+
+	Params();
+	Params(Params& param_obj); 
+	Params(const Params& param_obj);
+
+	Params& operator=(Params& params_obj);
+	Params& operator=(const Params& params_obj);
 
 	std::map<std::string, std::string> param_map;
 
@@ -279,6 +285,32 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 }
 
 // Params definitions
+
+Params::Params() {};
+
+Params::Params(Params& params_obj)
+{
+	this->param_map = params_obj.param_map;
+}
+
+Params::Params(const Params& params_obj)
+{
+	this->param_map = params_obj.param_map;
+}
+
+Params& Params::operator=(Params& params_obj)
+{
+	this->param_map = params_obj.param_map;
+
+	return *this;
+}
+
+Params& Params::operator=(const Params& params_obj)
+{
+	this->param_map = params_obj.param_map;
+
+	return *this;
+}
 
 template <typename PT>
 void Params::set_param(std::string key, PT value)
