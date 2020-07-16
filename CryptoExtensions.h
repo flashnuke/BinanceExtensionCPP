@@ -1,10 +1,17 @@
 
 
 // todo: construct client with json file!
+// todo: instantiate only if ws is called!
 
 #ifndef CRYPTO_EXTENSIONS_H
 #define CRYPTO_EXTENSIONS_H
 
+#define _WIN32_WINNT 0x0601 // for boost
+
+
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/websocket.hpp>
+#include <boost/asio/connect.hpp>
 #include <iostream>
 #include <json/json.h>
 #include <curl/curl.h>
@@ -14,13 +21,37 @@
 #include <string>
 #include <map>
 
+
+namespace beast = boost::beast;
+namespace websocket = beast::websocket;
+namespace net = boost::asio;
+namespace ssl = boost::asio::ssl;
+using tcp = boost::asio::ip::tcp;
+
 unsigned long long local_timestamp();
 inline auto binary_to_hex_digit(unsigned a) -> char;
 auto binary_to_hex(unsigned char const* binary, unsigned binary_len)->std::string;
 std::string HMACsha256(std::string const& message, std::string const& key);
 
 
+class WebsocketClient
+{
+private:
+	std::string _host;
+	std::string _port;
+	websocket::stream<beast::ssl_stream<tcp::socket>>* _ws{ nullptr };
+	void _init_client();
+	void _connect_to_endpoint(std::string endpoint);
 
+
+public:
+	WebsocketClient(std::string host, std::string port);
+
+	void start_stream(std::string endpoint); // todo: insert pointer as param, change void
+
+	~WebsocketClient();
+
+};
 
 class RestSession
 {
@@ -73,7 +104,7 @@ struct Params
 	template <typename PT>
 	void set_param(std::string key, PT value);
 
-	void clear_params(); // define this
+	void clear_params(); 
 	void empty(); // define this
 };
 
@@ -82,6 +113,7 @@ class Client
 {
 private:
 	bool const _public_client;
+
 
 protected:
 	std::string _api_key;
@@ -95,14 +127,19 @@ public:
 	std::string _generate_query(Params& params_obj);
 
 	const std::string _BASE_REST_FUTURES{ "https://fapi.binance.com" };
-	const std::string _BASE_REST_GEN{ "https://api.binance.com" };
+	const std::string _BASE_REST{ "https://api.binance.com" };
+	const std::string _WS_BASE_FUTURES{"fstream.binance.com"};
+	const std::string _WS_BASE{ "stream.binance.com" };
+	const std::string _WS_PORT{ "9443" };
 
 	bool flush_params; // if true, param objects passed to functions will be flushed
 
 	virtual unsigned long long exchange_time() = 0;
 	virtual bool ping_client() = 0;
+	virtual void init_ws(std::string host, std::string port) = 0;
 
-	RestSession* _rest_client = nullptr;
+	RestSession* _rest_client = nullptr; // move init
+	WebsocketClient* _ws_client = nullptr; // move init, leave decl
 
 	void renew_session();
 
@@ -120,13 +157,16 @@ public:
 
 	unsigned long long exchange_time();
 	bool ping_client();
+	void init_ws(std::string host, std::string port);
 
 	Json::Value send_order(Params& parameter_vec);
 	Json::Value fetch_balances(Params& param_obj);
+	void aggTrade(std::string symbol); // todo: change from void
 
 	~FuturesClient() // move to external
 	{
 		delete _rest_client;
+		delete _ws_client;
 	};
 };
 
@@ -142,12 +182,14 @@ public:
 
 	unsigned long long exchange_time();
 	bool ping_client();
+	void init_ws(std::string host, std::string port);
 
 	Json::Value send_order(Params& parameter_vec);
 
 	~SpotClient() // move to external
 	{
 		delete _rest_client;
+		delete _ws_client;
 	};
 };
 

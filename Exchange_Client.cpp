@@ -52,6 +52,7 @@ void Client::renew_session()
 Client::~Client()
 {
 	delete _rest_client;
+	delete _ws_client;
 };
 
 
@@ -71,7 +72,7 @@ SpotClient::SpotClient(std::string key, std::string secret)
 unsigned long long SpotClient::exchange_time()
 {
 	std::string endpoint = "/api/v3/time";
-	std::string ex_time = (this->_rest_client)->_getreq(this->_BASE_REST_GEN + endpoint)["response"]["serverTime"].asString();
+	std::string ex_time = (this->_rest_client)->_getreq(this->_BASE_REST + endpoint)["response"]["serverTime"].asString();
 
 	return std::atoll(ex_time.c_str());
 }
@@ -81,13 +82,18 @@ bool SpotClient::ping_client()
 	try
 	{
 		std::string endpoint = "/api/v3/ping";
-		Json::Value ping_response = (this->_rest_client)->_getreq(this->_BASE_REST_GEN + endpoint)["response"];
+		Json::Value ping_response = (this->_rest_client)->_getreq(this->_BASE_REST + endpoint)["response"];
 		return (ping_response != Json::nullValue);
 	}
 	catch (...)
 	{
 		throw("bad_ping");
 	}
+}
+
+void SpotClient::init_ws(std::string host, std::string port)
+{
+	this->_ws_client = new WebsocketClient{this->_WS_BASE, this->_WS_PORT};
 }
 
 Json::Value SpotClient::send_order(Params& param_obj)
@@ -103,7 +109,7 @@ Json::Value SpotClient::send_order(Params& param_obj)
 	std::cout << query;
 
 	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
-	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_GEN + endpoint + query);
+	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST + endpoint + query);
 
 	if (this->flush_params) param_obj.clear_params();
 
@@ -115,7 +121,8 @@ Json::Value SpotClient::send_order(Params& param_obj)
 
 // FuturesClient definitions
 
-FuturesClient::FuturesClient() : Client()
+FuturesClient::FuturesClient()
+	: Client()
 {
 	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
 };
@@ -146,6 +153,11 @@ bool FuturesClient::ping_client()
 	{ 
 		throw("bad_ping");
 	}
+}
+
+void FuturesClient::init_ws(std::string host, std::string port)
+{
+	this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES, this->_WS_PORT };
 }
 
 Json::Value FuturesClient::send_order(Params& param_obj)
@@ -185,6 +197,14 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 
 	return response;
 }
+
+
+void FuturesClient::aggTrade(std::string symbol)
+{
+	this->_ws_client->start_stream("/ws/btcusdt@aggTrade"); // todo: delete 'btcusdt'
+}
+
+
 
 // Params definitions
 
