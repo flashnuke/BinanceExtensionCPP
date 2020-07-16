@@ -16,7 +16,6 @@ void WebsocketClient::_init_client()
     ssl::context ctx{ ssl::context::tlsv12_client };
     tcp::resolver resolver{ ioc };
     this->_ws = new websocket::stream<beast::ssl_stream<tcp::socket>>{ioc, ctx};
-
 }
 
 void WebsocketClient::_connect_to_endpoint(std::string endpoint)
@@ -31,6 +30,20 @@ void WebsocketClient::_connect_to_endpoint(std::string endpoint)
     this->_ws->next_layer().handshake(ssl::stream_base::client);
     this->_ws->handshake(this->_host, endpoint); // "/ws/btcusdt@aggTrade"
 }
+
+void WebsocketClient::start_stream(std::string endpoint)
+// todo: insert pointer as param, change void
+{
+    this->_connect_to_endpoint(endpoint);
+    beast::flat_buffer buffer;
+
+    while (1)
+    {
+        this->_ws->read(buffer);
+        std::cout << beast::make_printable(buffer.data()) << std::endl;
+    }
+}
+
 
 WebsocketClient::~WebsocketClient()
 {
