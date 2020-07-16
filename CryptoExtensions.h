@@ -12,6 +12,7 @@
 #include <openssl/sha.h>
 #include <chrono>
 #include <string>
+#include <map>
 
 unsigned long long local_timestamp();
 inline auto binary_to_hex_digit(unsigned a) -> char;
@@ -91,10 +92,10 @@ protected:
 	virtual ~Client();
 
 public:
-	static std::string _generate_query(Params& params_obj);
+	std::string _generate_query(Params& params_obj);
 
-	static const std::string _BASE_REST_FUTURES;
-	static const std::string _BASE_REST_GEN;
+	const std::string _BASE_REST_FUTURES{ "https://fapi.binance.com" };
+	const std::string _BASE_REST_GEN{ "https://api.binance.com" };
 
 	bool flush_params; // if true, param objects passed to functions will be flushed
 

@@ -1,15 +1,9 @@
-#include <map>
-
-#ifndef cout
-#include <iostream>
-#endif
 
 #include "CryptoExtensions.h"
 
 // Client definitions
 
-const std::string Client::_BASE_REST_FUTURES = "https://fapi.binance.com"; // static
-const std::string Client::_BASE_REST_GEN = "https://api.binance.com"; // static
+
 
 Client::Client() : _public_client{ 1 }, flush_params{ 0 }
 {
