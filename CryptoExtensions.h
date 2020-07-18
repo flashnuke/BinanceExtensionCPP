@@ -4,6 +4,7 @@
 // todo: instantiate only if ws is called!
 // todo: websocket handshakes vector. 
 
+
 #ifndef CRYPTO_EXTENSIONS_H
 #define CRYPTO_EXTENSIONS_H
 
@@ -78,16 +79,16 @@ private:
 
 public:
 	WebsocketClient(std::string host, std::string port);
-	std::map<std::string, std::thread> running_streams;
+	std::map<std::string, std::thread*> running_streams;
 
 	template <class FT>
 	void start_stream(std::string endpoint, std::string stream_name, std::string& buffer, FT& functor)
 	{
-		std::thread new_stream = std::thread([this](std::string endp, std::string& str_buf, FT& cb_func) {this->_connect_to_endpoint<FT>(endp, str_buf, cb_func); },
+		std::thread* new_stream = new std::thread([this](std::string endp, std::string& str_buf, FT& cb_func) {this->_connect_to_endpoint<FT>(endp, str_buf, cb_func); },
 			endpoint,
 			std::ref(buffer),
 			std::ref(functor));
-		//this->running_streams[stream_name] = new_stream; // todo: fix this. 
+		this->running_streams[stream_name] = new_stream;
 	}
 	~WebsocketClient();
 

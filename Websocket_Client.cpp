@@ -4,6 +4,7 @@
 // todo: keep thread without joining?
 // todo: if streamname in map, abort? in order to avoid dups, simply send the entire path or with symbol
 // todo: make ws local and no need for 'new' 'delete'
+// todo: destructor for thread maps
 
 #include "CryptoExtensions.h"
 
