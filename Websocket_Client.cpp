@@ -11,9 +11,10 @@ WebsocketClient::WebsocketClient(std::string host, std::string port)
 
 void WebsocketClient::_connect_to_endpoint(std::string endpoint)
 {
-    if (this->_ws->is_open()) std::cout << "there is a client already? " << this->_ws->is_open() << "\n";
-    
-
+    if (this->_ws)
+    {
+        if(this->_ws->is_open()) std::cout << "there is a client already? " << this->_ws->is_open() << "\n";
+    }
     
     net::io_context ioc;
     ssl::context ctx{ ssl::context::tlsv12_client };
@@ -38,16 +39,9 @@ void WebsocketClient::_connect_to_endpoint(std::string endpoint)
 
 void WebsocketClient::start_stream(std::string endpoint)
 // todo: insert pointer as param, change void
+// todo: insert function as param. pass pointer into function (callback)
 {
     this->_connect_to_endpoint(endpoint);
-    beast::flat_buffer buffer;
-
-    while (1)
-    {
-        this->_ws->read(buffer);
-        std::cout << beast::make_printable(buffer.data()) << std::endl;
-    }
-    std::cout << "asd";
 }
 
 
