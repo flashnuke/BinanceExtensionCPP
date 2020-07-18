@@ -9,7 +9,7 @@
 
 #define _WIN32_WINNT 0x0601 // for boost
 
-
+// external libraries
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/connect.hpp>
@@ -18,9 +18,13 @@
 #include <curl/curl.h>
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
+
+// STL
 #include <chrono>
 #include <string>
 #include <map>
+#include <thread>
+#include <vector>
 
 
 namespace beast = boost::beast;
@@ -41,14 +45,50 @@ private:
 	std::string _host;
 	std::string _port;
 	websocket::stream<beast::ssl_stream<tcp::socket>>* _ws{ nullptr };
-	void _connect_to_endpoint(std::string endpoint);
+
+	template <class FT>
+	void _connect_to_endpoint(std::string endpoint, std::string& buf, FT& functor)
+	{
+		if (this->_ws)
+		{
+			if (this->_ws->is_open()) std::cout << "there is a client already? " << this->_ws->is_open() << "\n";
+		}
+
+		net::io_context ioc;
+		ssl::context ctx{ ssl::context::tlsv12_client };
+		tcp::resolver resolver{ ioc };
+		this->_ws = new websocket::stream<beast::ssl_stream<tcp::socket>>{ ioc, ctx };
+
+		auto const ex_client = resolver.resolve(this->_host, this->_port);
+		auto ep = net::connect(get_lowest_layer(*this->_ws), ex_client);
+		this->_host += ':' + std::to_string(ep.port());
+		this->_ws->next_layer().handshake(ssl::stream_base::client);
+
+		(this->_ws)->handshake(this->_host, "/ws/btcusdt@aggTrade"); // "/ws/btcusdt@aggTrade"
+		beast::flat_buffer buffer;
+
+		while (1)
+		{
+			this->_ws->read(buffer);
+			std::cout << beast::make_printable(buffer.data()) << std::endl;
+		}
+
+	}
 
 
 public:
 	WebsocketClient(std::string host, std::string port);
+	std::map<std::string, std::thread> running_streams;
 
-	void start_stream(std::string endpoint); // todo: insert pointer as param, change void
-
+	template <class FT>
+	void start_stream(std::string endpoint, std::string stream_name, std::string& buffer, FT& functor)
+	{
+		std::thread new_stream = std::thread([this](std::string endp, std::string& str_buf, FT& cb_func) {this->_connect_to_endpoint<FT>(endp, str_buf, cb_func); },
+			endpoint,
+			std::ref(buffer),
+			std::ref(functor));
+		//this->running_streams[stream_name] = new_stream; // todo: fix this. 
+	}
 	~WebsocketClient();
 
 };
@@ -185,7 +225,19 @@ public:
 	void init_ws();
 
 	Json::Value send_order(Params& parameter_vec);
-	void aggTrade(std::string symbol); // todo: change from void
+
+
+	template <class FT>
+	void aggTrade(std::string symbol, std::string& buffer, FT& functor)
+	{
+		// note: symbol must be lowercase
+		// todo: add if ws session exists or not
+		// todo: add symbol param
+		this->init_ws(); // todo: wtf is this 
+		std::string stream_name{ "aggTrade" };
+		std::string path = "/ws/" + symbol + "@aggTrade";
+		this->_ws_client->start_stream<FT>(path, stream_name, buffer, functor); // todo: delete 'btcusdt'
+	}
 
 	~SpotClient() // move to external
 	{

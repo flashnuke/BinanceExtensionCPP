@@ -118,13 +118,6 @@ Json::Value SpotClient::send_order(Params& param_obj)
 
 }
 
-void SpotClient::aggTrade(std::string symbol)
-{
-	// todo: add if ws session exists or not
-	// todo: add symbol param
-	this->init_ws();
-	this->_ws_client->start_stream("/ws/btcusdt@aggTrade"); // todo: delete 'btcusdt'
-}
 
 
 
@@ -212,8 +205,8 @@ void FuturesClient::aggTrade(std::string symbol)
 {
 	// todo: add if ws session exists or not
 	// todo: add symbol param
-	this->init_ws();
-	this->_ws_client->start_stream("/ws/btcusdt@aggTrade"); // todo: delete 'btcusdt'
+	//this->init_ws();
+	//this->_ws_client->start_stream("/ws/btcusdt@aggTrade"); // todo: delete 'btcusdt'
 }
 
 
