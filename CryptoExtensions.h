@@ -2,6 +2,7 @@
 
 // todo: construct client with json file!
 // todo: instantiate only if ws is called!
+// todo: websocket handshakes vector. 
 
 #ifndef CRYPTO_EXTENSIONS_H
 #define CRYPTO_EXTENSIONS_H
@@ -40,7 +41,6 @@ private:
 	std::string _host;
 	std::string _port;
 	websocket::stream<beast::ssl_stream<tcp::socket>>* _ws{ nullptr };
-	void _init_client();
 	void _connect_to_endpoint(std::string endpoint);
 
 
@@ -136,7 +136,7 @@ public:
 
 	virtual unsigned long long exchange_time() = 0;
 	virtual bool ping_client() = 0;
-	virtual void init_ws(std::string host, std::string port) = 0;
+	virtual void init_ws() = 0;
 
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
@@ -157,7 +157,7 @@ public:
 
 	unsigned long long exchange_time();
 	bool ping_client();
-	void init_ws(std::string host, std::string port);
+	void init_ws();
 
 	Json::Value send_order(Params& parameter_vec);
 	Json::Value fetch_balances(Params& param_obj);
@@ -182,9 +182,10 @@ public:
 
 	unsigned long long exchange_time();
 	bool ping_client();
-	void init_ws(std::string host, std::string port);
+	void init_ws();
 
 	Json::Value send_order(Params& parameter_vec);
+	void aggTrade(std::string symbol); // todo: change from void
 
 	~SpotClient() // move to external
 	{

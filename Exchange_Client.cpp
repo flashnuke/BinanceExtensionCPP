@@ -33,7 +33,7 @@ std::string Client::_generate_query(Params& params_obj)
 }
 
 
-void Client::renew_session()
+void Client::renew_session() // make separate for ws and rest
 {
 	if (this->_rest_client) delete this->_rest_client;
 
@@ -91,8 +91,9 @@ bool SpotClient::ping_client()
 	}
 }
 
-void SpotClient::init_ws(std::string host, std::string port)
+void SpotClient::init_ws()
 {
+	// todo: add if exists then close and re-open
 	this->_ws_client = new WebsocketClient{this->_WS_BASE, this->_WS_PORT};
 }
 
@@ -115,6 +116,14 @@ Json::Value SpotClient::send_order(Params& param_obj)
 
 	return response;
 
+}
+
+void SpotClient::aggTrade(std::string symbol)
+{
+	// todo: add if ws session exists or not
+	// todo: add symbol param
+	this->init_ws();
+	this->_ws_client->start_stream("/ws/btcusdt@aggTrade"); // todo: delete 'btcusdt'
 }
 
 
@@ -155,7 +164,7 @@ bool FuturesClient::ping_client()
 	}
 }
 
-void FuturesClient::init_ws(std::string host, std::string port)
+void FuturesClient::init_ws()
 {
 	this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES, this->_WS_PORT };
 }
@@ -201,6 +210,9 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 
 void FuturesClient::aggTrade(std::string symbol)
 {
+	// todo: add if ws session exists or not
+	// todo: add symbol param
+	this->init_ws();
 	this->_ws_client->start_stream("/ws/btcusdt@aggTrade"); // todo: delete 'btcusdt'
 }
 
