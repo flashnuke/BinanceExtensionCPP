@@ -97,6 +97,18 @@ void SpotClient::init_ws()
 	this->_ws_client = new WebsocketClient{this->_WS_BASE, this->_WS_PORT};
 }
 
+void SpotClient::close_stream(const std::string symbol, const std::string stream_name)
+{
+	try
+	{
+		this->_ws_client->close_stream(symbol + "@" + stream_name);
+	}
+	catch (...)
+	{
+		throw("stream_close_exc");
+	}
+}
+
 Json::Value SpotClient::send_order(Params& param_obj)
 {
 
@@ -160,6 +172,18 @@ bool FuturesClient::ping_client()
 void FuturesClient::init_ws()
 {
 	this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES, this->_WS_PORT };
+}
+
+void FuturesClient::close_stream(const std::string symbol, const std::string stream_name)
+{
+	try
+	{
+		this->_ws_client->close_stream(symbol + "@" + stream_name);
+	}
+	catch (...)
+	{
+		throw("stream_close_exc");
+	}
 }
 
 Json::Value FuturesClient::send_order(Params& param_obj)

@@ -14,7 +14,10 @@ WebsocketClient::WebsocketClient(std::string host, std::string port)
 {}
 
 
-
+void WebsocketClient::close_stream(const std::string full_stream_name)
+{
+    this->running_streams[full_stream_name] = 0;
+}
 
 
 WebsocketClient::~WebsocketClient()
@@ -23,7 +26,7 @@ WebsocketClient::~WebsocketClient()
 
     for (stream_itr = this->running_streams.begin(); stream_itr != this->running_streams.end(); stream_itr++)
     {
-        (stream_itr->second) = 0; // set status to false
+        (stream_itr->second) = 0; // set status to false to ensure closing streams
 
     }
 }

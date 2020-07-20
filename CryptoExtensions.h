@@ -48,6 +48,9 @@ public:
 	WebsocketClient(std::string host, std::string port);
 	std::map<std::string, bool> running_streams; // will be a map, containing pairs of: <bool(status), ws_stream> 
 
+	void close_stream(const std::string stream_name);
+
+
 	template <class FT>
 	void _connect_to_endpoint(std::string symbol, std::string stream_name, std::string& buf, FT& functor)
 	{
@@ -76,7 +79,7 @@ public:
 
 			if (ws.is_open())
 			{
-				this->running_streams[stream_map_name] = true;
+				this->running_streams[stream_map_name] = 1;
 			}
 			else
 			{
@@ -198,6 +201,8 @@ public:
 	virtual unsigned long long exchange_time() = 0;
 	virtual bool ping_client() = 0;
 	virtual void init_ws() = 0;
+	virtual void close_stream(const std::string symbol, const std::string stream_name) = 0;
+
 
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
@@ -219,6 +224,8 @@ public:
 	unsigned long long exchange_time();
 	bool ping_client();
 	void init_ws();
+	void close_stream(const std::string symbol, const std::string stream_name);
+
 
 	Json::Value send_order(Params& parameter_vec);
 	Json::Value fetch_balances(Params& param_obj);
@@ -243,6 +250,7 @@ public:
 	unsigned long long exchange_time();
 	bool ping_client();
 	void init_ws();
+	void close_stream(const std::string symbol, const std::string stream_name);
 
 	Json::Value send_order(Params& parameter_vec);
 
