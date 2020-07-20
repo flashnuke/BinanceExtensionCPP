@@ -1,10 +1,10 @@
 
 // todo: in 'connect' method, check firstly if we are connected alrdy. if so, disconnect
-// todo: add_stream (to vector) vs start_stream (generate query and start)
 // todo: keep thread without joining?
 // todo: if streamname in map, abort? in order to avoid dups, simply send the entire path or with symbol
-// todo: make ws local and no need for 'new' 'delete'
-// todo: destructor for thread maps
+// todo: form a 'stream' object that would contain: thread addr, functor, pointer to stream string, status, error_code
+// todo: stream object contains: disconnect(), reconnect() - delete current thread and call _connect_endpoint() method
+// todod dest: while status != 0: set 0 and delete thread pointer!
 
 #include "CryptoExtensions.h"
 
@@ -19,5 +19,11 @@ WebsocketClient::WebsocketClient(std::string host, std::string port)
 
 WebsocketClient::~WebsocketClient()
 {
-    delete this->_ws;
+    std::map<std::string, bool>::iterator stream_itr; // while status != 0: set 0 and delete thread pointer!
+
+    for (stream_itr = this->running_streams.begin(); stream_itr != this->running_streams.end(); stream_itr++)
+    {
+        (stream_itr->second) = 0; // set status to false
+
+    }
 }

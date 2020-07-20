@@ -1,8 +1,5 @@
 
 
-// todo: construct client with json file!
-// todo: instantiate only if ws is called!
-// todo: websocket handshakes vector. 
 
 
 #ifndef CRYPTO_EXTENSIONS_H
@@ -14,13 +11,14 @@
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/connect.hpp>
-#include <iostream>
+
 #include <json/json.h>
 #include <curl/curl.h>
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
 
 // STL
+#include <iostream>
 #include <chrono>
 #include <string>
 #include <map>
@@ -45,51 +43,73 @@ class WebsocketClient
 private:
 	std::string _host;
 	std::string _port;
-	websocket::stream<beast::ssl_stream<tcp::socket>>* _ws{ nullptr };
-
-	template <class FT>
-	void _connect_to_endpoint(std::string endpoint, std::string& buf, FT& functor)
-	{
-		if (this->_ws)
-		{
-			if (this->_ws->is_open()) std::cout << "there is a client already? " << this->_ws->is_open() << "\n";
-		}
-
-		net::io_context ioc;
-		ssl::context ctx{ ssl::context::tlsv12_client };
-		tcp::resolver resolver{ ioc };
-		this->_ws = new websocket::stream<beast::ssl_stream<tcp::socket>>{ ioc, ctx };
-
-		auto const ex_client = resolver.resolve(this->_host, this->_port);
-		auto ep = net::connect(get_lowest_layer(*this->_ws), ex_client);
-		this->_host += ':' + std::to_string(ep.port());
-		this->_ws->next_layer().handshake(ssl::stream_base::client);
-
-		(this->_ws)->handshake(this->_host, "/ws/btcusdt@aggTrade"); // "/ws/btcusdt@aggTrade"
-		beast::flat_buffer buffer;
-
-		while (1)
-		{
-			this->_ws->read(buffer);
-			std::cout << beast::make_printable(buffer.data()) << std::endl;
-		}
-
-	}
-
 
 public:
 	WebsocketClient(std::string host, std::string port);
-	std::map<std::string, std::thread*> running_streams;
+	std::map<std::string, bool> running_streams; // will be a map, containing pairs of: <bool(status), ws_stream> 
 
 	template <class FT>
-	void start_stream(std::string endpoint, std::string stream_name, std::string& buffer, FT& functor)
+	void _connect_to_endpoint(std::string symbol, std::string stream_name, std::string& buf, FT& functor)
 	{
-		std::thread* new_stream = new std::thread([this](std::string endp, std::string& str_buf, FT& cb_func) {this->_connect_to_endpoint<FT>(endp, str_buf, cb_func); },
-			endpoint,
-			std::ref(buffer),
-			std::ref(functor));
-		this->running_streams[stream_name] = new_stream;
+
+		std::string stream_map_name = symbol + "@" + stream_name;
+
+		if (this->running_streams.find(stream_map_name) != this->running_streams.end()) // if stream in map
+		{
+			std::cout << "error: stream exists";
+		}
+		else
+		{
+			net::io_context ioc;
+			ssl::context ctx{ ssl::context::tlsv12_client };
+			tcp::resolver resolver{ ioc };
+			websocket::stream<beast::ssl_stream<tcp::socket>> ws{ ioc, ctx };
+
+			const boost::asio::ip::basic_resolver_results<boost::asio::ip::tcp> ex_client = resolver.resolve(this->_host, this->_port);
+			auto ep = net::connect(get_lowest_layer(ws), ex_client);
+			this->_host += ':' + std::to_string(ep.port());
+			ws.next_layer().handshake(ssl::stream_base::client);
+			std::string handshake_endp = "/ws/" + stream_map_name;
+			ws.handshake(this->_host, handshake_endp);
+
+			beast::error_code ec; // error code
+
+			if (ws.is_open())
+			{
+				this->running_streams[stream_map_name] = true;
+			}
+			else
+			{
+				throw("stream_init_bad");
+			}
+
+			while (this->running_streams[stream_map_name])
+			{
+				try
+				{
+					auto beast_buffer = boost::asio::dynamic_buffer(buf); // impossible to declare just once...
+					ws.read(beast_buffer, ec);
+					if (ec)
+					{
+						std::cerr << ec;
+						this->running_streams[stream_map_name] = 0;
+						throw("stream_response_bad"); // todo: add to exceptions
+					}
+
+					functor(buf);
+					buf.clear();
+				}
+				catch (...)
+				{
+					this->running_streams[stream_map_name] = 0;
+					throw("stream_response_exception"); // todo: add to exceptions
+				}
+
+			}
+		}
+
 	}
+
 	~WebsocketClient();
 
 };
@@ -212,7 +232,6 @@ public:
 };
 
 
-
 class SpotClient : public Client
 {
 private:
@@ -236,8 +255,7 @@ public:
 		// todo: add symbol param
 		this->init_ws(); // todo: wtf is this 
 		std::string stream_name{ "aggTrade" };
-		std::string path = "/ws/" + symbol + "@aggTrade";
-		this->_ws_client->start_stream<FT>(path, stream_name, buffer, functor); // todo: delete 'btcusdt'
+		this->_ws_client->_connect_to_endpoint<FT>(symbol, stream_name, buffer, functor); // todo: delete 'btcusdt'
 	}
 
 	~SpotClient() // move to external

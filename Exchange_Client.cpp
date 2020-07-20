@@ -196,7 +196,6 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 
 	if (this->flush_params) param_obj.clear_params();
 
-
 	return response;
 }
 
