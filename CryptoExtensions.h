@@ -1,7 +1,5 @@
 
 
-
-
 #ifndef CRYPTO_EXTENSIONS_H
 #define CRYPTO_EXTENSIONS_H
 
@@ -43,8 +41,8 @@ std::string HMACsha256(std::string const& message, std::string const& key);
 class WebsocketClient
 {
 private:
-	std::string _host;
-	std::string _port;
+	const std::string _host;
+	const std::string _port;
 
 public:
 	WebsocketClient(std::string host, std::string port);
@@ -66,16 +64,18 @@ class RestSession
 {
 private:
 
-	std::string _req_raw_get; // todo -> make this get_response and flush everytime	
+	std::string _req_raw_get;
 	Json::Value _req_json_get;
 	CURLcode _get_status;
 
-	std::string _req_raw_post; // todo -> make this get_response and flush everytime	
+	std::string _req_raw_post;	
 	Json::Value _req_json_post;
 	CURLcode _post_status;
 
+	const std::string _base_path;
+
 public:
-	RestSession();
+	RestSession(const std::string base);
 
 	bool status; // bool for whether session is active or not
 	CURL* _get_handle{};
@@ -121,7 +121,6 @@ struct Params
 class Client
 {
 private:
-	bool const _public_client;
 
 
 protected:
@@ -133,19 +132,22 @@ protected:
 	virtual ~Client();
 
 public:
+	bool const _public_client;
+
 	std::string _generate_query(Params& params_obj);
 
 	const std::string _BASE_REST_FUTURES{ "https://fapi.binance.com" };
-	const std::string _BASE_REST{ "https://api.binance.com" };
+	const std::string _BASE_REST_SPOT{ "https://api.binance.com" };
 	const std::string _WS_BASE_FUTURES{"fstream.binance.com"};
-	const std::string _WS_BASE{ "stream.binance.com" };
+	const std::string _WS_BASE_SPOT{ "stream.binance.com" };
 	const std::string _WS_PORT{ "9443" };
 
 	bool flush_params; // if true, param objects passed to functions will be flushed
 
 	virtual unsigned long long exchange_time() = 0;
 	virtual bool ping_client() = 0;
-	virtual void init_ws() = 0;
+	virtual void init_ws_session() = 0;
+	virtual void init_rest_session() = 0;
 	virtual void close_stream(const std::string symbol, const std::string stream_name) = 0;
 	virtual bool is_stream_open(const std::string& symbol, const std::string& stream_name) = 0;
 	virtual std::vector<std::string> get_open_streams() = 0;
@@ -154,7 +156,6 @@ public:
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
 
-	void renew_session();
 
 };
 
@@ -170,20 +171,17 @@ public:
 
 	unsigned long long exchange_time();
 	bool ping_client();
-	void init_ws();
+	void init_ws_session();
+	void init_rest_session();
 	void close_stream(const std::string symbol, const std::string stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
 
 	Json::Value send_order(Params& parameter_vec);
 	Json::Value fetch_balances(Params& param_obj);
-	void aggTrade(std::string symbol); // todo: change from void
+	unsigned int aggTrade(std::string symbol);
 
-	~FuturesClient() // move to external
-	{
-		delete _rest_client;
-		delete _ws_client;
-	};
+	~FuturesClient();
 };
 
 
@@ -197,7 +195,8 @@ public:
 
 	unsigned long long exchange_time();
 	bool ping_client();
-	void init_ws();
+	void init_ws_session();
+	void init_rest_session();
 	void close_stream(const std::string symbol, const std::string stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
@@ -206,13 +205,9 @@ public:
 
 
 	template <class FT>
-	void aggTrade(std::string symbol, std::string& buffer, FT& functor);
+	unsigned int aggTrade(std::string symbol, std::string& buffer, FT& functor);
 
-	~SpotClient() // move to external
-	{
-		delete _rest_client;
-		delete _ws_client;
-	};
+	~SpotClient();
 };
 
 #endif

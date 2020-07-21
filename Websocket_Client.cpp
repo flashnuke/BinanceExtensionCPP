@@ -1,10 +1,4 @@
 
-// todo: in 'connect' method, check firstly if we are connected alrdy. if so, disconnect
-// todo: keep thread without joining?
-// todo: if streamname in map, abort? in order to avoid dups, simply send the entire path or with symbol
-// todo: form a 'stream' object that would contain: thread addr, functor, pointer to stream string, status, error_code
-// todo: stream object contains: disconnect(), reconnect() - delete current thread and call _connect_endpoint() method
-
 #include "CryptoExtensions.h"
 
 
@@ -46,8 +40,7 @@ bool WebsocketClient::is_open(const std::string& full_stream_name)
 template <class FT>
 void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor)
 {
-
-
+	this->running_streams[stream_map_name] = 0; // init
 	net::io_context ioc;
 	ssl::context ctx{ ssl::context::tlsv12_client };
 	tcp::resolver resolver{ ioc };
@@ -55,10 +48,10 @@ void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::str
 
 	const boost::asio::ip::basic_resolver_results<boost::asio::ip::tcp> ex_client = resolver.resolve(this->_host, this->_port);
 	auto ep = net::connect(get_lowest_layer(ws), ex_client);
-	this->_host += ':' + std::to_string(ep.port());
+	std::string full_host = this->_host + ':' + std::to_string(ep.port());
 	ws.next_layer().handshake(ssl::stream_base::client);
 	std::string handshake_endp = "/ws/" + stream_map_name;
-	ws.handshake(this->_host, handshake_endp);
+	ws.handshake(full_host, handshake_endp);
 
 	beast::error_code ec; // error code
 

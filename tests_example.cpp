@@ -8,7 +8,6 @@ std::string __KEYS_PATH = "keys_conf.json";
 
 struct SomeFunctor
 {
-    
     unsigned int current_price{ 0 };
     Json::CharReaderBuilder charbuilder;
     Json::CharReader* charreader = charbuilder.newCharReader();
@@ -51,7 +50,7 @@ int main()
 
     if (auth_mode) keys = load_keys(__KEYS_PATH);
 
-    SpotClient my_client{keys["key"].asString(), keys["secret"].asString()};
+    SpotClient my_client{ keys["key"].asString(), keys["secret"].asString() };
 
     int dynamic_num{ 0 };
     Params temp_params{};
@@ -87,11 +86,11 @@ int main()
             std::cout << "main loop";
             if (dynamic_num > 10)
             {
-              std::cout << "\nis stream open?" << my_client.is_stream_open("btcusdt", "aggTrade");
+                std::cout << "\nis stream open?" << my_client.is_stream_open("btcusdt", "aggTrade");
             }
             //my_client.aggTrade<SomeFunctor>("btcusdt", str_buf, btcusdt_agg);
         }
-        catch(...)
+        catch (...)
         {
             std::cout << "error in main loop";
         }

@@ -92,7 +92,8 @@ unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmem
 	return size * nmemb;
 };
 
-RestSession::RestSession()
+RestSession::RestSession(std::string base)
+	:_base_path{ base }
 {
 	_get_handle = curl_easy_init();
 	curl_easy_setopt(this->_get_handle, CURLOPT_HTTPGET, 1L);
@@ -117,8 +118,9 @@ RestSession::RestSession()
 	status = 1;
 }
 
-Json::Value RestSession::_getreq(std::string path)
+Json::Value RestSession::_getreq(std::string endpoint)
 {
+	std::string path = this->_base_path + endpoint;
 	curl_easy_setopt(this->_get_handle, CURLOPT_URL, path.c_str());
 
 	this->_get_status = curl_easy_perform(this->_get_handle);
@@ -126,8 +128,9 @@ Json::Value RestSession::_getreq(std::string path)
 	return this->_req_json_get;
 };
 
-Json::Value RestSession::_postreq(std::string path)
+Json::Value RestSession::_postreq(std::string endpoint)
 {
+	std::string path = this->_base_path + endpoint;
 	curl_easy_setopt(this->_post_handle, CURLOPT_URL, path.c_str());
 
 	this->_post_status = curl_easy_perform(this->_post_handle);
