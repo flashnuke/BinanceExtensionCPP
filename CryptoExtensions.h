@@ -26,6 +26,8 @@
 #include <vector>
 
 
+
+
 namespace beast = boost::beast;
 namespace websocket = beast::websocket;
 namespace net = boost::asio;
@@ -49,11 +51,11 @@ public:
 	std::map<std::string, bool> running_streams; // will be a map, containing pairs of: <bool(status), ws_stream> 
 
 	void close_stream(const std::string stream_name);
-	void get_streams();
-	void is_open(std::string symbol, std::string stream_name);
+	std::vector<std::string> open_streams();
+	bool is_open(const std::string& stream_name);
 
 	template <class FT>
-	void _connect_to_endpoint(std::string symbol, std::string stream_name, std::string& buf, FT& functor);
+	void _connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor);
 
 
 	~WebsocketClient();
@@ -145,6 +147,8 @@ public:
 	virtual bool ping_client() = 0;
 	virtual void init_ws() = 0;
 	virtual void close_stream(const std::string symbol, const std::string stream_name) = 0;
+	virtual bool is_stream_open(const std::string& symbol, const std::string& stream_name) = 0;
+	virtual std::vector<std::string> get_open_streams() = 0;
 
 
 	RestSession* _rest_client = nullptr; // move init
@@ -168,7 +172,8 @@ public:
 	bool ping_client();
 	void init_ws();
 	void close_stream(const std::string symbol, const std::string stream_name);
-
+	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
+	std::vector<std::string> get_open_streams();
 
 	Json::Value send_order(Params& parameter_vec);
 	Json::Value fetch_balances(Params& param_obj);
@@ -194,6 +199,8 @@ public:
 	bool ping_client();
 	void init_ws();
 	void close_stream(const std::string symbol, const std::string stream_name);
+	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
+	std::vector<std::string> get_open_streams();
 
 	Json::Value send_order(Params& parameter_vec);
 

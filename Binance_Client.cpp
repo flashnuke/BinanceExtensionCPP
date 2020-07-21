@@ -62,12 +62,14 @@ Client::~Client()
 SpotClient::SpotClient() : Client()
 {
 	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
+	this->init_ws();
 };
 
 SpotClient::SpotClient(std::string key, std::string secret)
 	: Client(key, secret)
 {
 	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
+	this->init_ws();
 }
 
 unsigned long long SpotClient::exchange_time()
@@ -94,7 +96,6 @@ bool SpotClient::ping_client()
 
 void SpotClient::init_ws()
 {
-	// todo: add if exists then close and re-open
 	this->_ws_client = new WebsocketClient{ this->_WS_BASE, this->_WS_PORT };
 }
 
@@ -135,13 +136,22 @@ template <class FT>
 void SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& functor)
 {
 	// note: symbol must be lowercase
-	// todo: add if ws session exists or not
-	// todo: add symbol param
-	this->init_ws(); // todo: wtf is this 
-	std::string stream_name{ "aggTrade" };
-	this->_ws_client->_connect_to_endpoint<FT>(symbol, stream_name, buffer, functor); // todo: delete 'btcusdt'
+	std::string full_stream_name = symbol + '@' + "aggTrade";
+	if (this->_ws_client->is_open(full_stream_name)) std::cout << "already exists"; // todo: exception here?
+	else this->_ws_client->_connect_to_endpoint<FT>(full_stream_name, buffer, functor); // todo: delete 'btcusdt'
 }
 
+
+bool SpotClient::is_stream_open(const std::string& symbol, const std::string& stream_name)
+{
+	std::string full_stream_name = symbol + '@' + stream_name;
+	return this->_ws_client->is_open(full_stream_name);
+}
+
+std::vector<std::string> SpotClient::get_open_streams()
+{
+	return this->_ws_client->open_streams();
+}
 
 
 // FuturesClient definitions
@@ -150,12 +160,14 @@ FuturesClient::FuturesClient()
 	: Client()
 {
 	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
+	this->init_ws();
 };
 
 FuturesClient::FuturesClient(std::string key, std::string secret)
 	: Client(key, secret)
 {
 	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
+	this->init_ws();
 }
 
 unsigned long long FuturesClient::exchange_time()
@@ -195,6 +207,11 @@ void FuturesClient::close_stream(const std::string symbol, const std::string str
 	{
 		throw("stream_close_exc");
 	}
+}
+
+std::vector<std::string> FuturesClient::get_open_streams()
+{
+	return this->_ws_client->open_streams();
 }
 
 Json::Value FuturesClient::send_order(Params& param_obj)
@@ -241,6 +258,13 @@ void FuturesClient::aggTrade(std::string symbol)
 	// todo: add symbol param
 	//this->init_ws();
 	//this->_ws_client->start_stream("/ws/btcusdt@aggTrade"); // todo: delete 'btcusdt'
+}
+
+
+bool FuturesClient::is_stream_open(const std::string& symbol, const std::string& stream_name)
+{
+	std::string full_stream_name = symbol + '@' + stream_name;
+	return this->_ws_client->is_open(full_stream_name);
 }
 
 

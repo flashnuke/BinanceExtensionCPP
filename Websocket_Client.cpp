@@ -4,7 +4,6 @@
 // todo: if streamname in map, abort? in order to avoid dups, simply send the entire path or with symbol
 // todo: form a 'stream' object that would contain: thread addr, functor, pointer to stream string, status, error_code
 // todo: stream object contains: disconnect(), reconnect() - delete current thread and call _connect_endpoint() method
-// todod dest: while status != 0: set 0 and delete thread pointer!
 
 #include "CryptoExtensions.h"
 
@@ -14,75 +13,86 @@ WebsocketClient::WebsocketClient(std::string host, std::string port)
 {}
 
 
-void WebsocketClient::close_stream(const std::string full_stream_name)
+void WebsocketClient::close_stream(const std::string full_stream_name) // todo: return sucess unsigned int
 {
     this->running_streams[full_stream_name] = 0;
 }
 
-void WebsocketClient::get_streams()
-{};
+std::vector<std::string> WebsocketClient::open_streams()
+{
+	std::map<std::string, bool>::iterator itr;
+	std::vector<std::string> results;
 
-void WebsocketClient::is_open(std::string symbol, std::string stream_name)
-{};
+	for (itr = this->running_streams.begin(); itr != this->running_streams.end(); itr++)
+	{
+		if (itr->second) results.push_back(itr->first);
+	}
+
+	return results;
+};
+
+bool WebsocketClient::is_open(const std::string& full_stream_name)
+{
+	std::map<std::string, bool>::iterator itr;
+
+	for (itr = this->running_streams.begin(); itr != this->running_streams.end(); itr++)
+	{
+		if (itr->first == full_stream_name) return itr->second;
+	}
+
+	return 0; // does not exit - is not open
+};
 
 template <class FT>
-void WebsocketClient::_connect_to_endpoint(std::string symbol, std::string stream_name, std::string& buf, FT& functor)
+void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor)
 {
 
-	std::string stream_map_name = symbol + "@" + stream_name;
 
-	if (this->running_streams.find(stream_map_name) != this->running_streams.end()) // if stream in map
+	net::io_context ioc;
+	ssl::context ctx{ ssl::context::tlsv12_client };
+	tcp::resolver resolver{ ioc };
+	websocket::stream<beast::ssl_stream<tcp::socket>> ws{ ioc, ctx };
+
+	const boost::asio::ip::basic_resolver_results<boost::asio::ip::tcp> ex_client = resolver.resolve(this->_host, this->_port);
+	auto ep = net::connect(get_lowest_layer(ws), ex_client);
+	this->_host += ':' + std::to_string(ep.port());
+	ws.next_layer().handshake(ssl::stream_base::client);
+	std::string handshake_endp = "/ws/" + stream_map_name;
+	ws.handshake(this->_host, handshake_endp);
+
+	beast::error_code ec; // error code
+
+	if (ws.is_open())
 	{
-		std::cout << "error: stream exists";
+		this->running_streams[stream_map_name] = 1;
 	}
 	else
 	{
-		net::io_context ioc;
-		ssl::context ctx{ ssl::context::tlsv12_client };
-		tcp::resolver resolver{ ioc };
-		websocket::stream<beast::ssl_stream<tcp::socket>> ws{ ioc, ctx };
+		throw("stream_init_bad");
+	}
 
-		const boost::asio::ip::basic_resolver_results<boost::asio::ip::tcp> ex_client = resolver.resolve(this->_host, this->_port);
-		auto ep = net::connect(get_lowest_layer(ws), ex_client);
-		this->_host += ':' + std::to_string(ep.port());
-		ws.next_layer().handshake(ssl::stream_base::client);
-		std::string handshake_endp = "/ws/" + stream_map_name;
-		ws.handshake(this->_host, handshake_endp);
-
-		beast::error_code ec; // error code
-
-		if (ws.is_open())
+	while (this->running_streams[stream_map_name])
+	{
+		try
 		{
-			this->running_streams[stream_map_name] = 1;
-		}
-		else
-		{
-			throw("stream_init_bad");
-		}
-
-		while (this->running_streams[stream_map_name])
-		{
-			try
+			auto beast_buffer = boost::asio::dynamic_buffer(buf); // impossible to declare just once...
+			ws.read(beast_buffer, ec);
+			if (ec)
 			{
-				auto beast_buffer = boost::asio::dynamic_buffer(buf); // impossible to declare just once...
-				ws.read(beast_buffer, ec);
-				if (ec)
-				{
-					std::cerr << ec;
-					this->running_streams[stream_map_name] = 0;
-					throw("stream_response_bad"); // todo: add to exceptions. throw error code
-				}
-
-				functor(buf);
-				buf.clear();
-			}
-			catch (...)
-			{
+				std::cerr << ec;
 				this->running_streams[stream_map_name] = 0;
-				throw("stream_response_exception"); // todo: add to exceptions
+				throw("stream_response_bad"); // todo: add to exceptions. throw error code
 			}
 
+			functor(buf);
+			buf.clear();
 		}
+		catch (...)
+		{
+			this->running_streams[stream_map_name] = 0;
+			throw("stream_response_exception"); // todo: add to exceptions
+		}
+
 	}
 
 }
