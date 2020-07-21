@@ -1,5 +1,6 @@
 
 #include "CryptoExtensions.h"
+#include "Websocket_Client.cpp" // because of templates
 
 // Client definitions
 
@@ -10,7 +11,7 @@ Client::Client() : _public_client{ 1 }, flush_params{ 0 }
 	renew_session();
 };
 
-Client::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key { key }, _api_secret{ secret }, flush_params{ 0 }
+Client::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, flush_params{ 0 }
 {
 	renew_session();
 };
@@ -94,7 +95,7 @@ bool SpotClient::ping_client()
 void SpotClient::init_ws()
 {
 	// todo: add if exists then close and re-open
-	this->_ws_client = new WebsocketClient{this->_WS_BASE, this->_WS_PORT};
+	this->_ws_client = new WebsocketClient{ this->_WS_BASE, this->_WS_PORT };
 }
 
 void SpotClient::close_stream(const std::string symbol, const std::string stream_name)
@@ -130,6 +131,16 @@ Json::Value SpotClient::send_order(Params& param_obj)
 
 }
 
+template <class FT>
+void SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& functor)
+{
+	// note: symbol must be lowercase
+	// todo: add if ws session exists or not
+	// todo: add symbol param
+	this->init_ws(); // todo: wtf is this 
+	std::string stream_name{ "aggTrade" };
+	this->_ws_client->_connect_to_endpoint<FT>(symbol, stream_name, buffer, functor); // todo: delete 'btcusdt'
+}
 
 
 
@@ -151,7 +162,7 @@ unsigned long long FuturesClient::exchange_time()
 {
 	std::string endpoint = "/fapi/v1/time"; // fix
 	std::string ex_time = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint)["response"]["serverTime"].asString();
-	
+
 	return std::atoll(ex_time.c_str());
 }
 
@@ -164,7 +175,7 @@ bool FuturesClient::ping_client()
 		return (ping_response != Json::nullValue);
 	}
 	catch (...)
-	{ 
+	{
 		throw("bad_ping");
 	}
 }
