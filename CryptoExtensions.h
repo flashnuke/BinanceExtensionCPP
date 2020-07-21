@@ -1,25 +1,29 @@
 
 
-// todo: construct client with json file!
-// todo: instantiate only if ws is called!
+
 
 #ifndef CRYPTO_EXTENSIONS_H
 #define CRYPTO_EXTENSIONS_H
 
 #define _WIN32_WINNT 0x0601 // for boost
 
-
+// external libraries
 #include <boost/beast/ssl.hpp>
 #include <boost/beast/websocket.hpp>
 #include <boost/asio/connect.hpp>
-#include <iostream>
+
 #include <json/json.h>
 #include <curl/curl.h>
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
+
+// STL
+#include <iostream>
 #include <chrono>
 #include <string>
 #include <map>
+#include <thread>
+#include <vector>
 
 
 namespace beast = boost::beast;
@@ -39,15 +43,18 @@ class WebsocketClient
 private:
 	std::string _host;
 	std::string _port;
-	websocket::stream<beast::ssl_stream<tcp::socket>>* _ws{ nullptr };
-	void _init_client();
-	void _connect_to_endpoint(std::string endpoint);
-
 
 public:
 	WebsocketClient(std::string host, std::string port);
+	std::map<std::string, bool> running_streams; // will be a map, containing pairs of: <bool(status), ws_stream> 
 
-	void start_stream(std::string endpoint); // todo: insert pointer as param, change void
+	void close_stream(const std::string stream_name);
+	void get_streams();
+	void is_open(std::string symbol, std::string stream_name);
+
+	template <class FT>
+	void _connect_to_endpoint(std::string symbol, std::string stream_name, std::string& buf, FT& functor);
+
 
 	~WebsocketClient();
 
@@ -136,7 +143,9 @@ public:
 
 	virtual unsigned long long exchange_time() = 0;
 	virtual bool ping_client() = 0;
-	virtual void init_ws(std::string host, std::string port) = 0;
+	virtual void init_ws() = 0;
+	virtual void close_stream(const std::string symbol, const std::string stream_name) = 0;
+
 
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
@@ -157,7 +166,9 @@ public:
 
 	unsigned long long exchange_time();
 	bool ping_client();
-	void init_ws(std::string host, std::string port);
+	void init_ws();
+	void close_stream(const std::string symbol, const std::string stream_name);
+
 
 	Json::Value send_order(Params& parameter_vec);
 	Json::Value fetch_balances(Params& param_obj);
@@ -171,7 +182,6 @@ public:
 };
 
 
-
 class SpotClient : public Client
 {
 private:
@@ -182,9 +192,14 @@ public:
 
 	unsigned long long exchange_time();
 	bool ping_client();
-	void init_ws(std::string host, std::string port);
+	void init_ws();
+	void close_stream(const std::string symbol, const std::string stream_name);
 
 	Json::Value send_order(Params& parameter_vec);
+
+
+	template <class FT>
+	void aggTrade(std::string symbol, std::string& buffer, FT& functor);
 
 	~SpotClient() // move to external
 	{
