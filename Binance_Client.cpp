@@ -30,20 +30,33 @@ std::string Client::_generate_query(Params& params_obj)
 }
 
 
-void SpotClient::init_rest_session() // make separate for ws and rest
+bool SpotClient::init_rest_session() // make separate for ws and rest
 {
-	if (this->_rest_client) delete this->_rest_client;
-
-	this->_rest_client = new RestSession{ this->_BASE_REST_SPOT };
-	if (!this->_public_client)
+	try
 	{
-		std::string key_header = "X-MBX-APIKEY:" + this->_api_key; // header for api key
-		struct curl_slist* auth_headers;
-		auth_headers = curl_slist_append(NULL, key_header.c_str());
 
-		curl_easy_setopt((this->_rest_client)->_get_handle, CURLOPT_HTTPHEADER, auth_headers);
-		curl_easy_setopt((this->_rest_client)->_post_handle, CURLOPT_HTTPHEADER, auth_headers);
+
+		if (this->_rest_client) delete this->_rest_client;
+
+		this->_rest_client = new RestSession{ this->_BASE_REST_SPOT };
+		if (!this->_public_client)
+		{
+			std::string key_header = "X-MBX-APIKEY:" + this->_api_key; // header for api key
+			struct curl_slist* auth_headers;
+			auth_headers = curl_slist_append(NULL, key_header.c_str());
+
+			curl_easy_setopt((this->_rest_client)->_get_handle, CURLOPT_HTTPHEADER, auth_headers);
+			curl_easy_setopt((this->_rest_client)->_post_handle, CURLOPT_HTTPHEADER, auth_headers);
+		}
+		if (!(this->ping_client())) return 0;
+
+		return 1;
 	}
+	catch (...)
+	{
+		throw("bad_init_rest");
+	}
+
 }
 
 Client::~Client()
@@ -59,8 +72,6 @@ SpotClient::SpotClient() : Client()
 {
 	this->init_ws_session();
 	this->init_rest_session();
-	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
-
 };
 
 SpotClient::SpotClient(std::string key, std::string secret)
@@ -68,7 +79,6 @@ SpotClient::SpotClient(std::string key, std::string secret)
 {
 	this->init_rest_session();
 	this->init_ws_session();
-	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
 }
 
 unsigned long long SpotClient::exchange_time()
@@ -93,10 +103,18 @@ bool SpotClient::ping_client()
 	}
 }
 
-void SpotClient::init_ws_session()
+bool SpotClient::init_ws_session()
 {
-	if (this->_ws_client) delete this->_rest_client;
-	this->_ws_client = new WebsocketClient{ this->_WS_BASE_SPOT, this->_WS_PORT };
+	try
+	{
+		if (this->_ws_client) delete this->_rest_client;
+		this->_ws_client = new WebsocketClient{ this->_WS_BASE_SPOT, this->_WS_PORT };
+		return 1;
+	}
+	catch (...)
+	{
+		throw("bad_init_ws");
+	}
 }
 
 void SpotClient::close_stream(const std::string symbol, const std::string stream_name)
@@ -174,7 +192,6 @@ FuturesClient::FuturesClient()
 {
 	this->init_ws_session();
 	this->init_rest_session();
-	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
 };
 
 FuturesClient::FuturesClient(std::string key, std::string secret)
@@ -182,7 +199,6 @@ FuturesClient::FuturesClient(std::string key, std::string secret)
 {
 	this->init_rest_session();
 	this->init_ws_session();
-	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
 }
 
 unsigned long long FuturesClient::exchange_time()
@@ -207,26 +223,45 @@ bool FuturesClient::ping_client()
 	}
 }
 
-void FuturesClient::init_rest_session() // make separate for ws and rest
+bool FuturesClient::init_rest_session() // make separate for ws and rest
 {
-	if (this->_rest_client) delete this->_rest_client;
-
-	this->_rest_client = new RestSession{ this->_BASE_REST_FUTURES };
-	if (!this->_public_client)
+	try
 	{
-		std::string key_header = "X-MBX-APIKEY:" + this->_api_key; // header for api key
-		struct curl_slist* auth_headers;
-		auth_headers = curl_slist_append(NULL, key_header.c_str());
+		if (this->_rest_client) delete this->_rest_client;
 
-		curl_easy_setopt((this->_rest_client)->_get_handle, CURLOPT_HTTPHEADER, auth_headers);
-		curl_easy_setopt((this->_rest_client)->_post_handle, CURLOPT_HTTPHEADER, auth_headers);
+		this->_rest_client = new RestSession{ this->_BASE_REST_FUTURES };
+		if (!this->_public_client)
+		{
+			std::string key_header = "X-MBX-APIKEY:" + this->_api_key; // header for api key
+			struct curl_slist* auth_headers;
+			auth_headers = curl_slist_append(NULL, key_header.c_str());
+
+			curl_easy_setopt((this->_rest_client)->_get_handle, CURLOPT_HTTPHEADER, auth_headers);
+			curl_easy_setopt((this->_rest_client)->_post_handle, CURLOPT_HTTPHEADER, auth_headers);
+		}
+		if (!(this->ping_client())) return 0;
+
+		return 1;
 	}
+	catch (...)
+	{
+		throw("bad_init_rest");
+	}
+
 }
 
-void FuturesClient::init_ws_session()
+bool FuturesClient::init_ws_session()
 {
-	if (this->_ws_client) delete this->_rest_client;
-	this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES, this->_WS_PORT };
+	try
+	{
+		if (this->_ws_client) delete this->_rest_client;
+		this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES, this->_WS_PORT };
+		return 1;
+	}
+	catch (...)
+	{
+		throw("bad_init_ws");
+	}
 }
 
 void FuturesClient::close_stream(const std::string symbol, const std::string stream_name)
@@ -339,7 +374,7 @@ void Params::set_param(std::string key, PT value)
 {
 	param_map[key] = std::to_string(value);
 }
-template <>
+template <> // do not call to_string on a string
 void Params::set_param<std::string>(std::string key, std::string value)
 {
 	param_map[key] = value;
@@ -348,4 +383,9 @@ void Params::set_param<std::string>(std::string key, std::string value)
 void Params::clear_params()
 {
 	this->param_map.clear();
+}
+
+bool Params::empty()
+{
+	return this->param_map.empty();
 }

@@ -88,7 +88,7 @@ public:
 	inline void post_timeout(unsigned long interval);
 
 
-	void close();
+	bool close();
 
 	friend unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self); // different because of members
 	friend unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self);
@@ -114,7 +114,7 @@ struct Params
 	void set_param(std::string key, PT value);
 
 	void clear_params(); 
-	void empty(); // define this
+	bool empty();
 };
 
 
@@ -146,8 +146,8 @@ public:
 
 	virtual unsigned long long exchange_time() = 0;
 	virtual bool ping_client() = 0;
-	virtual void init_ws_session() = 0;
-	virtual void init_rest_session() = 0;
+	virtual bool init_ws_session() = 0;
+	virtual bool init_rest_session() = 0;
 	virtual void close_stream(const std::string symbol, const std::string stream_name) = 0;
 	virtual bool is_stream_open(const std::string& symbol, const std::string& stream_name) = 0;
 	virtual std::vector<std::string> get_open_streams() = 0;
@@ -171,8 +171,8 @@ public:
 
 	unsigned long long exchange_time();
 	bool ping_client();
-	void init_ws_session();
-	void init_rest_session();
+	bool init_ws_session();
+	bool init_rest_session();
 	void close_stream(const std::string symbol, const std::string stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
@@ -195,8 +195,8 @@ public:
 
 	unsigned long long exchange_time();
 	bool ping_client();
-	void init_ws_session();
-	void init_rest_session();
+	bool init_ws_session();
+	bool init_rest_session();
 	void close_stream(const std::string symbol, const std::string stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();

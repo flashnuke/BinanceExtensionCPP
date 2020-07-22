@@ -1,6 +1,8 @@
 
 #include "CryptoExtensions.h"
 
+//todo: send ping method. might need to use it every 24 hours...
+
 
 WebsocketClient::WebsocketClient(std::string host, std::string port)
     : _host{ host }, _port{ port }

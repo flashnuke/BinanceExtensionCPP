@@ -1,8 +1,6 @@
 // todo: function that checks all handles arguments
-// todo: check response status code, pass "json: status" or something
-// todo: what can you pass to postfields? what is the format?
+// todo: option to return std::string instead of json::value for rest calls (avoid if too much)
 // regarding above: always leave an empty json of "status: true" to reduce runtime cost
-// note: if needed, add application/x-www-form-urlencoded to post in request
 
 #include "CryptoExtensions.h"
 
@@ -141,15 +139,23 @@ Json::Value RestSession::_postreq(std::string endpoint)
 inline void RestSession::get_timeout(unsigned long interval) { curl_easy_setopt(this->_get_handle, CURLOPT_TIMEOUT, interval); };
 inline void RestSession::post_timeout(unsigned long interval) { curl_easy_setopt(this->_post_handle, CURLOPT_TIMEOUT, interval); };
 
-void RestSession::close()
+bool RestSession::close()
 {
-	if (this->status)
+	try
 	{
-		curl_easy_cleanup(this->_post_handle);
-		curl_easy_cleanup(this->_get_handle);
-	}
+		if (this->status)
+		{
+			curl_easy_cleanup(this->_post_handle);
+			curl_easy_cleanup(this->_get_handle);
+		}
 
-	this->status = 0;
+		this->status = 0;
+		return 1;
+	}
+	catch (...)
+	{
+		throw("bad_close_rest");
+	}
 };
 
 
