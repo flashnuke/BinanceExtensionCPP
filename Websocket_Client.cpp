@@ -5,7 +5,7 @@
 
 
 WebsocketClient::WebsocketClient(std::string host, std::string port)
-    : _host{ host }, _port{ port }
+    : _host{ host }, _port{ port }, reconnect_on_error{ 0 }
 {}
 
 
@@ -40,9 +40,18 @@ bool WebsocketClient::is_open(const std::string& full_stream_name)
 };
 
 template <class FT>
-void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor)
+void WebsocketClient::_stream_manager(std::string stream_map_name, std::string& buf, FT& functor)
 {
 	this->running_streams[stream_map_name] = 0; // init
+	do
+	{
+		this->_connect_to_endpoint<FT>(stream_map_name, buf, functor);
+	} while (this->running_streams[stream_map_name] && this->reconnect_on_error);
+}
+
+template <class FT>
+void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor)
+{
 	net::io_context ioc;
 	ssl::context ctx{ ssl::context::tlsv12_client };
 	tcp::resolver resolver{ ioc };
@@ -75,8 +84,8 @@ void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::str
 			if (ec)
 			{
 				std::cerr << ec;
-				this->running_streams[stream_map_name] = 0;
-				throw("stream_response_bad"); // todo: add to exceptions. throw error code
+				if (!this->reconnect_on_error)this->running_streams[stream_map_name] = 0; // to exit loop if not retry
+				break;
 			}
 
 			functor(buf);
@@ -84,13 +93,17 @@ void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::str
 		}
 		catch (...)
 		{
-			this->running_streams[stream_map_name] = 0;
-			throw("stream_response_exception"); // todo: add to exceptions
+			if (!this->reconnect_on_error)this->running_streams[stream_map_name] = 0; // to exit loop if not retry
+			break;
 		}
-
 	}
-
 }
+
+void WebsocketClient::_set_reconnect(const bool& reconnect)
+{
+	this->reconnect_on_error = reconnect;
+}
+
 
 WebsocketClient::~WebsocketClient()
 {

@@ -13,7 +13,6 @@ Client::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_
 {};
 
 std::string Client::_generate_query(Params& params_obj)
-
 {
 	std::map<std::string, std::string> params = params_obj.param_map;
 	std::string query;
@@ -162,7 +161,7 @@ unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& f
 	}
 	else
 	{
-		this->_ws_client->_connect_to_endpoint<FT>(full_stream_name, buffer, functor); 
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
 		return this->_ws_client->running_streams[full_stream_name];
 	}
 }
@@ -177,6 +176,11 @@ bool SpotClient::is_stream_open(const std::string& symbol, const std::string& st
 std::vector<std::string> SpotClient::get_open_streams()
 {
 	return this->_ws_client->open_streams();
+}
+
+void SpotClient::ws_auto_reconnect(const bool& reconnect)
+{
+	this->_ws_client->_set_reconnect(reconnect);
 }
 
 SpotClient::~SpotClient()
@@ -333,6 +337,11 @@ bool FuturesClient::is_stream_open(const std::string& symbol, const std::string&
 {
 	std::string full_stream_name = symbol + '@' + stream_name;
 	return this->_ws_client->is_open(full_stream_name);
+}
+
+void FuturesClient::ws_auto_reconnect(const bool& reconnect)
+{
+	this->_ws_client->_set_reconnect(reconnect);
 }
 
 FuturesClient::~FuturesClient()

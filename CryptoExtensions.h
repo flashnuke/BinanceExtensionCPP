@@ -43,9 +43,12 @@ class WebsocketClient
 private:
 	const std::string _host;
 	const std::string _port;
+	bool reconnect_on_error; // todo: _
+
 
 public:
 	WebsocketClient(std::string host, std::string port);
+
 	std::map<std::string, bool> running_streams; // will be a map, containing pairs of: <bool(status), ws_stream> 
 
 	void close_stream(const std::string stream_name);
@@ -54,6 +57,10 @@ public:
 
 	template <class FT>
 	void _connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor);
+	template <class FT>
+	void _stream_manager(std::string stream_map_name, std::string& buf, FT& functor);
+	
+	void _set_reconnect(const bool& reconnect);
 
 
 	~WebsocketClient();
@@ -151,11 +158,11 @@ public:
 	virtual void close_stream(const std::string symbol, const std::string stream_name) = 0;
 	virtual bool is_stream_open(const std::string& symbol, const std::string& stream_name) = 0;
 	virtual std::vector<std::string> get_open_streams() = 0;
+	virtual void ws_auto_reconnect(const bool& reconnect) = 0;
 
 
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
-
 
 };
 
@@ -176,6 +183,7 @@ public:
 	void close_stream(const std::string symbol, const std::string stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
+	void ws_auto_reconnect(const bool& reconnect);
 
 	Json::Value send_order(Params& parameter_vec);
 	Json::Value fetch_balances(Params& param_obj);
@@ -200,6 +208,7 @@ public:
 	void close_stream(const std::string symbol, const std::string stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
+	void ws_auto_reconnect(const bool& reconnect);
 
 	Json::Value send_order(Params& parameter_vec);
 
