@@ -16,7 +16,7 @@ void WebsocketClient::close_stream(const std::string full_stream_name) // todo: 
 
 std::vector<std::string> WebsocketClient::open_streams()
 {
-	std::map<std::string, bool>::iterator itr;
+	std::unordered_map<std::string, bool>::iterator itr;
 	std::vector<std::string> results;
 
 	for (itr = this->running_streams.begin(); itr != this->running_streams.end(); itr++)
@@ -29,7 +29,7 @@ std::vector<std::string> WebsocketClient::open_streams()
 
 bool WebsocketClient::is_open(const std::string& full_stream_name)
 {
-	std::map<std::string, bool>::iterator itr;
+	std::unordered_map<std::string, bool>::iterator itr;
 
 	for (itr = this->running_streams.begin(); itr != this->running_streams.end(); itr++)
 	{
@@ -107,7 +107,7 @@ void WebsocketClient::_set_reconnect(const bool& reconnect)
 
 WebsocketClient::~WebsocketClient()
 {
-    std::map<std::string, bool>::iterator stream_itr; // while status != 0: set 0 and delete thread pointer!
+    std::unordered_map<std::string, bool>::iterator stream_itr; // while status != 0: set 0 and delete thread pointer!
 
     for (stream_itr = this->running_streams.begin(); stream_itr != this->running_streams.end(); stream_itr++)
     {

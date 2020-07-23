@@ -19,7 +19,7 @@
 #include <iostream>
 #include <chrono>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <thread>
 #include <vector>
 
@@ -49,7 +49,7 @@ private:
 public:
 	WebsocketClient(std::string host, std::string port);
 
-	std::map<std::string, bool> running_streams; // will be a map, containing pairs of: <bool(status), ws_stream> 
+	std::unordered_map<std::string, bool> running_streams; // will be a map, containing pairs of: <bool(status), ws_stream> 
 
 	void close_stream(const std::string stream_name);
 	std::vector<std::string> open_streams();
@@ -115,7 +115,7 @@ struct Params
 	Params& operator=(Params& params_obj);
 	Params& operator=(const Params& params_obj);
 
-	std::map<std::string, std::string> param_map;
+	std::unordered_map<std::string, std::string> param_map;
 
 	template <typename PT>
 	void set_param(std::string key, PT value);

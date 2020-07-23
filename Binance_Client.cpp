@@ -14,10 +14,10 @@ Client::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_
 
 std::string Client::_generate_query(Params& params_obj)
 {
-	std::map<std::string, std::string> params = params_obj.param_map;
+	std::unordered_map<std::string, std::string> params = params_obj.param_map;
 	std::string query;
 
-	for (std::map<std::string, std::string>::iterator itr = params.begin();
+	for (std::unordered_map<std::string, std::string>::iterator itr = params.begin();
 		itr != params.end();
 		itr++)
 	{
