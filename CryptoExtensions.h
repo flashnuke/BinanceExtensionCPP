@@ -1,6 +1,7 @@
 // todo: private stream (and a keepalive...)
 // todo: custom stream. this way you can connect to several...
 // todo: example of order book fetch from scratch
+// todo: streams return name of stream as written in map
 
 #ifndef CRYPTO_EXTENSIONS_H
 #define CRYPTO_EXTENSIONS_H
@@ -188,10 +189,13 @@ public:
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
 	void ws_auto_reconnect(const bool& reconnect);
+	
 
 	Json::Value send_order(Params& parameter_vec);
 	Json::Value fetch_balances(Params& param_obj);
 	unsigned int aggTrade(std::string symbol);
+	template <class FT>
+	unsigned int user_stream(std::string& buffer, FT& functor);
 
 	~FuturesClient();
 };
@@ -220,6 +224,8 @@ public:
 
 	template <class FT>
 	unsigned int aggTrade(std::string symbol, std::string& buffer, FT& functor);
+	template <class FT>
+	unsigned int user_stream(std::string& buffer, FT& functor);
 
 	~SpotClient();
 };

@@ -298,6 +298,23 @@ std::string FuturesClient::_get_listen_key()
 	return response["response"]["listenKey"].asString();
 }
 
+template <class FT>
+unsigned int FuturesClient::user_stream(std::string& buffer, FT& functor)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "user_stream";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists"; // todo: exception here?
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
 void FuturesClient::close_stream(const std::string symbol, const std::string stream_name)
 {
 	try
