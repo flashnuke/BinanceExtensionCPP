@@ -1,4 +1,6 @@
-
+// todo: private stream (and a keepalive...)
+// todo: custom stream. this way you can connect to several...
+// todo: example of order book fetch from scratch
 
 #ifndef CRYPTO_EXTENSIONS_H
 #define CRYPTO_EXTENSIONS_H
@@ -120,7 +122,7 @@ struct Params
 	template <typename PT>
 	void set_param(std::string key, PT value);
 
-	void clear_params(); 
+	bool clear_params();
 	bool empty();
 };
 
@@ -154,6 +156,7 @@ public:
 	virtual unsigned long long exchange_time() = 0;
 	virtual bool ping_client() = 0;
 	virtual bool init_ws_session() = 0;
+	virtual std::string _get_listen_key() = 0;
 	virtual bool init_rest_session() = 0;
 	virtual void close_stream(const std::string symbol, const std::string stream_name) = 0;
 	virtual bool is_stream_open(const std::string& symbol, const std::string& stream_name) = 0;
@@ -179,6 +182,7 @@ public:
 	unsigned long long exchange_time();
 	bool ping_client();
 	bool init_ws_session();
+	std::string _get_listen_key();
 	bool init_rest_session();
 	void close_stream(const std::string symbol, const std::string stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
@@ -204,6 +208,7 @@ public:
 	unsigned long long exchange_time();
 	bool ping_client();
 	bool init_ws_session();
+	std::string _get_listen_key();
 	bool init_rest_session();
 	void close_stream(const std::string symbol, const std::string stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);

@@ -30,7 +30,6 @@ unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 	if (self->_get_status != CURLE_OK || self->_get_status == CURLE_HTTP_RETURNED_ERROR)
 	{
 		self->_req_json_get["response"] = self->_req_raw_get;
-
 		return 0;
 	}
 
@@ -59,7 +58,7 @@ unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmem
 	std::string parse_errors{};
 	bool parse_status;
 
-	self->_req_json_get["response"] = Json::arrayValue;
+	self->_req_json_post["response"] = Json::arrayValue;
 	parse_status = _J_READER->parse(self->_req_raw_post.c_str(),
 					self->_req_raw_post.c_str() + self->_req_raw_post.size(),
 					&self->_req_json_post["response"],
@@ -70,6 +69,7 @@ unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmem
 	if (self->_post_status != CURLE_OK || self->_post_status == CURLE_HTTP_RETURNED_ERROR)
 	{
 		self->_req_json_post["response"] = self->_req_raw_post;
+
 
 		return 0;
 	}
@@ -84,8 +84,7 @@ unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmem
 	{
 		return size * nmemb;
 	}
-
-	self->_req_json_get["request_status"] = 1;
+	self->_req_json_post["request_status"] = 1;
 
 	return size * nmemb;
 };

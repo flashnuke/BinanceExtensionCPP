@@ -115,6 +115,22 @@ bool SpotClient::init_ws_session()
 		throw("bad_init_ws");
 	}
 }
+std::string SpotClient::_get_listen_key()
+{
+	std::string endpoint = "/fapi/v1/listenKey"; // todo: to spot
+	Params temp_params;
+	temp_params.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(temp_params);
+
+	std::string signature = HMACsha256(query, this->_api_secret);
+	query += ("&signature=" + signature);
+	query = "?" + query;
+
+	Json::Value response = (this->_rest_client)->_postreq(endpoint + query);
+
+	return "";
+}
+
 
 void SpotClient::close_stream(const std::string symbol, const std::string stream_name)
 {
@@ -138,10 +154,8 @@ Json::Value SpotClient::send_order(Params& param_obj)
 	std::string signature = HMACsha256(query, this->_api_secret);
 	query += ("&signature=" + signature);
 	query = "?" + query;
-	std::cout << query;
 
-	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
-	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_SPOT + endpoint + query);
+	Json::Value response = (this->_rest_client)->_postreq(endpoint + query);
 
 	if (this->flush_params) param_obj.clear_params();
 
@@ -268,6 +282,22 @@ bool FuturesClient::init_ws_session()
 	}
 }
 
+std::string FuturesClient::_get_listen_key()
+{
+	std::string endpoint = "/fapi/v1/listenKey"; // todo: to spot
+	Params temp_params;
+	temp_params.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(temp_params);
+
+	std::string signature = HMACsha256(query, this->_api_secret);
+	query += ("&signature=" + signature);
+	query = "?" + query;
+
+	Json::Value response = (this->_rest_client)->_postreq(endpoint + query);
+
+	return response["response"]["listenKey"].asString();
+}
+
 void FuturesClient::close_stream(const std::string symbol, const std::string stream_name)
 {
 	try
@@ -295,8 +325,7 @@ Json::Value FuturesClient::send_order(Params& param_obj)
 	query += ("&signature=" + signature);
 	query = "?" + query;
 
-	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
-	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + endpoint + query); // return entire json?
+	Json::Value response = (this->_rest_client)->_postreq(endpoint + query); // return entire json?
 
 	if (this->flush_params) param_obj.clear_params();
 
@@ -314,8 +343,7 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 	query += ("&signature=" + signature);
 	query = "?" + query;
 
-	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
-	Json::Value response = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint + query);
+	Json::Value response = (this->_rest_client)->_getreq(endpoint + query);
 
 	if (this->flush_params) param_obj.clear_params();
 
@@ -389,9 +417,10 @@ void Params::set_param<std::string>(std::string key, std::string value)
 	param_map[key] = value;
 }
 
-void Params::clear_params()
+bool Params::clear_params()
 {
 	this->param_map.clear();
+	return this->empty();
 }
 
 bool Params::empty()
