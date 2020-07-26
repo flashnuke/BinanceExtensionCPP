@@ -5,14 +5,52 @@
 // Client definitions
 
 
-
-Client::Client() : _public_client{ 1 }, flush_params{ 0 }
+template<typename T>
+Client<T>::Client() : _public_client{ 1 }, flush_params{ 0 }
 {};
 
-Client::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, flush_params{ 0 }
+template<typename T>
+Client<T>::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, flush_params{ 0 }
 {};
 
-std::string Client::_generate_query(Params& params_obj)
+// Client CRTP methods
+template<typename T>
+unsigned long long Client<T>::exchange_time() { return static_cast<T*>(this)->v_exchange_time(); }
+
+template<typename T>
+bool Client<T>::ping_client() { return static_cast<T*>(this)->v_ping_client(); }
+
+template<typename T>
+bool Client<T>::init_ws_session() { return static_cast<T*>(this)->v_init_ws_session(); }
+
+template<typename T>
+std::string Client<T>::_get_listen_key() { return static_cast<T*>(this)->v__get_listen_key(); }
+
+template<typename T>
+bool Client<T>::init_rest_session() { return static_cast<T*>(this)->v_init_rest_session(); }
+
+template<typename T>
+void Client<T>::close_stream(const std::string& symbol, const std::string& stream_name) { static_cast<T*>(this)->v_close_stream(symbol, stream_name); }
+
+template<typename T>
+bool Client<T>::is_stream_open(const std::string& symbol, const std::string& stream_name) { return static_cast<T*>(this)->v_is_stream_open(symbol, stream_name); }
+
+template<typename T>
+std::vector<std::string> Client<T>::get_open_streams() { return static_cast<T*>(this)->v_get_open_streams(); }
+
+template<typename T>
+void Client<T>::ws_auto_reconnect(const bool& reconnect) { static_cast<T*>(this)->v_ws_auto_reconnect(reconnect); }
+
+template<typename T>
+bool Client<T>::set_headers(RestSession* rest_client) { return static_cast<T*>(this)->v_set_headers(rest_client); }
+
+template<typename T>
+void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
+
+// Client other methods
+
+template<typename T>
+std::string Client<T>::_generate_query(Params& params_obj)
 {
 	std::unordered_map<std::string, std::string> params = params_obj.param_map;
 	std::string query;
@@ -28,13 +66,17 @@ std::string Client::_generate_query(Params& params_obj)
 	return query;
 }
 
+template <typename T>
+Client<T>::~Client()
+{
+	delete _rest_client;
+	delete _ws_client;
+};
 
-bool SpotClient::init_rest_session() // make separate for ws and rest
+bool SpotClient::v_init_rest_session() // make separate for ws and rest
 {
 	try
 	{
-
-
 		if (this->_rest_client) delete this->_rest_client;
 
 		this->_rest_client = new RestSession{};
@@ -54,11 +96,6 @@ bool SpotClient::init_rest_session() // make separate for ws and rest
 
 }
 
-Client::~Client()
-{
-	delete _rest_client;
-	delete _ws_client;
-};
 
 
 // SpotClient definitions
@@ -76,7 +113,7 @@ SpotClient::SpotClient(std::string key, std::string secret)
 	this->init_ws_session();
 }
 
-unsigned long long SpotClient::exchange_time()
+unsigned long long SpotClient::v_exchange_time()
 {
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/time";
 	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
@@ -84,7 +121,7 @@ unsigned long long SpotClient::exchange_time()
 	return std::atoll(ex_time.c_str());
 }
 
-bool SpotClient::ping_client()
+bool SpotClient::v_ping_client()
 {
 	try
 	{
@@ -98,7 +135,7 @@ bool SpotClient::ping_client()
 	}
 }
 
-bool SpotClient::init_ws_session()
+bool SpotClient::v_init_ws_session()
 {
 	try
 	{
@@ -111,7 +148,8 @@ bool SpotClient::init_ws_session()
 		throw("bad_init_ws");
 	}
 }
-std::string SpotClient::_get_listen_key()
+
+std::string SpotClient::v__get_listen_key()
 {
 	// no signature is needed here
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream";
@@ -121,7 +159,7 @@ std::string SpotClient::_get_listen_key()
 }
 
 
-void SpotClient::close_stream(const std::string symbol, const std::string stream_name)
+void SpotClient::v_close_stream(const std::string& symbol, const std::string& stream_name)
 {
 	try
 	{
@@ -200,7 +238,7 @@ unsigned int SpotClient::userStream(std::string& buffer, FT& functor)
 	}
 }
 
-bool SpotClient::set_headers(RestSession* rest_client)
+bool SpotClient::v_set_headers(RestSession* rest_client)
 {
 	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
 	struct curl_slist* auth_headers;
@@ -213,23 +251,23 @@ bool SpotClient::set_headers(RestSession* rest_client)
 	return 0;
 }
 
-void SpotClient::set_refresh_key_interval(const bool val)
+void SpotClient::v_set_refresh_key_interval(const bool val)
 {
 	this->_ws_client->refresh_listenkey_interval = val;
 }
 
-bool SpotClient::is_stream_open(const std::string& symbol, const std::string& stream_name)
+bool SpotClient::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
 {
 	std::string full_stream_name = symbol + '@' + stream_name;
 	return this->_ws_client->is_open(full_stream_name);
 }
 
-std::vector<std::string> SpotClient::get_open_streams()
+std::vector<std::string> SpotClient::v_get_open_streams()
 {
 	return this->_ws_client->open_streams();
 }
 
-void SpotClient::ws_auto_reconnect(const bool& reconnect)
+void SpotClient::v_ws_auto_reconnect(const bool& reconnect)
 {
 	this->_ws_client->_set_reconnect(reconnect);
 }
@@ -256,7 +294,7 @@ FuturesClient::FuturesClient(std::string key, std::string secret)
 	this->init_ws_session();
 }
 
-unsigned long long FuturesClient::exchange_time()
+unsigned long long FuturesClient::v_exchange_time()
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/time"; // fix
 	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
@@ -264,7 +302,7 @@ unsigned long long FuturesClient::exchange_time()
 	return std::atoll(ex_time.c_str());
 }
 
-bool FuturesClient::ping_client()
+bool FuturesClient::v_ping_client()
 {
 	try
 	{
@@ -278,7 +316,7 @@ bool FuturesClient::ping_client()
 	}
 }
 
-bool FuturesClient::init_rest_session() // make separate for ws and rest
+bool FuturesClient::v_init_rest_session() // make separate for ws and rest
 {
 	try
 	{
@@ -302,7 +340,7 @@ bool FuturesClient::init_rest_session() // make separate for ws and rest
 
 }
 
-bool FuturesClient::init_ws_session()
+bool FuturesClient::v_init_ws_session()
 {
 	try
 	{
@@ -316,7 +354,7 @@ bool FuturesClient::init_ws_session()
 	}
 }
 
-std::string FuturesClient::_get_listen_key()
+std::string FuturesClient::v__get_listen_key()
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey";
 	Params temp_params;
@@ -364,7 +402,7 @@ unsigned int FuturesClient::userStream(std::string& buffer, FT& functor)
 	}
 }
 
-void FuturesClient::close_stream(const std::string symbol, const std::string stream_name)
+void FuturesClient::v_close_stream(const std::string& symbol, const std::string& stream_name)
 {
 	try
 	{
@@ -376,7 +414,7 @@ void FuturesClient::close_stream(const std::string symbol, const std::string str
 	}
 }
 
-std::vector<std::string> FuturesClient::get_open_streams()
+std::vector<std::string> FuturesClient::v_get_open_streams()
 {
 	return this->_ws_client->open_streams();
 }
@@ -422,7 +460,7 @@ unsigned int FuturesClient::aggTrade(std::string symbol)
 	return 0;
 }
 
-bool FuturesClient::set_headers(RestSession* rest_client)
+bool FuturesClient::v_set_headers(RestSession* rest_client)
 {
 	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
 	struct curl_slist* auth_headers;
@@ -436,18 +474,18 @@ bool FuturesClient::set_headers(RestSession* rest_client)
 }
 
 
-void FuturesClient::set_refresh_key_interval(const bool val)
+void FuturesClient::v_set_refresh_key_interval(const bool val)
 {
 	this->_ws_client->refresh_listenkey_interval = val;
 }
 
-bool FuturesClient::is_stream_open(const std::string& symbol, const std::string& stream_name)
+bool FuturesClient::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
 {
 	std::string full_stream_name = symbol + '@' + stream_name;
 	return this->_ws_client->is_open(full_stream_name);
 }
 
-void FuturesClient::ws_auto_reconnect(const bool& reconnect)
+void FuturesClient::v_ws_auto_reconnect(const bool& reconnect)
 {
 	this->_ws_client->_set_reconnect(reconnect);
 }
