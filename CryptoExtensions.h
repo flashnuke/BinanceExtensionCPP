@@ -1,4 +1,5 @@
 // todo: futures and client source files in different files?
+// todo: from virtual to crtp
 
 // todo: custom stream. this way you can connect to several... pass bool for 'renew_key'
 
