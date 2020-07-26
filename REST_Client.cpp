@@ -1,6 +1,3 @@
-// todo: function that checks all handles arguments
-// todo: option to return std::string instead of json::value for rest calls (avoid if too much)
-// regarding above: always leave an empty json of "status: true" to reduce runtime cost
 
 #include "CryptoExtensions.h"
 
