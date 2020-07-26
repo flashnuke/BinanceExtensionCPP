@@ -9,66 +9,25 @@ Json::CharReader* _J_READER = _J_BUILDER.newCharReader();
 static long _IDLE_TIME_TCP = 120L;
 static long _INTVL_TIME_TCP = 60L;
 
-unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self)
+
+unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req)
 {
-	self->_req_raw_get.clear(); // flush old data
-	self->_req_json_get.clear();
-	(&self->_req_raw_get)->append((char*)contents, size * nmemb);
+	std::cout << "fkthis"; // delete
+
+	(&req->req_raw)->append((char*)contents, size * nmemb);
+
+	std::cout << req->req_raw; // delete
 	std::string parse_errors{};
 	bool parse_status;
 
-	self->_req_json_get["response"] = Json::arrayValue;
-	parse_status = _J_READER->parse(self->_req_raw_get.c_str(),
-		self->_req_raw_get.c_str() + self->_req_raw_get.size(),
-		&self->_req_json_get["response"],
+	parse_status = _J_READER->parse(req->req_raw.c_str(),
+		req->req_raw.c_str() + req->req_raw.size(),
+		&req->req_json["response"],
 		&parse_errors);
 
-
-	self->_req_json_get["request_status"] = 0;
-
-
-	if (self->_get_status != CURLE_OK || self->_get_status == CURLE_HTTP_RETURNED_ERROR)
+	if (req->req_status != CURLE_OK || req->req_status == CURLE_HTTP_RETURNED_ERROR)
 	{
-		self->_req_json_get["response"] = self->_req_raw_get;
-		return 0;
-	}
-
-	else if (!parse_status)
-	{
-		self->_req_json_get["parse_status"] = parse_errors;
-		return size * nmemb;
-	}
-
-	else if (self->_req_json_get.isMember("code"))
-	{
-		return size * nmemb;
-	}
-
-	self->_req_json_get["request_status"] = 1;
-
-	return size * nmemb;
-};
-
-unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self)
-{
-	self->_req_raw_post.clear(); // flush old data
-	self->_req_json_post.clear();
-	(&self->_req_raw_post)->append((char*)contents, size * nmemb);
-
-	std::string parse_errors{};
-	bool parse_status;
-
-	self->_req_json_post["response"] = Json::arrayValue;
-	parse_status = _J_READER->parse(self->_req_raw_post.c_str(),
-					self->_req_raw_post.c_str() + self->_req_raw_post.size(),
-					&self->_req_json_post["response"],
-					&parse_errors);
-
-	self->_req_json_post["request_status"] = 0;
-
-	if (self->_post_status != CURLE_OK || self->_post_status == CURLE_HTTP_RETURNED_ERROR)
-	{
-		self->_req_json_post["response"] = self->_req_raw_post;
+		req->req_json["response"] = req->req_raw;
 
 
 		return 0;
@@ -76,67 +35,91 @@ unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmem
 
 	else if (!parse_status)
 	{
-		self->_req_json_post["parse_status"] = parse_errors;
+		req->req_json["parse_status"] = parse_errors;
 		return size * nmemb;
 	}
 
-	else if (self->_req_json_post.isMember("code"))
+	else if (req->req_json.isMember("code"))
 	{
 		return size * nmemb;
 	}
-	self->_req_json_post["request_status"] = 1;
+	req->req_json["request_status"] = 1;
 
 	return size * nmemb;
 };
 
-RestSession::RestSession(std::string base)
-	:_base_path{ base }
+RestSession::RestSession()
 {
 	_get_handle = curl_easy_init();
 	curl_easy_setopt(this->_get_handle, CURLOPT_HTTPGET, 1L);
 	curl_easy_setopt(this->_get_handle, CURLOPT_FOLLOWLOCATION, 1L);
-	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEFUNCTION, _GET_CALLBACK);
-	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEDATA, this);
-	curl_easy_setopt(this->_get_handle, CURLOPT_FAILONERROR, 0); // excplicitly set to 0
+	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
+	curl_easy_setopt(this->_get_handle, CURLOPT_FAILONERROR, 0); 
 
 
 	_post_handle = curl_easy_init();
 	curl_easy_setopt(this->_post_handle, CURLOPT_POST, 1L);
 	curl_easy_setopt(this->_post_handle, CURLOPT_POSTFIELDSIZE, 0);
 	curl_easy_setopt(this->_post_handle, CURLOPT_FOLLOWLOCATION, 1L);
-	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEFUNCTION, _POST_CALLBACK);
-	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEDATA, this);
-	curl_easy_setopt(this->_post_handle, CURLOPT_FAILONERROR, 0); // excplicitly set to 0
+	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
+	curl_easy_setopt(this->_post_handle, CURLOPT_FAILONERROR, 0);
+
+	_put_handle = curl_easy_init();
+	curl_easy_setopt(this->_put_handle, CURLOPT_UPLOAD, 1L);
+	curl_easy_setopt(this->_put_handle, CURLOPT_INFILESIZE, 0);
+	curl_easy_setopt(this->_put_handle, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(this->_put_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
+	curl_easy_setopt(this->_put_handle, CURLOPT_FAILONERROR, 0);
 
 
 	if (!(this->_get_handle)) throw("exc"); // handle exc
 	if (!(this->_post_handle)) throw("exc"); // handle exc
+	if (!(this->_put_handle)) throw("exc"); // handle exc
+
 
 	status = 1;
 }
 
-Json::Value RestSession::_getreq(std::string endpoint)
+Json::Value RestSession::_getreq(std::string full_path)
 {
-	std::string path = this->_base_path + endpoint;
-	curl_easy_setopt(this->_get_handle, CURLOPT_URL, path.c_str());
+	curl_easy_setopt(this->_get_handle, CURLOPT_URL, full_path.c_str());
 
-	this->_get_status = curl_easy_perform(this->_get_handle);
+	RequestHandler request{};
+	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEDATA, &request);
 
-	return this->_req_json_get;
+	request.req_status = curl_easy_perform(this->_get_handle);
+
+	return request.req_json;
 };
 
-Json::Value RestSession::_postreq(std::string endpoint)
+Json::Value RestSession::_postreq(std::string full_path)
 {
-	std::string path = this->_base_path + endpoint;
-	curl_easy_setopt(this->_post_handle, CURLOPT_URL, path.c_str());
+	curl_easy_setopt(this->_post_handle, CURLOPT_URL, full_path.c_str());
 
-	this->_post_status = curl_easy_perform(this->_post_handle);
-		
-	return this->_req_json_post;
+	RequestHandler request{};
+
+	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEDATA, &request);
+
+	request.req_status = curl_easy_perform(this->_post_handle);
+
+	return request.req_json;
+};
+
+Json::Value RestSession::_putreq(std::string full_path)
+{
+	curl_easy_setopt(this->_put_handle, CURLOPT_URL, full_path.c_str());
+
+	RequestHandler request{};
+	curl_easy_setopt(this->_put_handle, CURLOPT_WRITEDATA, &request);
+
+	request.req_status = curl_easy_perform(this->_put_handle);
+	std::cout << "fkthis"; // delete
+	return request.req_json;
 };
 
 inline void RestSession::get_timeout(unsigned long interval) { curl_easy_setopt(this->_get_handle, CURLOPT_TIMEOUT, interval); };
 inline void RestSession::post_timeout(unsigned long interval) { curl_easy_setopt(this->_post_handle, CURLOPT_TIMEOUT, interval); };
+inline void RestSession::put_timeout(unsigned long interval) { curl_easy_setopt(this->_put_handle, CURLOPT_TIMEOUT, interval); };
 
 bool RestSession::close()
 {
@@ -157,6 +140,13 @@ bool RestSession::close()
 	}
 };
 
+RestSession::RequestHandler::RequestHandler()
+	: req_raw{ "" }, req_json{ Json::Value{} }, req_status{ CURLcode{} }
+{
+	req_json["request_status"] = 0;
+	req_json["response"] = Json::arrayValue;
+
+};
 
 RestSession::~RestSession()
 {

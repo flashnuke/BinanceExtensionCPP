@@ -1,7 +1,15 @@
 // todo: private stream (and a keepalive...)
+// todo: streams return name of stream as written in map
+
 // todo: custom stream. this way you can connect to several...
 // todo: example of order book fetch from scratch
-// todo: streams return name of stream as written in map
+// todo: rest response not on class level. pass a pointer of local var and return it
+
+// DOCs todos:
+// 1. keep "renew_listenkey" function empty.
+// 2. keep "user_stream" bool empty
+
+// First make everything for spot and then for futures
 
 #ifndef CRYPTO_EXTENSIONS_H
 #define CRYPTO_EXTENSIONS_H
@@ -40,6 +48,43 @@ inline auto binary_to_hex_digit(unsigned a) -> char;
 auto binary_to_hex(unsigned char const* binary, unsigned binary_len)->std::string;
 std::string HMACsha256(std::string const& message, std::string const& key);
 
+class RestSession
+{
+private:
+
+	struct RequestHandler // handles response
+	{
+		RequestHandler();
+
+		std::string req_raw;
+		Json::Value req_json;
+		CURLcode req_status;
+	};
+
+
+public:
+	RestSession();
+
+	bool status; // bool for whether session is active or not
+	CURL* _get_handle{};
+	CURL* _post_handle{};
+	CURL* _put_handle{};
+
+	Json::Value _getreq(std::string full_path);
+	inline void get_timeout(unsigned long interval);
+
+	Json::Value _postreq(std::string full_path);
+	inline void post_timeout(unsigned long interval);
+
+	Json::Value _putreq(std::string full_path);
+	inline void put_timeout(unsigned long interval);
+
+	bool close();
+
+	friend unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req);
+
+	~RestSession();
+};
 
 class WebsocketClient
 {
@@ -47,6 +92,7 @@ private:
 	const std::string _host;
 	const std::string _port;
 	bool reconnect_on_error; // todo: _
+	unsigned int refresh_listenkey_interval;
 
 
 public:
@@ -59,9 +105,11 @@ public:
 	bool is_open(const std::string& stream_name);
 
 	template <class FT>
-	void _connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor);
+	void _connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor, std::pair<RestSession*,
+		std::string> user_stream_pair = std::make_pair<RestSession*, std::string>(nullptr, ""));
 	template <class FT>
-	void _stream_manager(std::string stream_map_name, std::string& buf, FT& functor);
+	void _stream_manager(std::string stream_map_name, std::string& buf, FT& functor, std::pair<RestSession*,
+		std::string> user_stream_pair = std::make_pair<RestSession*, std::string>(nullptr, ""));
 	
 	void _set_reconnect(const bool& reconnect);
 
@@ -70,41 +118,7 @@ public:
 
 };
 
-class RestSession
-{
-private:
 
-	std::string _req_raw_get;
-	Json::Value _req_json_get;
-	CURLcode _get_status;
-
-	std::string _req_raw_post;	
-	Json::Value _req_json_post;
-	CURLcode _post_status;
-
-	const std::string _base_path;
-
-public:
-	RestSession(const std::string base);
-
-	bool status; // bool for whether session is active or not
-	CURL* _get_handle{};
-	CURL* _post_handle{};
-
-	Json::Value _getreq(std::string path);
-	inline void get_timeout(unsigned long interval);
-
-	Json::Value _postreq(std::string path);
-	inline void post_timeout(unsigned long interval);
-
-
-	bool close();
-
-	friend unsigned int _GET_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self); // different because of members
-	friend unsigned int _POST_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession* self);
-
-	~RestSession();
-};
 
 
 struct Params
@@ -163,6 +177,7 @@ public:
 	virtual bool is_stream_open(const std::string& symbol, const std::string& stream_name) = 0;
 	virtual std::vector<std::string> get_open_streams() = 0;
 	virtual void ws_auto_reconnect(const bool& reconnect) = 0;
+	virtual bool set_headers(RestSession* rest_client) = 0;
 
 
 	RestSession* _rest_client = nullptr; // move init
@@ -189,13 +204,15 @@ public:
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
 	void ws_auto_reconnect(const bool& reconnect);
+	bool _renew_listen_key(const unsigned int interval); // todo: delete
+	bool set_headers(RestSession* rest_client);
 	
 
 	Json::Value send_order(Params& parameter_vec);
 	Json::Value fetch_balances(Params& param_obj);
 	unsigned int aggTrade(std::string symbol);
 	template <class FT>
-	unsigned int user_stream(std::string& buffer, FT& functor);
+	unsigned int userStream(std::string& buffer, FT& functor);
 
 	~FuturesClient();
 };
@@ -218,6 +235,9 @@ public:
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
 	void ws_auto_reconnect(const bool& reconnect);
+	bool _renew_listen_key(const unsigned int interval); // todo: delete
+	bool set_headers(RestSession* rest_client);
+
 
 	Json::Value send_order(Params& parameter_vec);
 
@@ -225,7 +245,7 @@ public:
 	template <class FT>
 	unsigned int aggTrade(std::string symbol, std::string& buffer, FT& functor);
 	template <class FT>
-	unsigned int user_stream(std::string& buffer, FT& functor);
+	unsigned int userStream(std::string& buffer, FT& functor);
 
 	~SpotClient();
 };
