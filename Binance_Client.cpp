@@ -13,12 +13,11 @@ Client::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_
 {};
 
 std::string Client::_generate_query(Params& params_obj)
-
 {
-	std::map<std::string, std::string> params = params_obj.param_map;
+	std::unordered_map<std::string, std::string> params = params_obj.param_map;
 	std::string query;
 
-	for (std::map<std::string, std::string>::iterator itr = params.begin();
+	for (std::unordered_map<std::string, std::string>::iterator itr = params.begin();
 		itr != params.end();
 		itr++)
 	{
@@ -30,20 +29,28 @@ std::string Client::_generate_query(Params& params_obj)
 }
 
 
-void SpotClient::init_rest_session() // make separate for ws and rest
+bool SpotClient::init_rest_session() // make separate for ws and rest
 {
-	if (this->_rest_client) delete this->_rest_client;
-
-	this->_rest_client = new RestSession{ this->_BASE_REST_SPOT };
-	if (!this->_public_client)
+	try
 	{
-		std::string key_header = "X-MBX-APIKEY:" + this->_api_key; // header for api key
-		struct curl_slist* auth_headers;
-		auth_headers = curl_slist_append(NULL, key_header.c_str());
 
-		curl_easy_setopt((this->_rest_client)->_get_handle, CURLOPT_HTTPHEADER, auth_headers);
-		curl_easy_setopt((this->_rest_client)->_post_handle, CURLOPT_HTTPHEADER, auth_headers);
+
+		if (this->_rest_client) delete this->_rest_client;
+
+		this->_rest_client = new RestSession{};
+		if (!this->_public_client)
+		{
+			this->set_headers(this->_rest_client); // todo: check boolean
+		}
+		if (!(this->ping_client())) return 0;
+
+		return 1;
 	}
+	catch (...)
+	{
+		throw("bad_init_rest");
+	}
+
 }
 
 Client::~Client()
@@ -59,8 +66,6 @@ SpotClient::SpotClient() : Client()
 {
 	this->init_ws_session();
 	this->init_rest_session();
-	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
-
 };
 
 SpotClient::SpotClient(std::string key, std::string secret)
@@ -68,13 +73,12 @@ SpotClient::SpotClient(std::string key, std::string secret)
 {
 	this->init_rest_session();
 	this->init_ws_session();
-	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
 }
 
 unsigned long long SpotClient::exchange_time()
 {
-	std::string endpoint = "/api/v3/time";
-	std::string ex_time = (this->_rest_client)->_getreq(endpoint)["response"]["serverTime"].asString();
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/time";
+	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
 
 	return std::atoll(ex_time.c_str());
 }
@@ -83,8 +87,8 @@ bool SpotClient::ping_client()
 {
 	try
 	{
-		std::string endpoint = "/api/v3/ping";
-		Json::Value ping_response = (this->_rest_client)->_getreq(endpoint)["response"];
+		std::string full_path = this->_BASE_REST_SPOT + "/api/v3/ping";
+		Json::Value ping_response = (this->_rest_client)->_getreq(full_path)["response"];
 		return (ping_response != Json::nullValue);
 	}
 	catch (...)
@@ -93,11 +97,28 @@ bool SpotClient::ping_client()
 	}
 }
 
-void SpotClient::init_ws_session()
+bool SpotClient::init_ws_session()
 {
-	if (this->_ws_client) delete this->_rest_client;
-	this->_ws_client = new WebsocketClient{ this->_WS_BASE_SPOT, this->_WS_PORT };
+	try
+	{
+		if (this->_ws_client) delete this->_rest_client;
+		this->_ws_client = new WebsocketClient{ this->_WS_BASE_SPOT, this->_WS_PORT };
+		return 1;
+	}
+	catch (...)
+	{
+		throw("bad_init_ws");
+	}
 }
+std::string SpotClient::_get_listen_key()
+{
+	// no signature is needed here
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream";
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
 
 void SpotClient::close_stream(const std::string symbol, const std::string stream_name)
 {
@@ -114,17 +135,15 @@ void SpotClient::close_stream(const std::string symbol, const std::string stream
 Json::Value SpotClient::send_order(Params& param_obj)
 {
 
-	std::string endpoint = "/api/v3/order";
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
 	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
 	std::string query = Client::_generate_query(param_obj);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
 	query += ("&signature=" + signature);
 	query = "?" + query;
-	std::cout << query;
 
-	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
-	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_SPOT + endpoint + query);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
 	if (this->flush_params) param_obj.clear_params();
 
@@ -144,11 +163,47 @@ unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& f
 	}
 	else
 	{
-		this->_ws_client->_connect_to_endpoint<FT>(full_stream_name, buffer, functor); 
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
 		return this->_ws_client->running_streams[full_stream_name];
 	}
 }
 
+template <class FT>
+unsigned int SpotClient::userStream(std::string& buffer, FT& functor) // todo: return name of stream 
+// todo: delete statement in 'catch' statement. note: delete here only
+{
+	RestSession* keep_alive_session = new RestSession{}; // todo: clean this if exception
+	this->set_headers(keep_alive_session); // todo: check boolean
+	std::string full_stream_name = this->_get_listen_key();
+
+	std::string renew_key_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
+
+	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
+
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists"; // todo: exception here?
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+bool SpotClient::set_headers(RestSession* rest_client)
+{
+	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
+	struct curl_slist* auth_headers;
+	auth_headers = curl_slist_append(NULL, key_header.c_str());
+
+	curl_easy_setopt((rest_client->_get_handle), CURLOPT_HTTPHEADER, auth_headers);
+	curl_easy_setopt((rest_client->_post_handle), CURLOPT_HTTPHEADER, auth_headers);
+	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
+
+	return 0;
+}
 
 bool SpotClient::is_stream_open(const std::string& symbol, const std::string& stream_name)
 {
@@ -159,6 +214,11 @@ bool SpotClient::is_stream_open(const std::string& symbol, const std::string& st
 std::vector<std::string> SpotClient::get_open_streams()
 {
 	return this->_ws_client->open_streams();
+}
+
+void SpotClient::ws_auto_reconnect(const bool& reconnect)
+{
+	this->_ws_client->_set_reconnect(reconnect);
 }
 
 SpotClient::~SpotClient()
@@ -174,7 +234,6 @@ FuturesClient::FuturesClient()
 {
 	this->init_ws_session();
 	this->init_rest_session();
-	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
 };
 
 FuturesClient::FuturesClient(std::string key, std::string secret)
@@ -182,13 +241,12 @@ FuturesClient::FuturesClient(std::string key, std::string secret)
 {
 	this->init_rest_session();
 	this->init_ws_session();
-	if (!(this->ping_client())) throw("bad_ping"); // for exceptions class
 }
 
 unsigned long long FuturesClient::exchange_time()
 {
-	std::string endpoint = "/fapi/v1/time"; // fix
-	std::string ex_time = (this->_rest_client)->_getreq(endpoint)["response"]["serverTime"].asString();
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/time"; // fix
+	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
 
 	return std::atoll(ex_time.c_str());
 }
@@ -197,8 +255,8 @@ bool FuturesClient::ping_client()
 {
 	try
 	{
-		std::string endpoint = "/fapi/v1/ping";
-		Json::Value ping_response = (this->_rest_client)->_getreq(endpoint)["response"];
+		std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ping";
+		Json::Value ping_response = (this->_rest_client)->_getreq(full_path)["response"];
 		return (ping_response != Json::nullValue);
 	}
 	catch (...)
@@ -207,26 +265,81 @@ bool FuturesClient::ping_client()
 	}
 }
 
-void FuturesClient::init_rest_session() // make separate for ws and rest
+bool FuturesClient::init_rest_session() // make separate for ws and rest
 {
-	if (this->_rest_client) delete this->_rest_client;
-
-	this->_rest_client = new RestSession{ this->_BASE_REST_FUTURES };
-	if (!this->_public_client)
+	try
 	{
-		std::string key_header = "X-MBX-APIKEY:" + this->_api_key; // header for api key
-		struct curl_slist* auth_headers;
-		auth_headers = curl_slist_append(NULL, key_header.c_str());
+		if (this->_rest_client) delete this->_rest_client;
 
-		curl_easy_setopt((this->_rest_client)->_get_handle, CURLOPT_HTTPHEADER, auth_headers);
-		curl_easy_setopt((this->_rest_client)->_post_handle, CURLOPT_HTTPHEADER, auth_headers);
+		this->_rest_client = new RestSession{}; // todo: uniqueptr?
+		if (!this->_public_client)
+		{
+			this->set_headers(this->_rest_client); // todo: check boolean
+
+		}
+		if (!(this->ping_client())) return 0;
+
+		return 1;
+	}
+	catch (...)
+	{
+		delete this->_rest_client;
+		throw("bad_init_rest");
+	}
+
+}
+
+bool FuturesClient::init_ws_session()
+{
+	try
+	{
+		if (this->_ws_client) delete this->_rest_client;
+		this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES, this->_WS_PORT };
+		return 1;
+	}
+	catch (...)
+	{
+		throw("bad_init_ws");
 	}
 }
 
-void FuturesClient::init_ws_session()
+std::string FuturesClient::_get_listen_key()
 {
-	if (this->_ws_client) delete this->_rest_client;
-	this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES, this->_WS_PORT };
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey"; // todo: to spot
+	Params temp_params;
+	temp_params.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(temp_params);
+
+	std::string signature = HMACsha256(query, this->_api_secret);
+	query += ("&signature=" + signature);
+	query = "?" + query;
+
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	return response["response"]["listenKey"].asString();
+}
+
+template <class FT>
+unsigned int FuturesClient::userStream(std::string& buffer, FT& functor) // todo: return name of stream
+{
+	RestSession* keep_alive_session = new RestSession{ this->_api_key, this->_api_secret };
+	this->set_headers(keep_alive_session);
+
+	std::string renew_key_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey";
+
+	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
+
+	std::string full_stream_name = this->_get_listen_key();
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists"; // todo: exception here?
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
 }
 
 void FuturesClient::close_stream(const std::string symbol, const std::string stream_name)
@@ -248,7 +361,7 @@ std::vector<std::string> FuturesClient::get_open_streams()
 
 Json::Value FuturesClient::send_order(Params& param_obj)
 {
-	std::string endpoint = "/fapi/v1/order";
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
 	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
 	std::string query = Client::_generate_query(param_obj);
 
@@ -256,8 +369,7 @@ Json::Value FuturesClient::send_order(Params& param_obj)
 	query += ("&signature=" + signature);
 	query = "?" + query;
 
-	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
-	Json::Value response = (this->_rest_client)->_postreq(this->_BASE_REST_FUTURES + endpoint + query); // return entire json?
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // return entire json?
 
 	if (this->flush_params) param_obj.clear_params();
 
@@ -266,7 +378,7 @@ Json::Value FuturesClient::send_order(Params& param_obj)
 
 Json::Value FuturesClient::fetch_balances(Params& param_obj)
 {
-	std::string endpoint = "/fapi/v2/balance";
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v2/balance";
 
 	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
 	std::string query = Client::_generate_query(param_obj);
@@ -275,8 +387,7 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 	query += ("&signature=" + signature);
 	query = "?" + query;
 
-	std::cout << this->_BASE_REST_FUTURES + endpoint + query;
-	Json::Value response = (this->_rest_client)->_getreq(this->_BASE_REST_FUTURES + endpoint + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
 	if (this->flush_params) param_obj.clear_params();
 
@@ -293,11 +404,28 @@ unsigned int FuturesClient::aggTrade(std::string symbol)
 	//this->_ws_client->start_stream("/ws/btcusdt@aggTrade"); // todo: delete 'btcusdt'
 }
 
+bool FuturesClient::set_headers(RestSession* rest_client)
+{
+	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
+	struct curl_slist* auth_headers;
+	auth_headers = curl_slist_append(NULL, key_header.c_str());
+
+	curl_easy_setopt((rest_client->_get_handle), CURLOPT_HTTPHEADER, auth_headers);
+	curl_easy_setopt((rest_client->_post_handle), CURLOPT_HTTPHEADER, auth_headers);
+	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
+
+	return 0;
+}
 
 bool FuturesClient::is_stream_open(const std::string& symbol, const std::string& stream_name)
 {
 	std::string full_stream_name = symbol + '@' + stream_name;
 	return this->_ws_client->is_open(full_stream_name);
+}
+
+void FuturesClient::ws_auto_reconnect(const bool& reconnect)
+{
+	this->_ws_client->_set_reconnect(reconnect);
 }
 
 FuturesClient::~FuturesClient()
@@ -339,13 +467,19 @@ void Params::set_param(std::string key, PT value)
 {
 	param_map[key] = std::to_string(value);
 }
-template <>
+template <> // do not call to_string on a string
 void Params::set_param<std::string>(std::string key, std::string value)
 {
 	param_map[key] = value;
 }
 
-void Params::clear_params()
+bool Params::clear_params()
 {
 	this->param_map.clear();
+	return this->empty();
+}
+
+bool Params::empty()
+{
+	return this->param_map.empty();
 }
