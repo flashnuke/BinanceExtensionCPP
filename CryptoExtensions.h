@@ -1,13 +1,11 @@
-// todo: private stream (and a keepalive...)
-// todo: streams return name of stream as written in map
+// todo: futures and client source files in different files?
 
-// todo: custom stream. this way you can connect to several...
-// todo: example of order book fetch from scratch
-// todo: rest response not on class level. pass a pointer of local var and return it
+// todo: custom stream. this way you can connect to several... pass bool for 'renew_key'
+
 
 // DOCs todos:
-// 1. keep "renew_listenkey" function empty.
-// 2. keep "user_stream" bool empty
+// 1. order book fetch from scratch example
+// 2. ws symbols must be lower case
 
 // First make everything for spot and then for futures
 
@@ -91,9 +89,11 @@ class WebsocketClient
 private:
 	const std::string _host;
 	const std::string _port;
-	bool reconnect_on_error; // todo: _
-	unsigned int refresh_listenkey_interval;
+	bool _reconnect_on_error;
 
+	template <class FT>
+	void _connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor, std::pair<RestSession*,
+		std::string> user_stream_pair = std::make_pair<RestSession*, std::string>(nullptr, ""));
 
 public:
 	WebsocketClient(std::string host, std::string port);
@@ -103,10 +103,8 @@ public:
 	void close_stream(const std::string stream_name);
 	std::vector<std::string> open_streams();
 	bool is_open(const std::string& stream_name);
+	unsigned int refresh_listenkey_interval;
 
-	template <class FT>
-	void _connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor, std::pair<RestSession*,
-		std::string> user_stream_pair = std::make_pair<RestSession*, std::string>(nullptr, ""));
 	template <class FT>
 	void _stream_manager(std::string stream_map_name, std::string& buf, FT& functor, std::pair<RestSession*,
 		std::string> user_stream_pair = std::make_pair<RestSession*, std::string>(nullptr, ""));
@@ -123,11 +121,11 @@ public:
 
 struct Params
 	// Params will be stored in a map of <str, str> and parsed by the query generator.
-{	// todo: in documentation, state to pass empty obj for all
+{
 
 	Params();
-	Params(Params& param_obj);
-	Params(const Params& param_obj);
+	explicit Params(Params& param_obj);
+	explicit Params(const Params& param_obj);
 
 	Params& operator=(Params& params_obj);
 	Params& operator=(const Params& params_obj);
@@ -178,6 +176,7 @@ public:
 	virtual std::vector<std::string> get_open_streams() = 0;
 	virtual void ws_auto_reconnect(const bool& reconnect) = 0;
 	virtual bool set_headers(RestSession* rest_client) = 0;
+	virtual inline void set_refresh_key_interval(const bool val) = 0;
 
 
 	RestSession* _rest_client = nullptr; // move init
@@ -205,6 +204,7 @@ public:
 	std::vector<std::string> get_open_streams();
 	void ws_auto_reconnect(const bool& reconnect);
 	bool set_headers(RestSession* rest_client);
+	inline void set_refresh_key_interval(const bool val);
 	
 
 	Json::Value send_order(Params& parameter_vec);
@@ -235,6 +235,7 @@ public:
 	std::vector<std::string> get_open_streams();
 	void ws_auto_reconnect(const bool& reconnect);
 	bool set_headers(RestSession* rest_client);
+	inline void set_refresh_key_interval(const bool val);
 
 
 	Json::Value send_order(Params& parameter_vec);

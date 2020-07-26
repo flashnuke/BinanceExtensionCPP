@@ -1,15 +1,13 @@
 
 #include "CryptoExtensions.h"
 
-//todo: send ping method. might need to use it every 24 hours...
-
 
 WebsocketClient::WebsocketClient(std::string host, std::string port)
-    : _host{ host }, _port{ port }, reconnect_on_error{ 0 }, refresh_listenkey_interval{ 3300 }
+    : _host{ host }, _port{ port }, _reconnect_on_error{ 0 }, refresh_listenkey_interval{ 3300 }
 {}
 
 
-void WebsocketClient::close_stream(const std::string full_stream_name) // todo: return sucess unsigned int
+void WebsocketClient::close_stream(const std::string full_stream_name)
 {
     this->running_streams[full_stream_name] = 0;
 }
@@ -48,7 +46,7 @@ void WebsocketClient::_stream_manager(std::string stream_map_name, std::string& 
 	{
 		if (user_stream_pair.first) this->_connect_to_endpoint<FT>(stream_map_name, buf, functor, user_stream_pair);
 		else this->_connect_to_endpoint<FT>(stream_map_name, buf, functor);
-	} while (this->running_streams[stream_map_name] && this->reconnect_on_error);
+	} while (this->running_streams[stream_map_name] && this->_reconnect_on_error);
 }
 
 template <class FT>
@@ -98,7 +96,7 @@ void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::str
 			if (ec)
 			{
 				std::cerr << ec;
-				if (!this->reconnect_on_error)this->running_streams[stream_map_name] = 0; // to exit loop if not retry
+				if (!this->_reconnect_on_error)this->running_streams[stream_map_name] = 0; // to exit loop if not retry
 				break;
 			}
 
@@ -107,7 +105,7 @@ void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::str
 		}
 		catch (...)
 		{
-			if (!this->reconnect_on_error)this->running_streams[stream_map_name] = 0; // to exit loop if not retry
+			if (!this->_reconnect_on_error)this->running_streams[stream_map_name] = 0; // to exit loop if not retry
 			break;
 		}
 	}
@@ -115,7 +113,7 @@ void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::str
 
 void WebsocketClient::_set_reconnect(const bool& reconnect)
 {
-	this->reconnect_on_error = reconnect;
+	this->_reconnect_on_error = reconnect;
 }
 
 

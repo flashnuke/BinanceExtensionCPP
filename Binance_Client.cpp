@@ -40,7 +40,7 @@ bool SpotClient::init_rest_session() // make separate for ws and rest
 		this->_rest_client = new RestSession{};
 		if (!this->_public_client)
 		{
-			this->set_headers(this->_rest_client); // todo: check boolean
+			this->set_headers(this->_rest_client);
 		}
 		if (!(this->ping_client())) return 0;
 
@@ -48,6 +48,7 @@ bool SpotClient::init_rest_session() // make separate for ws and rest
 	}
 	catch (...)
 	{
+		delete this->_rest_client;
 		throw("bad_init_rest");
 	}
 
@@ -158,7 +159,7 @@ unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& f
 	std::string full_stream_name = symbol + '@' + "aggTrade";
 	if (this->_ws_client->is_open(full_stream_name))
 	{
-		std::cout << "already exists"; // todo: exception here?
+		std::cout << "already exists";
 		return 0;
 	}
 	else
@@ -169,26 +170,33 @@ unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& f
 }
 
 template <class FT>
-unsigned int SpotClient::userStream(std::string& buffer, FT& functor) // todo: return name of stream 
-// todo: delete statement in 'catch' statement. note: delete here only
+unsigned int SpotClient::userStream(std::string& buffer, FT& functor)
 {
-	RestSession* keep_alive_session = new RestSession{}; // todo: clean this if exception
-	this->set_headers(keep_alive_session); // todo: check boolean
-	std::string full_stream_name = this->_get_listen_key();
-
-	std::string renew_key_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
-
-	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
-
-	if (this->_ws_client->is_open(full_stream_name))
+	RestSession* keep_alive_session = new RestSession{};
+	try
 	{
-		std::cout << "already exists"; // todo: exception here?
-		return 0;
+		this->set_headers(keep_alive_session);
+		std::string full_stream_name = this->_get_listen_key();
+
+		std::string renew_key_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
+
+		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
+
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cout << "already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (...)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
-		return this->_ws_client->running_streams[full_stream_name];
+		delete keep_alive_session;
+		throw("bad_stream");
 	}
 }
 
@@ -203,6 +211,11 @@ bool SpotClient::set_headers(RestSession* rest_client)
 	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
 
 	return 0;
+}
+
+void SpotClient::set_refresh_key_interval(const bool val)
+{
+	this->_ws_client->refresh_listenkey_interval = val;
 }
 
 bool SpotClient::is_stream_open(const std::string& symbol, const std::string& stream_name)
@@ -271,10 +284,10 @@ bool FuturesClient::init_rest_session() // make separate for ws and rest
 	{
 		if (this->_rest_client) delete this->_rest_client;
 
-		this->_rest_client = new RestSession{}; // todo: uniqueptr?
+		this->_rest_client = new RestSession{};
 		if (!this->_public_client)
 		{
-			this->set_headers(this->_rest_client); // todo: check boolean
+			this->set_headers(this->_rest_client);
 
 		}
 		if (!(this->ping_client())) return 0;
@@ -305,7 +318,7 @@ bool FuturesClient::init_ws_session()
 
 std::string FuturesClient::_get_listen_key()
 {
-	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey"; // todo: to spot
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey";
 	Params temp_params;
 	temp_params.set_param<unsigned long long>("timestamp", local_timestamp());
 	std::string query = Client::_generate_query(temp_params);
@@ -320,25 +333,34 @@ std::string FuturesClient::_get_listen_key()
 }
 
 template <class FT>
-unsigned int FuturesClient::userStream(std::string& buffer, FT& functor) // todo: return name of stream
+unsigned int FuturesClient::userStream(std::string& buffer, FT& functor)
 {
 	RestSession* keep_alive_session = new RestSession{ this->_api_key, this->_api_secret };
-	this->set_headers(keep_alive_session);
 
-	std::string renew_key_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey";
-
-	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
-
-	std::string full_stream_name = this->_get_listen_key();
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists"; // todo: exception here?
-		return 0;
+		this->set_headers(keep_alive_session);
+
+		std::string renew_key_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey";
+
+		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
+
+		std::string full_stream_name = this->_get_listen_key();
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cout << "already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (...)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		delete keep_alive_session;
+		throw("bad_ws_stream");
 	}
 }
 
@@ -398,10 +420,6 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 unsigned int FuturesClient::aggTrade(std::string symbol)
 {
 	return 0;
-	// todo: add if ws session exists or not
-	// todo: add symbol param
-	//this->init_ws();
-	//this->_ws_client->start_stream("/ws/btcusdt@aggTrade"); // todo: delete 'btcusdt'
 }
 
 bool FuturesClient::set_headers(RestSession* rest_client)
@@ -415,6 +433,12 @@ bool FuturesClient::set_headers(RestSession* rest_client)
 	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
 
 	return 0;
+}
+
+
+void FuturesClient::set_refresh_key_interval(const bool val)
+{
+	this->_ws_client->refresh_listenkey_interval = val;
 }
 
 bool FuturesClient::is_stream_open(const std::string& symbol, const std::string& stream_name)
