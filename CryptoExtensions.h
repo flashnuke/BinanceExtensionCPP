@@ -204,7 +204,6 @@ public:
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
 	void ws_auto_reconnect(const bool& reconnect);
-	bool _renew_listen_key(const unsigned int interval); // todo: delete
 	bool set_headers(RestSession* rest_client);
 	
 
@@ -235,7 +234,6 @@ public:
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
 	void ws_auto_reconnect(const bool& reconnect);
-	bool _renew_listen_key(const unsigned int interval); // todo: delete
 	bool set_headers(RestSession* rest_client);
 
 

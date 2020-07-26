@@ -87,10 +87,9 @@ void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::str
 			if (user_stream_pair.first)
 			{
 				long long unsigned int current_timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-				if (current_timestamp - last_keepalive > this->refresh_listenkey_interval) // delete - return param
+				if (current_timestamp - last_keepalive > this->refresh_listenkey_interval)
 				{
 					(user_stream_pair.first)->_putreq(user_stream_pair.second);
-					std::cout << "bazinga!"; // delete
 					last_keepalive = current_timestamp;
 				}
 			}
