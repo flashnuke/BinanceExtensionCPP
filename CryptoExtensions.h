@@ -1,5 +1,4 @@
 // todo: futures and client source files in different files?
-// todo: from virtual to crtp
 
 // todo: custom stream. this way you can connect to several... pass bool for 'renew_key'
 
@@ -7,6 +6,7 @@
 // DOCs todos:
 // 1. order book fetch from scratch example
 // 2. ws symbols must be lower case
+// 3. v_ is for crtp
 
 // First make everything for spot and then for futures
 
@@ -141,6 +141,7 @@ struct Params
 };
 
 
+template<typename T>
 class Client
 {
 private:
@@ -150,9 +151,9 @@ protected:
 	std::string _api_key;
 	std::string _api_secret;
 
-	Client();
+	explicit Client();
 	Client(std::string key, std::string secret);
-	virtual ~Client();
+	~Client();
 
 public:
 	bool const _public_client;
@@ -167,18 +168,19 @@ public:
 
 	bool flush_params; // if true, param objects passed to functions will be flushed
 
-	virtual unsigned long long exchange_time() = 0;
-	virtual bool ping_client() = 0;
-	virtual bool init_ws_session() = 0;
-	virtual std::string _get_listen_key() = 0;
-	virtual bool init_rest_session() = 0;
-	virtual void close_stream(const std::string symbol, const std::string stream_name) = 0;
-	virtual bool is_stream_open(const std::string& symbol, const std::string& stream_name) = 0;
-	virtual std::vector<std::string> get_open_streams() = 0;
-	virtual void ws_auto_reconnect(const bool& reconnect) = 0;
-	virtual bool set_headers(RestSession* rest_client) = 0;
-	virtual inline void set_refresh_key_interval(const bool val) = 0;
-
+	// CRTP methods
+	unsigned long long exchange_time();
+	bool ping_client();
+	bool init_ws_session();
+	std::string _get_listen_key();
+	bool init_rest_session();
+	void close_stream(const std::string& symbol, const std::string& stream_name);
+	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
+	std::vector<std::string> get_open_streams();
+	void ws_auto_reconnect(const bool& reconnect);
+	bool set_headers(RestSession* rest_client);
+	inline void set_refresh_key_interval(const bool val);
+	// end CRTP methods
 
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
@@ -187,7 +189,7 @@ public:
 
 
 
-class FuturesClient : public Client
+class FuturesClient : public Client<FuturesClient>
 {
 private:
 
@@ -195,17 +197,17 @@ public:
 	FuturesClient();
 	FuturesClient(std::string key, std::string secret);
 
-	unsigned long long exchange_time();
-	bool ping_client();
-	bool init_ws_session();
-	std::string _get_listen_key();
-	bool init_rest_session();
-	void close_stream(const std::string symbol, const std::string stream_name);
-	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
-	std::vector<std::string> get_open_streams();
-	void ws_auto_reconnect(const bool& reconnect);
-	bool set_headers(RestSession* rest_client);
-	inline void set_refresh_key_interval(const bool val);
+	inline unsigned long long v_exchange_time();
+	inline bool v_ping_client();
+	inline bool v_init_ws_session();
+	inline std::string v__get_listen_key();
+	inline bool v_init_rest_session();
+	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
+	inline bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
+	inline std::vector<std::string> v_get_open_streams();
+	inline void v_ws_auto_reconnect(const bool& reconnect);
+	inline bool v_set_headers(RestSession* rest_client);
+	inline void v_set_refresh_key_interval(const bool val);
 	
 
 	Json::Value send_order(Params& parameter_vec);
@@ -218,7 +220,7 @@ public:
 };
 
 
-class SpotClient : public Client
+class SpotClient : public Client<SpotClient>
 {
 private:
 
@@ -226,17 +228,17 @@ public:
 	SpotClient();
 	SpotClient(std::string key, std::string secret);
 
-	unsigned long long exchange_time();
-	bool ping_client();
-	bool init_ws_session();
-	std::string _get_listen_key();
-	bool init_rest_session();
-	void close_stream(const std::string symbol, const std::string stream_name);
-	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
-	std::vector<std::string> get_open_streams();
-	void ws_auto_reconnect(const bool& reconnect);
-	bool set_headers(RestSession* rest_client);
-	inline void set_refresh_key_interval(const bool val);
+	unsigned long long v_exchange_time();
+	bool v_ping_client();
+	bool v_init_ws_session();
+	std::string v__get_listen_key();
+	bool v_init_rest_session();
+	void v_close_stream(const std::string& symbol, const std::string& stream_name);
+	bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
+	std::vector<std::string> v_get_open_streams();
+	void v_ws_auto_reconnect(const bool& reconnect);
+	bool v_set_headers(RestSession* rest_client);
+	inline void v_set_refresh_key_interval(const bool val);
 
 
 	Json::Value send_order(Params& parameter_vec);
