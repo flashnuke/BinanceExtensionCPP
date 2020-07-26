@@ -12,11 +12,8 @@ static long _INTVL_TIME_TCP = 60L;
 
 unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req)
 {
-	std::cout << "fkthis"; // delete
-
 	(&req->req_raw)->append((char*)contents, size * nmemb);
 
-	std::cout << req->req_raw; // delete
 	std::string parse_errors{};
 	bool parse_status;
 
@@ -113,7 +110,6 @@ Json::Value RestSession::_putreq(std::string full_path)
 	curl_easy_setopt(this->_put_handle, CURLOPT_WRITEDATA, &request);
 
 	request.req_status = curl_easy_perform(this->_put_handle);
-	std::cout << "fkthis"; // delete
 	return request.req_json;
 };
 
