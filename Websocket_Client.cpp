@@ -2,6 +2,7 @@
 #include "CryptoExtensions.h"
 
 
+
 WebsocketClient::WebsocketClient(std::string host, std::string port)
     : _host{ host }, _port{ port }, _reconnect_on_error{ 0 }, refresh_listenkey_interval{ 3300 }
 {}

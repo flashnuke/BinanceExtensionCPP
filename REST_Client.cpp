@@ -7,8 +7,9 @@ static long _IDLE_TIME_TCP = 120L;
 static long _INTVL_TIME_TCP = 60L;
 
 
-unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req)
+unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req) 
 {
+	req->locker->unlock();
 	(&req->req_raw)->append((char*)contents, size * nmemb);
 
 	std::string parse_errors{};
@@ -76,9 +77,12 @@ RestSession::RestSession()
 
 Json::Value RestSession::_getreq(std::string full_path)
 {
-	curl_easy_setopt(this->_get_handle, CURLOPT_URL, full_path.c_str());
-
 	RequestHandler request{};
+
+	std::unique_lock<std::mutex> req_lock(this->_get_lock); // will be unlocked in callback
+	request.locker = &req_lock;
+
+	curl_easy_setopt(this->_get_handle, CURLOPT_URL, full_path.c_str());
 	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEDATA, &request);
 
 	request.req_status = curl_easy_perform(this->_get_handle);
@@ -88,10 +92,12 @@ Json::Value RestSession::_getreq(std::string full_path)
 
 Json::Value RestSession::_postreq(std::string full_path)
 {
-	curl_easy_setopt(this->_post_handle, CURLOPT_URL, full_path.c_str());
-
 	RequestHandler request{};
 
+	std::unique_lock<std::mutex> req_lock(this->_post_lock); // will be unlocked in callback
+	request.locker = &req_lock;
+
+	curl_easy_setopt(this->_post_handle, CURLOPT_URL, full_path.c_str());
 	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEDATA, &request);
 
 	request.req_status = curl_easy_perform(this->_post_handle);
@@ -101,12 +107,16 @@ Json::Value RestSession::_postreq(std::string full_path)
 
 Json::Value RestSession::_putreq(std::string full_path)
 {
-	curl_easy_setopt(this->_put_handle, CURLOPT_URL, full_path.c_str());
-
 	RequestHandler request{};
+
+	std::unique_lock<std::mutex> req_lock(this->_put_lock); // will be unlocked in callback
+	request.locker = &req_lock;
+
+	curl_easy_setopt(this->_put_handle, CURLOPT_URL, full_path.c_str());
 	curl_easy_setopt(this->_put_handle, CURLOPT_WRITEDATA, &request);
 
 	request.req_status = curl_easy_perform(this->_put_handle);
+
 	return request.req_json;
 };
 

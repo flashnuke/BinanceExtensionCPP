@@ -1,5 +1,5 @@
 // todo: futures and client source files in different files?
-
+// todo: return empty json with "status = 1" if no cb passed.
 // todo: custom stream. this way you can connect to several... pass bool for 'renew_key'
 
 
@@ -31,6 +31,7 @@
 #include <string>
 #include <unordered_map>
 #include <thread>
+#include <mutex>
 #include <vector>
 
 
@@ -47,6 +48,7 @@ inline auto binary_to_hex_digit(unsigned a) -> char;
 auto binary_to_hex(unsigned char const* binary, unsigned binary_len)->std::string;
 std::string HMACsha256(std::string const& message, std::string const& key);
 
+
 class RestSession
 {
 private:
@@ -58,6 +60,7 @@ private:
 		std::string req_raw;
 		Json::Value req_json;
 		CURLcode req_status;
+		std::unique_lock<std::mutex>* locker;
 	};
 
 
@@ -71,12 +74,15 @@ public:
 
 	Json::Value _getreq(std::string full_path);
 	inline void get_timeout(unsigned long interval);
+	std::mutex _get_lock;
 
 	Json::Value _postreq(std::string full_path);
 	inline void post_timeout(unsigned long interval);
+	std::mutex _post_lock;
 
 	Json::Value _putreq(std::string full_path);
 	inline void put_timeout(unsigned long interval);
+	std::mutex _put_lock;
 
 	bool close();
 
@@ -173,15 +179,16 @@ public:
 	bool ping_client();
 	bool init_ws_session();
 	std::string _get_listen_key();
-	bool init_rest_session();
 	void close_stream(const std::string& symbol, const std::string& stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
 	void ws_auto_reconnect(const bool& reconnect);
-	bool set_headers(RestSession* rest_client);
 	inline void set_refresh_key_interval(const bool val);
+
 	// end CRTP methods
 
+	bool init_rest_session();
+	bool set_headers(RestSession* rest_client);
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
 
@@ -201,12 +208,10 @@ public:
 	inline bool v_ping_client();
 	inline bool v_init_ws_session();
 	inline std::string v__get_listen_key();
-	inline bool v_init_rest_session();
 	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
 	inline bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
 	inline std::vector<std::string> v_get_open_streams();
 	inline void v_ws_auto_reconnect(const bool& reconnect);
-	inline bool v_set_headers(RestSession* rest_client);
 	inline void v_set_refresh_key_interval(const bool val);
 	
 
@@ -232,12 +237,10 @@ public:
 	bool v_ping_client();
 	bool v_init_ws_session();
 	std::string v__get_listen_key();
-	bool v_init_rest_session();
 	void v_close_stream(const std::string& symbol, const std::string& stream_name);
 	bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> v_get_open_streams();
 	void v_ws_auto_reconnect(const bool& reconnect);
-	bool v_set_headers(RestSession* rest_client);
 	inline void v_set_refresh_key_interval(const bool val);
 
 

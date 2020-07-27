@@ -27,9 +27,6 @@ template<typename T>
 std::string Client<T>::_get_listen_key() { return static_cast<T*>(this)->v__get_listen_key(); }
 
 template<typename T>
-bool Client<T>::init_rest_session() { return static_cast<T*>(this)->v_init_rest_session(); }
-
-template<typename T>
 void Client<T>::close_stream(const std::string& symbol, const std::string& stream_name) { static_cast<T*>(this)->v_close_stream(symbol, stream_name); }
 
 template<typename T>
@@ -42,12 +39,47 @@ template<typename T>
 void Client<T>::ws_auto_reconnect(const bool& reconnect) { static_cast<T*>(this)->v_ws_auto_reconnect(reconnect); }
 
 template<typename T>
-bool Client<T>::set_headers(RestSession* rest_client) { return static_cast<T*>(this)->v_set_headers(rest_client); }
-
-template<typename T>
 void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
 
 // Client other methods
+
+template <typename T>
+bool Client<T>::init_rest_session() // make separate for ws and rest
+{
+	try
+	{
+		if (this->_rest_client) delete this->_rest_client;
+
+		this->_rest_client = new RestSession{};
+		if (!this->_public_client)
+		{
+			this->set_headers(this->_rest_client);
+		}
+		if (!(this->ping_client())) return 0;
+
+		return 1;
+	}
+	catch (...)
+	{
+		delete this->_rest_client;
+		throw("bad_init_rest");
+	}
+
+}
+
+template <typename T>
+bool Client<T>::set_headers(RestSession* rest_client)
+{
+	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
+	struct curl_slist* auth_headers;
+	auth_headers = curl_slist_append(NULL, key_header.c_str());
+
+	curl_easy_setopt((rest_client->_get_handle), CURLOPT_HTTPHEADER, auth_headers);
+	curl_easy_setopt((rest_client->_post_handle), CURLOPT_HTTPHEADER, auth_headers);
+	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
+
+	return 0;
+}
 
 template<typename T>
 std::string Client<T>::_generate_query(Params& params_obj)
@@ -72,30 +104,6 @@ Client<T>::~Client()
 	delete _rest_client;
 	delete _ws_client;
 };
-
-bool SpotClient::v_init_rest_session() // make separate for ws and rest
-{
-	try
-	{
-		if (this->_rest_client) delete this->_rest_client;
-
-		this->_rest_client = new RestSession{};
-		if (!this->_public_client)
-		{
-			this->set_headers(this->_rest_client);
-		}
-		if (!(this->ping_client())) return 0;
-
-		return 1;
-	}
-	catch (...)
-	{
-		delete this->_rest_client;
-		throw("bad_init_rest");
-	}
-
-}
-
 
 
 // SpotClient definitions
@@ -139,7 +147,7 @@ bool SpotClient::v_init_ws_session()
 {
 	try
 	{
-		if (this->_ws_client) delete this->_rest_client;
+		if (this->_ws_client) delete this->_ws_client;
 		this->_ws_client = new WebsocketClient{ this->_WS_BASE_SPOT, this->_WS_PORT };
 		return 1;
 	}
@@ -238,18 +246,7 @@ unsigned int SpotClient::userStream(std::string& buffer, FT& functor)
 	}
 }
 
-bool SpotClient::v_set_headers(RestSession* rest_client)
-{
-	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
-	struct curl_slist* auth_headers;
-	auth_headers = curl_slist_append(NULL, key_header.c_str());
 
-	curl_easy_setopt((rest_client->_get_handle), CURLOPT_HTTPHEADER, auth_headers);
-	curl_easy_setopt((rest_client->_post_handle), CURLOPT_HTTPHEADER, auth_headers);
-	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
-
-	return 0;
-}
 
 void SpotClient::v_set_refresh_key_interval(const bool val)
 {
@@ -316,35 +313,12 @@ bool FuturesClient::v_ping_client()
 	}
 }
 
-bool FuturesClient::v_init_rest_session() // make separate for ws and rest
-{
-	try
-	{
-		if (this->_rest_client) delete this->_rest_client;
-
-		this->_rest_client = new RestSession{};
-		if (!this->_public_client)
-		{
-			this->set_headers(this->_rest_client);
-
-		}
-		if (!(this->ping_client())) return 0;
-
-		return 1;
-	}
-	catch (...)
-	{
-		delete this->_rest_client;
-		throw("bad_init_rest");
-	}
-
-}
 
 bool FuturesClient::v_init_ws_session()
 {
 	try
 	{
-		if (this->_ws_client) delete this->_rest_client;
+		if (this->_ws_client) delete this->_ws_client;
 		this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES, this->_WS_PORT };
 		return 1;
 	}
@@ -457,19 +431,6 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 
 unsigned int FuturesClient::aggTrade(std::string symbol)
 {
-	return 0;
-}
-
-bool FuturesClient::v_set_headers(RestSession* rest_client)
-{
-	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
-	struct curl_slist* auth_headers;
-	auth_headers = curl_slist_append(NULL, key_header.c_str());
-
-	curl_easy_setopt((rest_client->_get_handle), CURLOPT_HTTPHEADER, auth_headers);
-	curl_easy_setopt((rest_client->_post_handle), CURLOPT_HTTPHEADER, auth_headers);
-	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
-
 	return 0;
 }
 
