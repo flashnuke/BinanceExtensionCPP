@@ -81,7 +81,14 @@ bool Client<T>::set_headers(RestSession* rest_client)
 	return 0;
 }
 
-template<typename T>
+template <typename T>
+void Client<T>::rest_set_verbose(bool state)
+{
+	if (state) this->_rest_client->set_verbose(1L);
+	else this->_rest_client->set_verbose(0);
+}
+
+template <typename T>
 std::string Client<T>::_generate_query(Params& params_obj)
 {
 	std::unordered_map<std::string, std::string> params = params_obj.param_map;

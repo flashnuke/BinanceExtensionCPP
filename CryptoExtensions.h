@@ -1,6 +1,7 @@
 // todo: futures and client source files in different files?
 // todo: return empty json with "status = 1" if no cb passed.
 // todo: custom stream. this way you can connect to several... pass bool for 'renew_key'
+// todo: idea - pass stream of name to functor?
 
 
 // DOCs todos:
@@ -68,6 +69,7 @@ public:
 	RestSession();
 
 	bool status; // bool for whether session is active or not
+
 	CURL* _get_handle{};
 	CURL* _post_handle{};
 	CURL* _put_handle{};
@@ -85,6 +87,7 @@ public:
 	std::mutex _put_lock;
 
 	bool close();
+	void set_verbose(const long int state);
 
 	friend unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req);
 
@@ -189,6 +192,7 @@ public:
 
 	bool init_rest_session();
 	bool set_headers(RestSession* rest_client);
+	void rest_set_verbose(bool state);
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
 

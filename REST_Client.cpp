@@ -75,6 +75,14 @@ RestSession::RestSession()
 	status = 1;
 }
 
+void RestSession::set_verbose(const long int state)
+{
+	curl_easy_setopt(this->_get_handle, CURLOPT_VERBOSE, state);
+	curl_easy_setopt(this->_post_handle, CURLOPT_VERBOSE, state);
+	curl_easy_setopt(this->_put_handle, CURLOPT_VERBOSE, state);
+}
+
+
 Json::Value RestSession::_getreq(std::string full_path)
 {
 	RequestHandler request{};
