@@ -193,6 +193,10 @@ public:
 	bool init_rest_session();
 	bool set_headers(RestSession* rest_client);
 	void rest_set_verbose(bool state);
+
+	template <typename FT>
+	unsigned int custom_stream(std::string stream_query, std::string buffer, FT functor);
+
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
 

@@ -89,6 +89,23 @@ void Client<T>::rest_set_verbose(bool state)
 }
 
 template <typename T>
+template <typename FT>
+unsigned int Client<T>::custom_stream(std::string stream_query, std::string buffer, FT functor)
+{
+	stream_query = "/stream?streams=" + stream_query;
+	if (this->_ws_client->is_open(stream_query))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
+	}
+}
+
+template <typename T>
 std::string Client<T>::_generate_query(Params& params_obj)
 {
 	std::unordered_map<std::string, std::string> params = params_obj.param_map;
@@ -209,7 +226,7 @@ template <class FT>
 unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& functor)
 {
 	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = symbol + '@' + "aggTrade";
+	std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
 	if (this->_ws_client->is_open(full_stream_name))
 	{
 		std::cout << "already exists";
@@ -229,7 +246,7 @@ unsigned int SpotClient::userStream(std::string& buffer, FT& functor)
 	try
 	{
 		this->set_headers(keep_alive_session);
-		std::string full_stream_name = this->_get_listen_key();
+		std::string full_stream_name = "/ws/" + this->_get_listen_key();
 
 		std::string renew_key_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
 
@@ -364,7 +381,7 @@ unsigned int FuturesClient::userStream(std::string& buffer, FT& functor)
 
 		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
 
-		std::string full_stream_name = this->_get_listen_key();
+		std::string full_stream_name = "/ws/" + this->_get_listen_key();
 		if (this->_ws_client->is_open(full_stream_name))
 		{
 			std::cout << "already exists";
