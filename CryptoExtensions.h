@@ -1,6 +1,8 @@
 // todo: futures and client source files in different files?
-
-// todo: custom stream. this way you can connect to several... pass bool for 'renew_key'
+// todo: return empty json with "status = 1" if no cb passed.
+// todo: idea - pass stream of name to functor?
+// todo: recvWindow default for Params?
+// todo: custom rest request (esp for renewing listen key from outside without my need)
 
 
 // DOCs todos:
@@ -31,6 +33,7 @@
 #include <string>
 #include <unordered_map>
 #include <thread>
+#include <mutex>
 #include <vector>
 
 
@@ -47,6 +50,7 @@ inline auto binary_to_hex_digit(unsigned a) -> char;
 auto binary_to_hex(unsigned char const* binary, unsigned binary_len)->std::string;
 std::string HMACsha256(std::string const& message, std::string const& key);
 
+
 class RestSession
 {
 private:
@@ -58,6 +62,7 @@ private:
 		std::string req_raw;
 		Json::Value req_json;
 		CURLcode req_status;
+		std::unique_lock<std::mutex>* locker;
 	};
 
 
@@ -65,20 +70,30 @@ public:
 	RestSession();
 
 	bool status; // bool for whether session is active or not
+
 	CURL* _get_handle{};
 	CURL* _post_handle{};
 	CURL* _put_handle{};
+	CURL* _delete_handle{};
 
 	Json::Value _getreq(std::string full_path);
 	inline void get_timeout(unsigned long interval);
+	std::mutex _get_lock;
 
 	Json::Value _postreq(std::string full_path);
 	inline void post_timeout(unsigned long interval);
+	std::mutex _post_lock;
 
 	Json::Value _putreq(std::string full_path);
 	inline void put_timeout(unsigned long interval);
+	std::mutex _put_lock;
+
+	Json::Value _deletereq(std::string full_path);
+	inline void delete_timeout(unsigned long interval);
+	std::mutex _delete_lock;
 
 	bool close();
+	void set_verbose(const long int state);
 
 	friend unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req);
 
@@ -132,9 +147,15 @@ struct Params
 	Params& operator=(const Params& params_obj);
 
 	std::unordered_map<std::string, std::string> param_map;
+	bool default_recv;
+	unsigned int default_recv_amt;
 
 	template <typename PT>
 	void set_param(std::string key, PT value);
+
+	bool delete_param(std::string key);
+
+	void set_recv(bool set_always, unsigned int recv_val = 0);
 
 	bool clear_params();
 	bool empty();
@@ -173,14 +194,24 @@ public:
 	bool ping_client();
 	bool init_ws_session();
 	std::string _get_listen_key();
-	bool init_rest_session();
 	void close_stream(const std::string& symbol, const std::string& stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
 	void ws_auto_reconnect(const bool& reconnect);
-	bool set_headers(RestSession* rest_client);
 	inline void set_refresh_key_interval(const bool val);
+
+	Json::Value cancel_order(Params& parameter_vec);
+	Json::Value place_order(Params& parameter_vec);
+
+
 	// end CRTP methods
+
+	bool init_rest_session();
+	bool set_headers(RestSession* rest_client);
+	void rest_set_verbose(bool state);
+
+	template <typename FT>
+	unsigned int custom_stream(std::string stream_query, std::string buffer, FT functor);
 
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
@@ -192,25 +223,26 @@ public:
 class FuturesClient : public Client<FuturesClient>
 {
 private:
-
-public:
-	FuturesClient();
-	FuturesClient(std::string key, std::string secret);
-
 	inline unsigned long long v_exchange_time();
 	inline bool v_ping_client();
 	inline bool v_init_ws_session();
 	inline std::string v__get_listen_key();
-	inline bool v_init_rest_session();
 	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
 	inline bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
 	inline std::vector<std::string> v_get_open_streams();
 	inline void v_ws_auto_reconnect(const bool& reconnect);
-	inline bool v_set_headers(RestSession* rest_client);
 	inline void v_set_refresh_key_interval(const bool val);
-	
 
-	Json::Value send_order(Params& parameter_vec);
+	Json::Value v_cancel_order(Params& parameter_vec);
+	Json::Value v_place_order(Params& parameter_vec);
+
+public:
+	friend Client;
+
+	FuturesClient();
+	FuturesClient(std::string key, std::string secret);
+
+
 	Json::Value fetch_balances(Params& param_obj);
 	unsigned int aggTrade(std::string symbol);
 	template <class FT>
@@ -223,26 +255,25 @@ public:
 class SpotClient : public Client<SpotClient>
 {
 private:
-
-public:
-	SpotClient();
-	SpotClient(std::string key, std::string secret);
-
 	unsigned long long v_exchange_time();
 	bool v_ping_client();
 	bool v_init_ws_session();
 	std::string v__get_listen_key();
-	bool v_init_rest_session();
 	void v_close_stream(const std::string& symbol, const std::string& stream_name);
 	bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> v_get_open_streams();
 	void v_ws_auto_reconnect(const bool& reconnect);
-	bool v_set_headers(RestSession* rest_client);
 	inline void v_set_refresh_key_interval(const bool val);
 
 
-	Json::Value send_order(Params& parameter_vec);
+	Json::Value v_place_order(Params& parameter_vec);
+	Json::Value v_cancel_order(Params& parameter_vec);
 
+public:
+	friend Client;
+
+	SpotClient();
+	SpotClient(std::string key, std::string secret);
 
 	template <class FT>
 	unsigned int aggTrade(std::string symbol, std::string& buffer, FT& functor);

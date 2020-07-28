@@ -27,9 +27,6 @@ template<typename T>
 std::string Client<T>::_get_listen_key() { return static_cast<T*>(this)->v__get_listen_key(); }
 
 template<typename T>
-bool Client<T>::init_rest_session() { return static_cast<T*>(this)->v_init_rest_session(); }
-
-template<typename T>
 void Client<T>::close_stream(const std::string& symbol, const std::string& stream_name) { static_cast<T*>(this)->v_close_stream(symbol, stream_name); }
 
 template<typename T>
@@ -42,38 +39,18 @@ template<typename T>
 void Client<T>::ws_auto_reconnect(const bool& reconnect) { static_cast<T*>(this)->v_ws_auto_reconnect(reconnect); }
 
 template<typename T>
-bool Client<T>::set_headers(RestSession* rest_client) { return static_cast<T*>(this)->v_set_headers(rest_client); }
+void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
 
 template<typename T>
-void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
+Json::Value Client<T>::place_order(Params& parameter_vec) { return static_cast<T*>(this)->v_place_order(parameter_vec); }
+
+template<typename T>
+Json::Value Client<T>::cancel_order(Params& parameter_vec) { return static_cast<T*>(this)->v_cancel_order(parameter_vec); }
 
 // Client other methods
 
-template<typename T>
-std::string Client<T>::_generate_query(Params& params_obj)
-{
-	std::unordered_map<std::string, std::string> params = params_obj.param_map;
-	std::string query;
-
-	for (std::unordered_map<std::string, std::string>::iterator itr = params.begin();
-		itr != params.end();
-		itr++)
-	{
-		if (itr != params.begin()) query += "&";
-
-		query += (itr->first + "=" + itr->second);
-	}
-	return query;
-}
-
 template <typename T>
-Client<T>::~Client()
-{
-	delete _rest_client;
-	delete _ws_client;
-};
-
-bool SpotClient::v_init_rest_session() // make separate for ws and rest
+bool Client<T>::init_rest_session() // make separate for ws and rest
 {
 	try
 	{
@@ -96,6 +73,68 @@ bool SpotClient::v_init_rest_session() // make separate for ws and rest
 
 }
 
+template <typename T>
+bool Client<T>::set_headers(RestSession* rest_client)
+{
+	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
+	struct curl_slist* auth_headers;
+	auth_headers = curl_slist_append(NULL, key_header.c_str());
+
+	curl_easy_setopt((rest_client->_get_handle), CURLOPT_HTTPHEADER, auth_headers);
+	curl_easy_setopt((rest_client->_post_handle), CURLOPT_HTTPHEADER, auth_headers);
+	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
+	curl_easy_setopt((rest_client->_delete_handle), CURLOPT_HTTPHEADER, auth_headers);
+
+	return 0;
+}
+
+template <typename T>
+void Client<T>::rest_set_verbose(bool state)
+{
+	if (state) this->_rest_client->set_verbose(1L);
+	else this->_rest_client->set_verbose(0);
+}
+
+template <typename T>
+template <typename FT>
+unsigned int Client<T>::custom_stream(std::string stream_query, std::string buffer, FT functor)
+{
+	stream_query = "/stream?streams=" + stream_query;
+	if (this->_ws_client->is_open(stream_query))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
+	}
+}
+
+template <typename T>
+std::string Client<T>::_generate_query(Params& params_obj)
+{
+	std::unordered_map<std::string, std::string> params = params_obj.param_map;
+	std::string query;
+
+	for (std::unordered_map<std::string, std::string>::iterator itr = params.begin();
+		itr != params.end();
+		itr++)
+	{
+		if (itr != params.begin()) query += "&";
+
+		query += (itr->first + "=" + itr->second);
+	}
+	return query;
+}
+
+template <typename T>
+Client<T>::~Client()
+{
+	delete _rest_client;
+	delete _ws_client;
+};
 
 
 // SpotClient definitions
@@ -139,7 +178,7 @@ bool SpotClient::v_init_ws_session()
 {
 	try
 	{
-		if (this->_ws_client) delete this->_rest_client;
+		if (this->_ws_client) delete this->_ws_client;
 		this->_ws_client = new WebsocketClient{ this->_WS_BASE_SPOT, this->_WS_PORT };
 		return 1;
 	}
@@ -171,12 +210,12 @@ void SpotClient::v_close_stream(const std::string& symbol, const std::string& st
 	}
 }
 
-Json::Value SpotClient::send_order(Params& param_obj)
+Json::Value SpotClient::v_place_order(Params& parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(param_obj);
+	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(parameter_vec);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
 	query += ("&signature=" + signature);
@@ -184,7 +223,26 @@ Json::Value SpotClient::send_order(Params& param_obj)
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
-	if (this->flush_params) param_obj.clear_params();
+	if (this->flush_params) parameter_vec.clear_params();
+
+	return response;
+
+}
+
+Json::Value SpotClient::v_cancel_order(Params& parameter_vec)
+{
+
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
+	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(parameter_vec);
+
+	std::string signature = HMACsha256(query, this->_api_secret);
+	query += ("&signature=" + signature);
+	query = "?" + query;
+
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+
+	if (this->flush_params) parameter_vec.clear_params();
 
 	return response;
 
@@ -194,7 +252,7 @@ template <class FT>
 unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& functor)
 {
 	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = symbol + '@' + "aggTrade";
+	std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
 	if (this->_ws_client->is_open(full_stream_name))
 	{
 		std::cout << "already exists";
@@ -214,7 +272,7 @@ unsigned int SpotClient::userStream(std::string& buffer, FT& functor)
 	try
 	{
 		this->set_headers(keep_alive_session);
-		std::string full_stream_name = this->_get_listen_key();
+		std::string full_stream_name = "/ws/" + this->_get_listen_key();
 
 		std::string renew_key_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
 
@@ -238,18 +296,7 @@ unsigned int SpotClient::userStream(std::string& buffer, FT& functor)
 	}
 }
 
-bool SpotClient::v_set_headers(RestSession* rest_client)
-{
-	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
-	struct curl_slist* auth_headers;
-	auth_headers = curl_slist_append(NULL, key_header.c_str());
 
-	curl_easy_setopt((rest_client->_get_handle), CURLOPT_HTTPHEADER, auth_headers);
-	curl_easy_setopt((rest_client->_post_handle), CURLOPT_HTTPHEADER, auth_headers);
-	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
-
-	return 0;
-}
 
 void SpotClient::v_set_refresh_key_interval(const bool val)
 {
@@ -316,35 +363,12 @@ bool FuturesClient::v_ping_client()
 	}
 }
 
-bool FuturesClient::v_init_rest_session() // make separate for ws and rest
-{
-	try
-	{
-		if (this->_rest_client) delete this->_rest_client;
-
-		this->_rest_client = new RestSession{};
-		if (!this->_public_client)
-		{
-			this->set_headers(this->_rest_client);
-
-		}
-		if (!(this->ping_client())) return 0;
-
-		return 1;
-	}
-	catch (...)
-	{
-		delete this->_rest_client;
-		throw("bad_init_rest");
-	}
-
-}
 
 bool FuturesClient::v_init_ws_session()
 {
 	try
 	{
-		if (this->_ws_client) delete this->_rest_client;
+		if (this->_ws_client) delete this->_ws_client;
 		this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES, this->_WS_PORT };
 		return 1;
 	}
@@ -383,7 +407,7 @@ unsigned int FuturesClient::userStream(std::string& buffer, FT& functor)
 
 		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
 
-		std::string full_stream_name = this->_get_listen_key();
+		std::string full_stream_name = "/ws/" + this->_get_listen_key();
 		if (this->_ws_client->is_open(full_stream_name))
 		{
 			std::cout << "already exists";
@@ -419,11 +443,11 @@ std::vector<std::string> FuturesClient::v_get_open_streams()
 	return this->_ws_client->open_streams();
 }
 
-Json::Value FuturesClient::send_order(Params& param_obj)
+Json::Value FuturesClient::v_place_order(Params& parameter_vec)
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
-	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(param_obj);
+	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(parameter_vec);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
 	query += ("&signature=" + signature);
@@ -431,9 +455,28 @@ Json::Value FuturesClient::send_order(Params& param_obj)
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // return entire json?
 
-	if (this->flush_params) param_obj.clear_params();
+	if (this->flush_params) parameter_vec.clear_params();
 
 	return response;
+}
+
+Json::Value FuturesClient::v_cancel_order(Params& parameter_vec)
+{
+
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
+	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(parameter_vec);
+
+	std::string signature = HMACsha256(query, this->_api_secret);
+	query += ("&signature=" + signature);
+	query = "?" + query;
+
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	if (this->flush_params) parameter_vec.clear_params();
+
+	return response;
+
 }
 
 Json::Value FuturesClient::fetch_balances(Params& param_obj)
@@ -457,19 +500,6 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 
 unsigned int FuturesClient::aggTrade(std::string symbol)
 {
-	return 0;
-}
-
-bool FuturesClient::v_set_headers(RestSession* rest_client)
-{
-	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
-	struct curl_slist* auth_headers;
-	auth_headers = curl_slist_append(NULL, key_header.c_str());
-
-	curl_easy_setopt((rest_client->_get_handle), CURLOPT_HTTPHEADER, auth_headers);
-	curl_easy_setopt((rest_client->_post_handle), CURLOPT_HTTPHEADER, auth_headers);
-	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
-
 	return 0;
 }
 
@@ -498,21 +528,29 @@ FuturesClient::~FuturesClient()
 
 // Params definitions
 
-Params::Params() {};
+Params::Params()
+	: default_recv{ 0 }, default_recv_amt{ 0 }
+{};
 
 Params::Params(Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
+	this->default_recv = params_obj.default_recv;
+	this->default_recv_amt = params_obj.default_recv_amt;
 }
 
 Params::Params(const Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
+	this->default_recv = params_obj.default_recv;
+	this->default_recv_amt = params_obj.default_recv_amt;
 }
 
 Params& Params::operator=(Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
+	this->default_recv = params_obj.default_recv;
+	this->default_recv_amt = params_obj.default_recv_amt;
 
 	return *this;
 }
@@ -520,6 +558,8 @@ Params& Params::operator=(Params& params_obj)
 Params& Params::operator=(const Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
+	this->default_recv = params_obj.default_recv;
+	this->default_recv_amt = params_obj.default_recv_amt;
 
 	return *this;
 }
@@ -535,9 +575,42 @@ void Params::set_param<std::string>(std::string key, std::string value)
 	param_map[key] = value;
 }
 
+
+bool Params::delete_param(std::string key)
+{
+	std::unordered_map<std::string, std::string>::iterator itr;
+
+	for (itr = this->param_map.begin(); itr != this->param_map.end(); itr++)
+	{
+		if (itr->first == key)
+		{
+			this->param_map.erase(itr);
+			return 1;
+		}
+	}
+	return 0;
+}
+
+void Params::set_recv(bool set_always, unsigned int recv_val)
+{
+	this->default_recv = set_always;
+	if (set_always)
+	{
+		this->default_recv_amt = recv_val;
+		this->set_param<unsigned int>("recvWindow", recv_val);
+	}
+	else
+	{
+		this->default_recv_amt = 0;
+		this->delete_param("recvWindow");
+	}
+
+}
+
 bool Params::clear_params()
 {
 	this->param_map.clear();
+	if (this->default_recv) this->set_param<unsigned int>("recvWindow", this->default_recv_amt);
 	return this->empty();
 }
 

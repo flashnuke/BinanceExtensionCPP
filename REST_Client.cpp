@@ -7,8 +7,9 @@ static long _IDLE_TIME_TCP = 120L;
 static long _INTVL_TIME_TCP = 60L;
 
 
-unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req)
+unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req) 
 {
+	req->locker->unlock();
 	(&req->req_raw)->append((char*)contents, size * nmemb);
 
 	std::string parse_errors{};
@@ -22,7 +23,6 @@ unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 	if (req->req_status != CURLE_OK || req->req_status == CURLE_HTTP_RETURNED_ERROR)
 	{
 		req->req_json["response"] = req->req_raw;
-
 
 		return 0;
 	}
@@ -65,20 +65,41 @@ RestSession::RestSession()
 	curl_easy_setopt(this->_put_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
 	curl_easy_setopt(this->_put_handle, CURLOPT_FAILONERROR, 0);
 
+	_delete_handle = curl_easy_init();
+	curl_easy_setopt(this->_delete_handle, CURLOPT_CUSTOMREQUEST, "DELETE");
+	curl_easy_setopt(this->_delete_handle, CURLOPT_POSTFIELDSIZE, 0);
+	curl_easy_setopt(this->_delete_handle, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(this->_delete_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
+	curl_easy_setopt(this->_delete_handle, CURLOPT_FAILONERROR, 0);
+
 
 	if (!(this->_get_handle)) throw("exc"); // handle exc
 	if (!(this->_post_handle)) throw("exc"); // handle exc
 	if (!(this->_put_handle)) throw("exc"); // handle exc
+	if (!(this->_delete_handle)) throw("exc"); // handle exc
 
 
 	status = 1;
 }
 
+void RestSession::set_verbose(const long int state)
+{
+	curl_easy_setopt(this->_get_handle, CURLOPT_VERBOSE, state);
+	curl_easy_setopt(this->_post_handle, CURLOPT_VERBOSE, state);
+	curl_easy_setopt(this->_put_handle, CURLOPT_VERBOSE, state);
+	curl_easy_setopt(this->_delete_handle, CURLOPT_VERBOSE, state);
+
+}
+
+
 Json::Value RestSession::_getreq(std::string full_path)
 {
-	curl_easy_setopt(this->_get_handle, CURLOPT_URL, full_path.c_str());
-
 	RequestHandler request{};
+
+	std::unique_lock<std::mutex> req_lock(this->_get_lock); // will be unlocked in callback
+	request.locker = &req_lock;
+
+	curl_easy_setopt(this->_get_handle, CURLOPT_URL, full_path.c_str());
 	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEDATA, &request);
 
 	request.req_status = curl_easy_perform(this->_get_handle);
@@ -88,10 +109,12 @@ Json::Value RestSession::_getreq(std::string full_path)
 
 Json::Value RestSession::_postreq(std::string full_path)
 {
-	curl_easy_setopt(this->_post_handle, CURLOPT_URL, full_path.c_str());
-
 	RequestHandler request{};
 
+	std::unique_lock<std::mutex> req_lock(this->_post_lock); // will be unlocked in callback
+	request.locker = &req_lock;
+
+	curl_easy_setopt(this->_post_handle, CURLOPT_URL, full_path.c_str());
 	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEDATA, &request);
 
 	request.req_status = curl_easy_perform(this->_post_handle);
@@ -101,18 +124,39 @@ Json::Value RestSession::_postreq(std::string full_path)
 
 Json::Value RestSession::_putreq(std::string full_path)
 {
-	curl_easy_setopt(this->_put_handle, CURLOPT_URL, full_path.c_str());
-
 	RequestHandler request{};
+
+	std::unique_lock<std::mutex> req_lock(this->_put_lock); // will be unlocked in callback
+	request.locker = &req_lock;
+
+	curl_easy_setopt(this->_put_handle, CURLOPT_URL, full_path.c_str());
 	curl_easy_setopt(this->_put_handle, CURLOPT_WRITEDATA, &request);
 
 	request.req_status = curl_easy_perform(this->_put_handle);
+
+	return request.req_json;
+};
+
+Json::Value RestSession::_deletereq(std::string full_path)
+{
+	RequestHandler request{};
+
+	std::unique_lock<std::mutex> req_lock(this->_delete_lock); // will be unlocked in callback
+	request.locker = &req_lock;
+
+	curl_easy_setopt(this->_delete_handle, CURLOPT_URL, full_path.c_str());
+	curl_easy_setopt(this->_delete_handle, CURLOPT_WRITEDATA, &request);
+
+	request.req_status = curl_easy_perform(this->_delete_handle);
+
 	return request.req_json;
 };
 
 inline void RestSession::get_timeout(unsigned long interval) { curl_easy_setopt(this->_get_handle, CURLOPT_TIMEOUT, interval); };
 inline void RestSession::post_timeout(unsigned long interval) { curl_easy_setopt(this->_post_handle, CURLOPT_TIMEOUT, interval); };
 inline void RestSession::put_timeout(unsigned long interval) { curl_easy_setopt(this->_put_handle, CURLOPT_TIMEOUT, interval); };
+inline void RestSession::delete_timeout(unsigned long interval) { curl_easy_setopt(this->_delete_handle, CURLOPT_TIMEOUT, interval); };
+
 
 bool RestSession::close()
 {
@@ -122,6 +166,8 @@ bool RestSession::close()
 		{
 			curl_easy_cleanup(this->_post_handle);
 			curl_easy_cleanup(this->_get_handle);
+			curl_easy_cleanup(this->_put_handle);
+			curl_easy_cleanup(this->_delete_handle);
 		}
 
 		this->status = 0;
