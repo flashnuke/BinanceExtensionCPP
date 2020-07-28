@@ -1,7 +1,8 @@
 // todo: futures and client source files in different files?
 // todo: return empty json with "status = 1" if no cb passed.
-// todo: custom stream. this way you can connect to several... pass bool for 'renew_key'
 // todo: idea - pass stream of name to functor?
+// todo: recvWindow default for Params?
+// todo: custom rest request (esp for renewing listen key from outside without my need)
 
 
 // DOCs todos:
@@ -73,6 +74,7 @@ public:
 	CURL* _get_handle{};
 	CURL* _post_handle{};
 	CURL* _put_handle{};
+	CURL* _delete_handle{};
 
 	Json::Value _getreq(std::string full_path);
 	inline void get_timeout(unsigned long interval);
@@ -85,6 +87,10 @@ public:
 	Json::Value _putreq(std::string full_path);
 	inline void put_timeout(unsigned long interval);
 	std::mutex _put_lock;
+
+	Json::Value _deletereq(std::string full_path);
+	inline void delete_timeout(unsigned long interval);
+	std::mutex _delete_lock;
 
 	bool close();
 	void set_verbose(const long int state);
@@ -141,9 +147,15 @@ struct Params
 	Params& operator=(const Params& params_obj);
 
 	std::unordered_map<std::string, std::string> param_map;
+	bool default_recv;
+	unsigned int default_recv_amt;
 
 	template <typename PT>
 	void set_param(std::string key, PT value);
+
+	bool delete_param(std::string key);
+
+	void set_recv(bool set_always, unsigned int recv_val = 0);
 
 	bool clear_params();
 	bool empty();
@@ -188,6 +200,10 @@ public:
 	void ws_auto_reconnect(const bool& reconnect);
 	inline void set_refresh_key_interval(const bool val);
 
+	Json::Value cancel_order(Params& parameter_vec);
+	Json::Value place_order(Params& parameter_vec);
+
+
 	// end CRTP methods
 
 	bool init_rest_session();
@@ -207,11 +223,6 @@ public:
 class FuturesClient : public Client<FuturesClient>
 {
 private:
-
-public:
-	FuturesClient();
-	FuturesClient(std::string key, std::string secret);
-
 	inline unsigned long long v_exchange_time();
 	inline bool v_ping_client();
 	inline bool v_init_ws_session();
@@ -221,9 +232,17 @@ public:
 	inline std::vector<std::string> v_get_open_streams();
 	inline void v_ws_auto_reconnect(const bool& reconnect);
 	inline void v_set_refresh_key_interval(const bool val);
-	
 
-	Json::Value send_order(Params& parameter_vec);
+	Json::Value v_cancel_order(Params& parameter_vec);
+	Json::Value v_place_order(Params& parameter_vec);
+
+public:
+	friend Client;
+
+	FuturesClient();
+	FuturesClient(std::string key, std::string secret);
+
+
 	Json::Value fetch_balances(Params& param_obj);
 	unsigned int aggTrade(std::string symbol);
 	template <class FT>
@@ -236,11 +255,6 @@ public:
 class SpotClient : public Client<SpotClient>
 {
 private:
-
-public:
-	SpotClient();
-	SpotClient(std::string key, std::string secret);
-
 	unsigned long long v_exchange_time();
 	bool v_ping_client();
 	bool v_init_ws_session();
@@ -252,8 +266,14 @@ public:
 	inline void v_set_refresh_key_interval(const bool val);
 
 
-	Json::Value send_order(Params& parameter_vec);
+	Json::Value v_place_order(Params& parameter_vec);
+	Json::Value v_cancel_order(Params& parameter_vec);
 
+public:
+	friend Client;
+
+	SpotClient();
+	SpotClient(std::string key, std::string secret);
 
 	template <class FT>
 	unsigned int aggTrade(std::string symbol, std::string& buffer, FT& functor);

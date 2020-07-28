@@ -41,6 +41,12 @@ void Client<T>::ws_auto_reconnect(const bool& reconnect) { static_cast<T*>(this)
 template<typename T>
 void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
 
+template<typename T>
+Json::Value Client<T>::place_order(Params& parameter_vec) { return static_cast<T*>(this)->v_place_order(parameter_vec); }
+
+template<typename T>
+Json::Value Client<T>::cancel_order(Params& parameter_vec) { return static_cast<T*>(this)->v_cancel_order(parameter_vec); }
+
 // Client other methods
 
 template <typename T>
@@ -77,6 +83,7 @@ bool Client<T>::set_headers(RestSession* rest_client)
 	curl_easy_setopt((rest_client->_get_handle), CURLOPT_HTTPHEADER, auth_headers);
 	curl_easy_setopt((rest_client->_post_handle), CURLOPT_HTTPHEADER, auth_headers);
 	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
+	curl_easy_setopt((rest_client->_delete_handle), CURLOPT_HTTPHEADER, auth_headers);
 
 	return 0;
 }
@@ -203,12 +210,12 @@ void SpotClient::v_close_stream(const std::string& symbol, const std::string& st
 	}
 }
 
-Json::Value SpotClient::send_order(Params& param_obj)
+Json::Value SpotClient::v_place_order(Params& parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(param_obj);
+	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(parameter_vec);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
 	query += ("&signature=" + signature);
@@ -216,7 +223,26 @@ Json::Value SpotClient::send_order(Params& param_obj)
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
-	if (this->flush_params) param_obj.clear_params();
+	if (this->flush_params) parameter_vec.clear_params();
+
+	return response;
+
+}
+
+Json::Value SpotClient::v_cancel_order(Params& parameter_vec)
+{
+
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
+	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(parameter_vec);
+
+	std::string signature = HMACsha256(query, this->_api_secret);
+	query += ("&signature=" + signature);
+	query = "?" + query;
+
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+
+	if (this->flush_params) parameter_vec.clear_params();
 
 	return response;
 
@@ -417,11 +443,11 @@ std::vector<std::string> FuturesClient::v_get_open_streams()
 	return this->_ws_client->open_streams();
 }
 
-Json::Value FuturesClient::send_order(Params& param_obj)
+Json::Value FuturesClient::v_place_order(Params& parameter_vec)
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
-	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(param_obj);
+	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(parameter_vec);
 
 	std::string signature = HMACsha256(query, this->_api_secret);
 	query += ("&signature=" + signature);
@@ -429,9 +455,28 @@ Json::Value FuturesClient::send_order(Params& param_obj)
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // return entire json?
 
-	if (this->flush_params) param_obj.clear_params();
+	if (this->flush_params) parameter_vec.clear_params();
 
 	return response;
+}
+
+Json::Value FuturesClient::v_cancel_order(Params& parameter_vec)
+{
+
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
+	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
+	std::string query = Client::_generate_query(parameter_vec);
+
+	std::string signature = HMACsha256(query, this->_api_secret);
+	query += ("&signature=" + signature);
+	query = "?" + query;
+
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	if (this->flush_params) parameter_vec.clear_params();
+
+	return response;
+
 }
 
 Json::Value FuturesClient::fetch_balances(Params& param_obj)
@@ -483,21 +528,29 @@ FuturesClient::~FuturesClient()
 
 // Params definitions
 
-Params::Params() {};
+Params::Params()
+	: default_recv{ 0 }, default_recv_amt{ 0 }
+{};
 
 Params::Params(Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
+	this->default_recv = params_obj.default_recv;
+	this->default_recv_amt = params_obj.default_recv_amt;
 }
 
 Params::Params(const Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
+	this->default_recv = params_obj.default_recv;
+	this->default_recv_amt = params_obj.default_recv_amt;
 }
 
 Params& Params::operator=(Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
+	this->default_recv = params_obj.default_recv;
+	this->default_recv_amt = params_obj.default_recv_amt;
 
 	return *this;
 }
@@ -505,6 +558,8 @@ Params& Params::operator=(Params& params_obj)
 Params& Params::operator=(const Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
+	this->default_recv = params_obj.default_recv;
+	this->default_recv_amt = params_obj.default_recv_amt;
 
 	return *this;
 }
@@ -520,9 +575,42 @@ void Params::set_param<std::string>(std::string key, std::string value)
 	param_map[key] = value;
 }
 
+
+bool Params::delete_param(std::string key)
+{
+	std::unordered_map<std::string, std::string>::iterator itr;
+
+	for (itr = this->param_map.begin(); itr != this->param_map.end(); itr++)
+	{
+		if (itr->first == key)
+		{
+			this->param_map.erase(itr);
+			return 1;
+		}
+	}
+	return 0;
+}
+
+void Params::set_recv(bool set_always, unsigned int recv_val)
+{
+	this->default_recv = set_always;
+	if (set_always)
+	{
+		this->default_recv_amt = recv_val;
+		this->set_param<unsigned int>("recvWindow", recv_val);
+	}
+	else
+	{
+		this->default_recv_amt = 0;
+		this->delete_param("recvWindow");
+	}
+
+}
+
 bool Params::clear_params()
 {
 	this->param_map.clear();
+	if (this->default_recv) this->set_param<unsigned int>("recvWindow", this->default_recv_amt);
 	return this->empty();
 }
 
