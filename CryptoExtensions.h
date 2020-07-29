@@ -210,6 +210,11 @@ public:
 	bool set_headers(RestSession* rest_client);
 	void rest_set_verbose(bool state);
 
+	Json::Value custom_get_req(const std::string& path);
+	Json::Value custom_post_req(const std::string& path);
+	Json::Value custom_put_req(const std::string& path);
+	Json::Value custom_delete_req(const std::string& path);
+
 	template <typename FT>
 	unsigned int custom_stream(std::string stream_query, std::string buffer, FT functor);
 
@@ -268,6 +273,7 @@ private:
 
 	Json::Value v_place_order(Params& parameter_vec);
 	Json::Value v_cancel_order(Params& parameter_vec);
+
 
 public:
 	friend Client;
