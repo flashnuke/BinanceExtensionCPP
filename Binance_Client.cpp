@@ -74,6 +74,18 @@ bool Client<T>::init_rest_session() // make separate for ws and rest
 }
 
 template <typename T>
+Json::Value Client<T>::custom_get_req(const std::string& path) { return this->_rest_client->_getreq(path); }
+
+template <typename T>
+Json::Value Client<T>::custom_post_req(const std::string& path) { return this->_rest_client->_postreq(path); }
+
+template <typename T>
+Json::Value Client<T>::custom_put_req(const std::string& path) { return this->_rest_client->_putreq(path); }
+
+template <typename T>
+Json::Value Client<T>::custom_delete_req(const std::string& path) { return this->_rest_client->_deletereq(path); }
+
+template <typename T>
 bool Client<T>::set_headers(RestSession* rest_client)
 {
 	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
@@ -247,6 +259,8 @@ Json::Value SpotClient::v_cancel_order(Params& parameter_vec)
 	return response;
 
 }
+
+
 
 template <class FT>
 unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& functor)

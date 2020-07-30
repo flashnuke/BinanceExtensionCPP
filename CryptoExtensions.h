@@ -2,13 +2,18 @@
 // todo: return empty json with "status = 1" if no cb passed.
 // todo: idea - pass stream of name to functor?
 // todo: recvWindow default for Params?
-// todo: custom rest request (esp for renewing listen key from outside without my need)
+// todo: test bool for place order
+// todo: in rest callback, if code (in json) == 200 then its ok
+// todo: MarginClient, FuturesClient, PerpetualClient
+// todo: wallet endpoints and general endpoints are inside client
+// todo: function overloading for methods that do not require params. one with, one without. or better yet, pass empty as default and append tiemstamp
 
 
 // DOCs todos:
 // 1. order book fetch from scratch example
 // 2. ws symbols must be lower case
 // 3. v_ is for crtp
+// 4. custom requests, pass params into query
 
 // First make everything for spot and then for futures
 
@@ -134,7 +139,6 @@ public:
 
 
 
-
 struct Params
 	// Params will be stored in a map of <str, str> and parsed by the query generator.
 {
@@ -210,6 +214,31 @@ public:
 	bool set_headers(RestSession* rest_client);
 	void rest_set_verbose(bool state);
 
+	// Global requests (wallet, account etc)
+
+	struct Wallet {}; // append all the below into this
+
+	bool exchange_status(); // todo: (define) (Returns bool 1 up 0 down) (use spot base) 
+	Json::Value get_all_coins(); // todo: (define) (returns Json array)
+	Json::Value daily_snapshot(const Params& params_obj); // todo: (define)
+	bool fast_withdraw_switch(bool state); // todo (define) (bool for on/on) (returns empty json)
+	Json::Value withdraw_balances(const Params& params_obj, bool SAPI = 0); // todo (define) (sapi for endpoint)
+	Json::Value deposit_history(const Params& params_obj, bool network = 0); // todo (define) (bool for network endpoint)
+	Json::Value withdraw_history(const Params& params_obj, bool network = 0); // todo (define) (bool for network endpoint)
+	Json::Value deposit_address(const Params& params_obj, bool network = 0); // todo (define) (bool for endpoint)
+	Json::Value account_status(); // todo: (define) 
+	Json::Value account_status_api(); // todo: (define) 
+	Json::Value dust_log(); // todo: (define) 
+	Json::Value dust_transfer(const Params& params_obj); // todo: (define) 
+	Json::Value asset_dividend_records(const Params& params_obj = Params{}); // todo (define) (pass empty params?)
+	Json::Value asset_details(); // todo (define)
+	Json::Value trading_fees(const Params& params_obj = Params{}); // todo (define)
+
+	Json::Value custom_get_req(const std::string& path);
+	Json::Value custom_post_req(const std::string& path);
+	Json::Value custom_put_req(const std::string& path);
+	Json::Value custom_delete_req(const std::string& path);
+
 	template <typename FT>
 	unsigned int custom_stream(std::string stream_query, std::string buffer, FT functor);
 
@@ -255,6 +284,8 @@ public:
 class SpotClient : public Client<SpotClient>
 {
 private:
+	// CRTP methods
+
 	unsigned long long v_exchange_time();
 	bool v_ping_client();
 	bool v_init_ws_session();
@@ -265,9 +296,12 @@ private:
 	void v_ws_auto_reconnect(const bool& reconnect);
 	inline void v_set_refresh_key_interval(const bool val);
 
-
 	Json::Value v_place_order(Params& parameter_vec);
 	Json::Value v_cancel_order(Params& parameter_vec);
+
+
+
+
 
 public:
 	friend Client;
