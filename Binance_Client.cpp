@@ -125,8 +125,9 @@ unsigned int Client<T>::custom_stream(std::string stream_query, std::string buff
 }
 
 template <typename T>
-std::string Client<T>::_generate_query(Params& params_obj)
+std::string Client<T>::_generate_query(Params& params_obj, bool sign_query)
 {
+	params_obj.set_param<unsigned long long>("timestamp", local_timestamp());
 	std::unordered_map<std::string, std::string> params = params_obj.param_map;
 	std::string query;
 
@@ -138,7 +139,22 @@ std::string Client<T>::_generate_query(Params& params_obj)
 
 		query += (itr->first + "=" + itr->second);
 	}
+
+	if (sign_query)
+	{
+		std::string signature = HMACsha256(query, this->_api_secret);
+		query += "&signature=" + signature;
+		query = "?" + query;
+	}
+
 	return query;
+}
+
+template <typename T>
+bool Client<T>::exchange_status()
+{
+	std::string full_path = this->_BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
+	return this->_rest_client->_getreq(fullpath);
 }
 
 template <typename T>
@@ -148,6 +164,81 @@ Client<T>::~Client()
 	delete _ws_client;
 };
 
+// Client Wallet definitions
+
+template <typename T>
+Json::Value Client<T>::Wallet::get_all_coins()
+{
+	Params temp_params;
+	std::string full_path = Client::_BASE_REST_SPOT + "/sapi/v1/capital/config/getall";
+	std::string query = Client::_generate_query(temp_params, 1);
+	Json::Value response = (Client::_rest_client)->_getreq(full_path + query);
+
+	return response;
+}; // todo: (returns Json array)
+
+template <typename T>
+Json::Value Client<T>::Wallet::daily_snapshot(Params& params_obj)
+{
+	std::string full_path = Client::_BASE_REST_SPOT + "/sapi/v1/accountSnapshot";
+	std::string query = Client::_generate_query(params_obj, 1);
+	Json::Value response = (Client::_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+bool Client<T>::Wallet::fast_withdraw_switch(bool state)
+{
+	Params temp_params;
+	std::string endpoint = "/sapi/v1/account/enableFastWithdrawSwitch" ? state : "/sapi/v1/account/disableFastWithdrawSwitch";
+	std::string full_path = Client::_BASE_REST_SPOT + endpoint;
+	std::string query = Client::_generate_query(temp_params, 1);
+	Json::Value response = (Client::_rest_client)->_postreq(full_path + query);
+
+	return response;
+}; // todo  (bool for on/on) (returns empty json)
+
+template <typename T>
+Json::Value Client<T>::Wallet::withdraw_balances(Params& params_obj, bool SAPI)
+{
+	std::string endpoint = "/sapi/v1/capital/withdraw/apply" ? SAPI : "/wapi/v3/withdraw.html";
+	std::string full_path = Client::_BASE_REST_SPOT + endpoint;
+	std::string query = Client::_generate_query(params_obj, 1);
+	Json::Value response = (Client::_rest_client)->_postreq(full_path + query);
+
+	return response;
+}; // todo (define) (sapi for endpoint)
+
+template <typename T>
+Json::Value Client<T>::Wallet::deposit_history(Params& params_obj, bool network) {}; // todo (define) (bool for network endpoint) (params has default)
+
+template <typename T>
+Json::Value Client<T>::Wallet::withdraw_history(Params& params_obj, bool network) {}; // todo (define) (bool for network endpoint) (params has default)
+
+template <typename T>
+Json::Value Client<T>::Wallet::deposit_address(Params& params_obj, bool network) {}; // todo (define) (bool for endpoint)
+
+template <typename T>
+Json::Value Client<T>::Wallet::account_status() {}; // todo: (define) 
+
+template <typename T>
+Json::Value Client<T>::Wallet::account_status_api() {}; // todo: (define) 
+
+template <typename T>
+Json::Value Client<T>::Wallet::dust_log() {}; // todo: (define) 
+
+template <typename T>
+Json::Value Client<T>::Wallet::dust_transfer(Params& params_obj) {}; // todo: (define) 
+
+template <typename T>
+Json::Value Client<T>::Wallet::asset_dividend_records(Params& params_obj) {}; // todo (define)  (params has default)
+
+template <typename T>
+Json::Value Client<T>::Wallet::asset_details() {}; // todo (define)
+
+template <typename T>
+Json::Value Client<T>::Wallet::trading_fees(Params& params_obj) {}; // todo (define) (params has default)
 
 // SpotClient definitions
 
@@ -226,12 +317,7 @@ Json::Value SpotClient::v_place_order(Params& parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(parameter_vec);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
@@ -245,12 +331,7 @@ Json::Value SpotClient::v_cancel_order(Params& parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(parameter_vec);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
 
@@ -396,12 +477,7 @@ std::string FuturesClient::v__get_listen_key()
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey";
 	Params temp_params;
-	temp_params.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(temp_params);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(temp_params, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
@@ -460,12 +536,7 @@ std::vector<std::string> FuturesClient::v_get_open_streams()
 Json::Value FuturesClient::v_place_order(Params& parameter_vec)
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
-	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(parameter_vec);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // return entire json?
 
@@ -478,12 +549,7 @@ Json::Value FuturesClient::v_cancel_order(Params& parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(parameter_vec);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
@@ -497,12 +563,7 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v2/balance";
 
-	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(param_obj);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(param_obj, 1);
 
 	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 

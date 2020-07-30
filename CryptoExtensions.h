@@ -7,7 +7,8 @@
 // todo: MarginClient, FuturesClient, PerpetualClient
 // todo: wallet endpoints and general endpoints are inside client
 // todo: function overloading for methods that do not require params. one with, one without. or better yet, pass empty as default and append tiemstamp
-
+// todo: method for passing params, returning full query with signature
+// todo: for custom requests, pass bool 'signature' param
 
 // DOCs todos:
 // 1. order book fetch from scratch example
@@ -183,7 +184,7 @@ protected:
 public:
 	bool const _public_client;
 
-	std::string _generate_query(Params& params_obj);
+	std::string _generate_query(Params& params_obj, bool sign_query = 0);
 
 	const std::string _BASE_REST_FUTURES{ "https://fapi.binance.com" };
 	const std::string _BASE_REST_SPOT{ "https://api.binance.com" };
@@ -216,23 +217,26 @@ public:
 
 	// Global requests (wallet, account etc)
 
-	struct Wallet {}; // append all the below into this
-
 	bool exchange_status(); // todo: (define) (Returns bool 1 up 0 down) (use spot base) 
-	Json::Value get_all_coins(); // todo: (define) (returns Json array)
-	Json::Value daily_snapshot(const Params& params_obj); // todo: (define)
-	bool fast_withdraw_switch(bool state); // todo (define) (bool for on/on) (returns empty json)
-	Json::Value withdraw_balances(const Params& params_obj, bool SAPI = 0); // todo (define) (sapi for endpoint)
-	Json::Value deposit_history(const Params& params_obj, bool network = 0); // todo (define) (bool for network endpoint)
-	Json::Value withdraw_history(const Params& params_obj, bool network = 0); // todo (define) (bool for network endpoint)
-	Json::Value deposit_address(const Params& params_obj, bool network = 0); // todo (define) (bool for endpoint)
-	Json::Value account_status(); // todo: (define) 
-	Json::Value account_status_api(); // todo: (define) 
-	Json::Value dust_log(); // todo: (define) 
-	Json::Value dust_transfer(const Params& params_obj); // todo: (define) 
-	Json::Value asset_dividend_records(const Params& params_obj = Params{}); // todo (define) (pass empty params?)
-	Json::Value asset_details(); // todo (define)
-	Json::Value trading_fees(const Params& params_obj = Params{}); // todo (define)
+
+	struct Wallet 
+	{
+		Json::Value get_all_coins(); // todo: (define) (returns Json array)
+		Json::Value daily_snapshot(Params& params_obj); // todo: (define)
+		bool fast_withdraw_switch(bool state); // todo (define) (bool for on/on) (returns empty json)
+		Json::Value withdraw_balances(Params& params_obj, bool SAPI = 0); // todo (define) (sapi for endpoint)
+		Json::Value deposit_history(Params& params_obj = Params{}, bool network = 0); // todo (define) (bool for network endpoint)
+		Json::Value withdraw_history(Params& params_obj = Params{}, bool network = 0); // todo (define) (bool for network endpoint)
+		Json::Value deposit_address(Params& params_obj, bool network = 0); // todo (define) (bool for endpoint)
+		Json::Value account_status(); // todo: (define) 
+		Json::Value account_status_api(); // todo: (define) 
+		Json::Value dust_log(); // todo: (define) 
+		Json::Value dust_transfer(Params& params_obj); // todo: (define) 
+		Json::Value asset_dividend_records(Params& params_obj = Params{}); // todo (define) (pass empty params?)
+		Json::Value asset_details(); // todo (define)
+		Json::Value trading_fees(Params& params_obj = Params{}); // todo (define)
+	}; // append all the below into this
+
 
 	Json::Value custom_get_req(const std::string& path);
 	Json::Value custom_post_req(const std::string& path);
