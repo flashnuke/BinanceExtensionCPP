@@ -9,6 +9,8 @@
 // todo: function overloading for methods that do not require params. one with, one without. or better yet, pass empty as default and append tiemstamp
 // todo: method for passing params, returning full query with signature
 // todo: for custom requests, pass bool 'signature' param
+// todo: constructor for Futures and Spot (for one each other, snap the keys)
+// todo: change all to params*
 
 // DOCs todos:
 // 1. order book fetch from scratch example
@@ -64,7 +66,6 @@ private:
 	struct RequestHandler // handles response
 	{
 		RequestHandler();
-
 		std::string req_raw;
 		Json::Value req_json;
 		CURLcode req_status;
@@ -179,7 +180,6 @@ protected:
 
 	explicit Client();
 	Client(std::string key, std::string secret);
-	~Client();
 
 public:
 	bool const _public_client;
@@ -221,20 +221,22 @@ public:
 
 	struct Wallet 
 	{
-		Json::Value get_all_coins(); // todo: (define) (returns Json array)
-		Json::Value daily_snapshot(Params& params_obj); // todo: (define)
+		Client<T> user_client;
+		explicit Wallet(Client<T>& client); // todo: if public, exception
+		Json::Value get_all_coins(Params* params_obj = nullptr); // todo: (define) (returns Json array)
+		Json::Value daily_snapshot(Params* params_obj); // todo: (define)
 		bool fast_withdraw_switch(bool state); // todo (define) (bool for on/on) (returns empty json)
-		Json::Value withdraw_balances(Params& params_obj, bool SAPI = 0); // todo (define) (sapi for endpoint)
-		Json::Value deposit_history(Params& params_obj = Params{}, bool network = 0); // todo (define) (bool for network endpoint)
-		Json::Value withdraw_history(Params& params_obj = Params{}, bool network = 0); // todo (define) (bool for network endpoint)
-		Json::Value deposit_address(Params& params_obj, bool network = 0); // todo (define) (bool for endpoint)
-		Json::Value account_status(); // todo: (define) 
-		Json::Value account_status_api(); // todo: (define) 
-		Json::Value dust_log(); // todo: (define) 
-		Json::Value dust_transfer(Params& params_obj); // todo: (define) 
-		Json::Value asset_dividend_records(Params& params_obj = Params{}); // todo (define) (pass empty params?)
-		Json::Value asset_details(); // todo (define)
-		Json::Value trading_fees(Params& params_obj = Params{}); // todo (define)
+		Json::Value withdraw_balances(Params* params_obj, bool SAPI = 0); // todo (define) (sapi for endpoint)
+		Json::Value deposit_history(Params* params_obj = nullptr, bool network = 0); // todo (define) (bool for network endpoint)
+		Json::Value withdraw_history(Params* params_obj = nullptr, bool network = 0); // todo (define) (bool for network endpoint)
+		Json::Value deposit_address(Params* params_obj, bool network = 0); // todo (define) (bool for endpoint)
+		Json::Value account_status(Params* params_obj = nullptr); // todo: (define) 
+		Json::Value account_status_api(Params* params_obj = nullptr); // todo: (define) 
+		Json::Value dust_log(Params* params_obj = nullptr); // todo: (define) 
+		Json::Value dust_transfer(Params* params_obj); // todo: (define) 
+		Json::Value asset_dividend_records(Params* params_obj = nullptr); // todo (define) (pass empty params?)
+		Json::Value asset_details(Params* params_obj = nullptr); // todo (define)
+		Json::Value trading_fees(Params* params_obj = nullptr); // todo (define)
 	}; // append all the below into this
 
 
@@ -248,6 +250,8 @@ public:
 
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
+
+	~Client();
 
 };
 

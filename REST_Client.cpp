@@ -38,7 +38,7 @@ unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 		return size * nmemb;
 	}
 	req->req_json["request_status"] = 1;
-
+	std::cout << "$$$$$$$$$$$$$$$$$$";
 	return size * nmemb;
 };
 

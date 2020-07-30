@@ -146,7 +146,7 @@ std::string Client<T>::_generate_query(Params& params_obj, bool sign_query)
 		query += "&signature=" + signature;
 		query = "?" + query;
 	}
-
+	params_obj.delete_param("timestamp");
 	return query;
 }
 
@@ -154,7 +154,7 @@ template <typename T>
 bool Client<T>::exchange_status()
 {
 	std::string full_path = this->_BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
-	return this->_rest_client->_getreq(fullpath);
+	return this->_rest_client->_getreq(full_path);
 }
 
 template <typename T>
@@ -167,22 +167,32 @@ Client<T>::~Client()
 // Client Wallet definitions
 
 template <typename T>
-Json::Value Client<T>::Wallet::get_all_coins()
+Client<T>::Wallet::Wallet(Client<T>& client_obj)
+	: user_client{ client_obj }
+{}
+
+template <typename T>
+Json::Value Client<T>::Wallet::get_all_coins(Params* params_obj)
 {
-	Params temp_params;
-	std::string full_path = Client::_BASE_REST_SPOT + "/sapi/v1/capital/config/getall";
-	std::string query = Client::_generate_query(temp_params, 1);
-	Json::Value response = (Client::_rest_client)->_getreq(full_path + query);
+	if (!params_obj)
+	{
+		Params temp_params{};
+		params_obj = &temp_params;
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/capital/config/getall";
+	
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
 }; // todo: (returns Json array)
 
 template <typename T>
-Json::Value Client<T>::Wallet::daily_snapshot(Params& params_obj)
+Json::Value Client<T>::Wallet::daily_snapshot(Params* params_obj)
 {
-	std::string full_path = Client::_BASE_REST_SPOT + "/sapi/v1/accountSnapshot";
-	std::string query = Client::_generate_query(params_obj, 1);
-	Json::Value response = (Client::_rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/accountSnapshot";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
 };
@@ -191,54 +201,162 @@ template <typename T>
 bool Client<T>::Wallet::fast_withdraw_switch(bool state)
 {
 	Params temp_params;
-	std::string endpoint = "/sapi/v1/account/enableFastWithdrawSwitch" ? state : "/sapi/v1/account/disableFastWithdrawSwitch";
-	std::string full_path = Client::_BASE_REST_SPOT + endpoint;
-	std::string query = Client::_generate_query(temp_params, 1);
-	Json::Value response = (Client::_rest_client)->_postreq(full_path + query);
+	std::string endpoint = state ? "/sapi/v1/account/enableFastWithdrawSwitch" : "/sapi/v1/account/disableFastWithdrawSwitch";
+	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
+	std::string query = user_client._generate_query(temp_params, 1);
+	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
 
 	return response;
 }; // todo  (bool for on/on) (returns empty json)
 
 template <typename T>
-Json::Value Client<T>::Wallet::withdraw_balances(Params& params_obj, bool SAPI)
+Json::Value Client<T>::Wallet::withdraw_balances(Params* params_obj, bool SAPI)
 {
-	std::string endpoint = "/sapi/v1/capital/withdraw/apply" ? SAPI : "/wapi/v3/withdraw.html";
-	std::string full_path = Client::_BASE_REST_SPOT + endpoint;
-	std::string query = Client::_generate_query(params_obj, 1);
-	Json::Value response = (Client::_rest_client)->_postreq(full_path + query);
+	std::string endpoint = SAPI ? "/sapi/v1/capital/withdraw/apply" : "/wapi/v3/withdraw.html";
+	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
 
 	return response;
-}; // todo (define) (sapi for endpoint)
+}; // todo (define)
 
 template <typename T>
-Json::Value Client<T>::Wallet::deposit_history(Params& params_obj, bool network) {}; // todo (define) (bool for network endpoint) (params has default)
+Json::Value Client<T>::Wallet::deposit_history(Params* params_obj, bool network)
+{
+	if (!params_obj)
+	{
+		Params temp_params{};
+		params_obj = &temp_params;
+	}
+	std::string endpoint = network ? "/sapi/v1/capital/deposit/hisrec" : "/wapi/v3/depositHistory.html";
+	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; // todo (define)
 
 template <typename T>
-Json::Value Client<T>::Wallet::withdraw_history(Params& params_obj, bool network) {}; // todo (define) (bool for network endpoint) (params has default)
+Json::Value Client<T>::Wallet::withdraw_history(Params* params_obj, bool network) 
+{
+	if (!params_obj)
+	{
+		Params temp_params{};
+		params_obj = &temp_params;
+	}
+	std::string endpoint = network ? "/sapi/v1/capital/withdraw/history" : "/wapi/v3/withdrawHistory.html";
+	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; // todo (define) 
 
 template <typename T>
-Json::Value Client<T>::Wallet::deposit_address(Params& params_obj, bool network) {}; // todo (define) (bool for endpoint)
+Json::Value Client<T>::Wallet::deposit_address(Params* params_obj, bool network)
+{
+	std::string endpoint = network ? "/sapi/v1/capital/deposit/address" : "/wapi/v3/depositAddress.html";
+	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; // todo (define) 
 
 template <typename T>
-Json::Value Client<T>::Wallet::account_status() {}; // todo: (define) 
+Json::Value Client<T>::Wallet::account_status(Params* params_obj)
+{
+	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/accountStatus.html";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; // todo: (define) 
 
 template <typename T>
-Json::Value Client<T>::Wallet::account_status_api() {}; // todo: (define) 
+Json::Value Client<T>::Wallet::account_status_api(Params* params_obj)
+{
+	if (!params_obj)
+	{
+		Params temp_params{};
+		params_obj = &temp_params;
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/apiTradingStatus.html";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; // todo: (define) 
 
 template <typename T>
-Json::Value Client<T>::Wallet::dust_log() {}; // todo: (define) 
+Json::Value Client<T>::Wallet::dust_log(Params* params_obj)
+{
+	if (!params_obj)
+	{
+		Params temp_params{};
+		params_obj = &temp_params;
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/userAssetDribbletLog.html";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; // todo: (define) 
 
 template <typename T>
-Json::Value Client<T>::Wallet::dust_transfer(Params& params_obj) {}; // todo: (define) 
+Json::Value Client<T>::Wallet::dust_transfer(Params* params_obj)
+{
+	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/asset/dust";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
+
+	return response;
+}; // todo: (define) 
 
 template <typename T>
-Json::Value Client<T>::Wallet::asset_dividend_records(Params& params_obj) {}; // todo (define)  (params has default)
+Json::Value Client<T>::Wallet::asset_dividend_records(Params* params_obj) 
+{
+	if (!params_obj)
+	{
+		Params temp_params{};
+		params_obj = &temp_params;
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/asset/assetDividend";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
+
+	return response;
+}; // todo (define) 
 
 template <typename T>
-Json::Value Client<T>::Wallet::asset_details() {}; // todo (define)
+Json::Value Client<T>::Wallet::asset_details(Params* params_obj)
+{
+	if (!params_obj)
+	{
+		Params temp_params{};
+		params_obj = &temp_params;
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/assetDetail.html";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; // todo (define)
 
 template <typename T>
-Json::Value Client<T>::Wallet::trading_fees(Params& params_obj) {}; // todo (define) (params has default)
+Json::Value Client<T>::Wallet::trading_fees(Params* params_obj)
+{
+	if (!params_obj)
+	{
+		Params temp_params{};
+		params_obj = &temp_params;
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/tradeFee.html";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; // todo (define) (params has default)
 
 // SpotClient definitions
 
