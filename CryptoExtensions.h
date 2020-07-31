@@ -3,6 +3,7 @@
 // todo: idea - pass stream of name to functor?
 // todo: MarginClient, FuturesClient, PerpetualClient
 // todo: constructor for Futures and Spot (for one each other, snap the keys)
+// todo: FuturesClient: separate into CoinMargin and USDTMarin structs. Must decide upon constructing
 
 // DOCs todos:
 // 1. order book fetch from scratch example
@@ -220,7 +221,7 @@ public:
 		explicit Wallet(Client<T>& client); // todo: if public, exception
 		Json::Value get_all_coins(Params* params_obj = nullptr); 
 		Json::Value daily_snapshot(Params* params_obj); 
-		bool fast_withdraw_switch(bool state); 
+		Json::Value fast_withdraw_switch(bool state);
 		Json::Value withdraw_balances(Params* params_obj, bool SAPI = 0); 
 		Json::Value deposit_history(Params* params_obj = nullptr, bool network = 0);
 		Json::Value withdraw_history(Params* params_obj = nullptr, bool network = 0); 
