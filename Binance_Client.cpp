@@ -209,13 +209,14 @@ Client<T>::Wallet::Wallet(Client<T>& client_obj)
 template <typename T>
 Json::Value Client<T>::Wallet::get_all_coins(Params* params_obj)
 {
+	std::unique_ptr<Params>unique_param_ptr;
 	if (!params_obj)
 	{
-		std::unique_ptr<Params>unique_param_ptr{ new Params{} };
-		params_obj = unique_param_ptr.release();
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
 	}
+
 	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/capital/config/getall";
-	
 	std::string query = user_client._generate_query(*params_obj, 1);
 	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
@@ -258,10 +259,11 @@ Json::Value Client<T>::Wallet::withdraw_balances(Params* params_obj, bool SAPI)
 template <typename T>
 Json::Value Client<T>::Wallet::deposit_history(Params* params_obj, bool network)
 {
+	std::unique_ptr<Params>unique_param_ptr;
 	if (!params_obj)
 	{
-		std::unique_ptr<Params>unique_param_ptr{ new Params{} };
-		params_obj = unique_param_ptr.release();
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
 	}
 	std::string endpoint = network ? "/sapi/v1/capital/deposit/hisrec" : "/wapi/v3/depositHistory.html";
 	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
@@ -274,10 +276,11 @@ Json::Value Client<T>::Wallet::deposit_history(Params* params_obj, bool network)
 template <typename T>
 Json::Value Client<T>::Wallet::withdraw_history(Params* params_obj, bool network) 
 {
+	std::unique_ptr<Params>unique_param_ptr;
 	if (!params_obj)
 	{
-		std::unique_ptr<Params>unique_param_ptr{ new Params{} };
-		params_obj = unique_param_ptr.release();
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
 	}
 	std::string endpoint = network ? "/sapi/v1/capital/withdraw/history" : "/wapi/v3/withdrawHistory.html";
 	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
@@ -311,10 +314,11 @@ Json::Value Client<T>::Wallet::account_status(Params* params_obj)
 template <typename T>
 Json::Value Client<T>::Wallet::account_status_api(Params* params_obj)
 {
+	std::unique_ptr<Params>unique_param_ptr;
 	if (!params_obj)
 	{
-		std::unique_ptr<Params>unique_param_ptr{ new Params{} };
-		params_obj = unique_param_ptr.release();
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/apiTradingStatus.html";
 	std::string query = user_client._generate_query(*params_obj, 1);
@@ -326,10 +330,11 @@ Json::Value Client<T>::Wallet::account_status_api(Params* params_obj)
 template <typename T>
 Json::Value Client<T>::Wallet::dust_log(Params* params_obj)
 {
+	std::unique_ptr<Params>unique_param_ptr;
 	if (!params_obj)
 	{
-		std::unique_ptr<Params>unique_param_ptr{ new Params{} };
-		params_obj = unique_param_ptr.release();
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/userAssetDribbletLog.html";
 	std::string query = user_client._generate_query(*params_obj, 1);
@@ -351,10 +356,11 @@ Json::Value Client<T>::Wallet::dust_transfer(Params* params_obj)
 template <typename T>
 Json::Value Client<T>::Wallet::asset_dividend_records(Params* params_obj) 
 {
+	std::unique_ptr<Params>unique_param_ptr;
 	if (!params_obj)
 	{
-		std::unique_ptr<Params>unique_param_ptr{ new Params{} };
-		params_obj = unique_param_ptr.release();
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/asset/assetDividend";
 	std::string query = user_client._generate_query(*params_obj, 1);
@@ -366,10 +372,11 @@ Json::Value Client<T>::Wallet::asset_dividend_records(Params* params_obj)
 template <typename T>
 Json::Value Client<T>::Wallet::asset_details(Params* params_obj)
 {
+	std::unique_ptr<Params>unique_param_ptr;
 	if (!params_obj)
 	{
-		std::unique_ptr<Params>unique_param_ptr{ new Params{} };
-		params_obj = unique_param_ptr.release();
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/assetDetail.html";
 	std::string query = user_client._generate_query(*params_obj, 1);
@@ -381,10 +388,11 @@ Json::Value Client<T>::Wallet::asset_details(Params* params_obj)
 template <typename T>
 Json::Value Client<T>::Wallet::trading_fees(Params* params_obj)
 {
+	std::unique_ptr<Params>unique_param_ptr;
 	if (!params_obj)
 	{
-		std::unique_ptr<Params>unique_param_ptr{ new Params{} };
-		params_obj = unique_param_ptr.release();
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/tradeFee.html";
 	std::string query = user_client._generate_query(*params_obj, 1);
