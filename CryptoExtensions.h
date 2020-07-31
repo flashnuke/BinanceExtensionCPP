@@ -1,16 +1,8 @@
 // todo: futures and client source files in different files?
 // todo: return empty json with "status = 1" if no cb passed.
 // todo: idea - pass stream of name to functor?
-// todo: recvWindow default for Params?
-// todo: test bool for place order
-// todo: in rest callback, if code (in json) == 200 then its ok
 // todo: MarginClient, FuturesClient, PerpetualClient
-// todo: wallet endpoints and general endpoints are inside client
-// todo: function overloading for methods that do not require params. one with, one without. or better yet, pass empty as default and append tiemstamp
-// todo: method for passing params, returning full query with signature
-// todo: for custom requests, pass bool 'signature' param
 // todo: constructor for Futures and Spot (for one each other, snap the keys)
-// todo: change all to params*
 
 // DOCs todos:
 // 1. order book fetch from scratch example
@@ -165,6 +157,9 @@ struct Params
 
 	bool clear_params();
 	bool empty();
+
+	bool flush_params; // if true, param objects will be flushed at the end of methods
+
 };
 
 
@@ -192,7 +187,6 @@ public:
 	const std::string _WS_BASE_SPOT{ "stream.binance.com" };
 	const std::string _WS_PORT{ "9443" };
 
-	bool flush_params; // if true, param objects passed to functions will be flushed
 
 	// CRTP methods
 	unsigned long long exchange_time();
@@ -205,8 +199,8 @@ public:
 	void ws_auto_reconnect(const bool& reconnect);
 	inline void set_refresh_key_interval(const bool val);
 
-	Json::Value cancel_order(Params& parameter_vec);
-	Json::Value place_order(Params& parameter_vec);
+	Json::Value cancel_order(Params* parameter_vec);
+	Json::Value place_order(Params* parameter_vec);
 
 
 	// end CRTP methods
@@ -217,33 +211,34 @@ public:
 
 	// Global requests (wallet, account etc)
 
-	bool exchange_status(); // todo: (define) (Returns bool 1 up 0 down) (use spot base) 
+	bool exchange_status(); // todo: (define) (Returns bool 1 up 0 down) (use spot base)
+	Json::Value place_order_test(Params* parameter_vec);
 
 	struct Wallet 
 	{
 		Client<T> user_client;
 		explicit Wallet(Client<T>& client); // todo: if public, exception
-		Json::Value get_all_coins(Params* params_obj = nullptr); // todo: (define) (returns Json array)
-		Json::Value daily_snapshot(Params* params_obj); // todo: (define)
-		bool fast_withdraw_switch(bool state); // todo (define) (bool for on/on) (returns empty json)
-		Json::Value withdraw_balances(Params* params_obj, bool SAPI = 0); // todo (define) (sapi for endpoint)
-		Json::Value deposit_history(Params* params_obj = nullptr, bool network = 0); // todo (define) (bool for network endpoint)
-		Json::Value withdraw_history(Params* params_obj = nullptr, bool network = 0); // todo (define) (bool for network endpoint)
-		Json::Value deposit_address(Params* params_obj, bool network = 0); // todo (define) (bool for endpoint)
-		Json::Value account_status(Params* params_obj = nullptr); // todo: (define) 
-		Json::Value account_status_api(Params* params_obj = nullptr); // todo: (define) 
-		Json::Value dust_log(Params* params_obj = nullptr); // todo: (define) 
-		Json::Value dust_transfer(Params* params_obj); // todo: (define) 
-		Json::Value asset_dividend_records(Params* params_obj = nullptr); // todo (define) (pass empty params?)
-		Json::Value asset_details(Params* params_obj = nullptr); // todo (define)
-		Json::Value trading_fees(Params* params_obj = nullptr); // todo (define)
-	}; // append all the below into this
+		Json::Value get_all_coins(Params* params_obj = nullptr); 
+		Json::Value daily_snapshot(Params* params_obj); 
+		bool fast_withdraw_switch(bool state); 
+		Json::Value withdraw_balances(Params* params_obj, bool SAPI = 0); 
+		Json::Value deposit_history(Params* params_obj = nullptr, bool network = 0);
+		Json::Value withdraw_history(Params* params_obj = nullptr, bool network = 0); 
+		Json::Value deposit_address(Params* params_obj, bool network = 0); 
+		Json::Value account_status(Params* params_obj = nullptr); 
+		Json::Value account_status_api(Params* params_obj = nullptr); 
+		Json::Value dust_log(Params* params_obj = nullptr);  
+		Json::Value dust_transfer(Params* params_obj);  
+		Json::Value asset_dividend_records(Params* params_obj = nullptr);
+		Json::Value asset_details(Params* params_obj = nullptr); 
+		Json::Value trading_fees(Params* params_obj = nullptr); 
+	}; 
 
 
-	Json::Value custom_get_req(const std::string& path);
-	Json::Value custom_post_req(const std::string& path);
-	Json::Value custom_put_req(const std::string& path);
-	Json::Value custom_delete_req(const std::string& path);
+	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
+	Json::Value custom_post_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
+	Json::Value custom_put_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
+	Json::Value custom_delete_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
 
 	template <typename FT>
 	unsigned int custom_stream(std::string stream_query, std::string buffer, FT functor);
@@ -270,8 +265,8 @@ private:
 	inline void v_ws_auto_reconnect(const bool& reconnect);
 	inline void v_set_refresh_key_interval(const bool val);
 
-	Json::Value v_cancel_order(Params& parameter_vec);
-	Json::Value v_place_order(Params& parameter_vec);
+	Json::Value v_cancel_order(Params* parameter_vec);
+	Json::Value v_place_order(Params* parameter_vec);
 
 public:
 	friend Client;
@@ -304,8 +299,8 @@ private:
 	void v_ws_auto_reconnect(const bool& reconnect);
 	inline void v_set_refresh_key_interval(const bool val);
 
-	Json::Value v_place_order(Params& parameter_vec);
-	Json::Value v_cancel_order(Params& parameter_vec);
+	Json::Value v_place_order(Params* parameter_vec);
+	Json::Value v_cancel_order(Params* parameter_vec);
 
 
 

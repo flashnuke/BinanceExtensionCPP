@@ -6,11 +6,11 @@
 
 
 template<typename T>
-Client<T>::Client() : _public_client{ 1 }, flush_params{ 0 }
+Client<T>::Client() : _public_client{ 1 }
 {};
 
 template<typename T>
-Client<T>::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, flush_params{ 0 }
+Client<T>::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }
 {};
 
 // Client CRTP methods
@@ -42,10 +42,10 @@ template<typename T>
 void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
 
 template<typename T>
-Json::Value Client<T>::place_order(Params& parameter_vec) { return static_cast<T*>(this)->v_place_order(parameter_vec); }
+Json::Value Client<T>::place_order(Params* parameter_vec) { return static_cast<T*>(this)->v_place_order(parameter_vec); }
 
 template<typename T>
-Json::Value Client<T>::cancel_order(Params& parameter_vec) { return static_cast<T*>(this)->v_cancel_order(parameter_vec); }
+Json::Value Client<T>::cancel_order(Params* parameter_vec) { return static_cast<T*>(this)->v_cancel_order(parameter_vec); }
 
 // Client other methods
 
@@ -74,16 +74,36 @@ bool Client<T>::init_rest_session() // make separate for ws and rest
 }
 
 template <typename T>
-Json::Value Client<T>::custom_get_req(const std::string& path) { return this->_rest_client->_getreq(path); }
+Json::Value Client<T>::custom_get_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature)
+{
+	std::string query = this->_generate_query(*params_obj, signature);
+	std::string full_path = base + endpoint + query;
+	return this->_rest_client->_getreq(full_path);
+}
 
 template <typename T>
-Json::Value Client<T>::custom_post_req(const std::string& path) { return this->_rest_client->_postreq(path); }
+Json::Value Client<T>::custom_post_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature)
+{
+	std::string query = this->_generate_query(*params_obj, signature);
+	std::string full_path = base + endpoint + query;
+	return this->_rest_client->_postreq(full_path);
+}
 
 template <typename T>
-Json::Value Client<T>::custom_put_req(const std::string& path) { return this->_rest_client->_putreq(path); }
+Json::Value Client<T>::custom_put_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature) 
+{
+	std::string query = this->_generate_query(*params_obj, signature);
+	std::string full_path = base + endpoint + query;
+	return this->_rest_client->_putreq(full_path);
+}
 
 template <typename T>
-Json::Value Client<T>::custom_delete_req(const std::string& path) { return this->_rest_client->_deletereq(path); }
+Json::Value Client<T>::custom_delete_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature)
+{
+	std::string query = this->_generate_query(*params_obj, signature);
+	std::string full_path = base + endpoint + query;
+	return this->_rest_client->_deletereq(full_path);
+}
 
 template <typename T>
 bool Client<T>::set_headers(RestSession* rest_client)
@@ -145,8 +165,10 @@ std::string Client<T>::_generate_query(Params& params_obj, bool sign_query)
 		std::string signature = HMACsha256(query, this->_api_secret);
 		query += "&signature=" + signature;
 		query = "?" + query;
+		params_obj.delete_param("timestamp");
 	}
-	params_obj.delete_param("timestamp");
+	if (params_obj.flush_params) params_obj.clear_params();
+
 	return query;
 }
 
@@ -155,6 +177,19 @@ bool Client<T>::exchange_status()
 {
 	std::string full_path = this->_BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
 	return this->_rest_client->_getreq(full_path);
+} // todo: return bool
+
+template <typename T>
+Json::Value Client<T>::place_order_test(Params* parameter_vec)
+{
+
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
+	std::string query = Client::_generate_query(*parameter_vec, 1);
+
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	return response;
+
 }
 
 template <typename T>
@@ -176,8 +211,7 @@ Json::Value Client<T>::Wallet::get_all_coins(Params* params_obj)
 {
 	if (!params_obj)
 	{
-		Params temp_params{};
-		params_obj = &temp_params;
+		std::unique_ptr<Params> params_obj{ new Params };
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/capital/config/getall";
 	
@@ -185,7 +219,7 @@ Json::Value Client<T>::Wallet::get_all_coins(Params* params_obj)
 	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
-}; // todo: (returns Json array)
+}; 
 
 template <typename T>
 Json::Value Client<T>::Wallet::daily_snapshot(Params* params_obj)
@@ -207,7 +241,7 @@ bool Client<T>::Wallet::fast_withdraw_switch(bool state)
 	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
 
 	return response;
-}; // todo  (bool for on/on) (returns empty json)
+}; // todo  return bool?
 
 template <typename T>
 Json::Value Client<T>::Wallet::withdraw_balances(Params* params_obj, bool SAPI)
@@ -218,15 +252,14 @@ Json::Value Client<T>::Wallet::withdraw_balances(Params* params_obj, bool SAPI)
 	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
 
 	return response;
-}; // todo (define)
+};
 
 template <typename T>
 Json::Value Client<T>::Wallet::deposit_history(Params* params_obj, bool network)
 {
 	if (!params_obj)
 	{
-		Params temp_params{};
-		params_obj = &temp_params;
+		std::unique_ptr<Params> params_obj{ new Params };
 	}
 	std::string endpoint = network ? "/sapi/v1/capital/deposit/hisrec" : "/wapi/v3/depositHistory.html";
 	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
@@ -234,15 +267,14 @@ Json::Value Client<T>::Wallet::deposit_history(Params* params_obj, bool network)
 	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
-}; // todo (define)
+}; 
 
 template <typename T>
 Json::Value Client<T>::Wallet::withdraw_history(Params* params_obj, bool network) 
 {
 	if (!params_obj)
 	{
-		Params temp_params{};
-		params_obj = &temp_params;
+		std::unique_ptr<Params> params_obj{ new Params };
 	}
 	std::string endpoint = network ? "/sapi/v1/capital/withdraw/history" : "/wapi/v3/withdrawHistory.html";
 	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
@@ -250,7 +282,7 @@ Json::Value Client<T>::Wallet::withdraw_history(Params* params_obj, bool network
 	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
-}; // todo (define) 
+};
 
 template <typename T>
 Json::Value Client<T>::Wallet::deposit_address(Params* params_obj, bool network)
@@ -261,7 +293,7 @@ Json::Value Client<T>::Wallet::deposit_address(Params* params_obj, bool network)
 	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
-}; // todo (define) 
+}; 
 
 template <typename T>
 Json::Value Client<T>::Wallet::account_status(Params* params_obj)
@@ -271,37 +303,35 @@ Json::Value Client<T>::Wallet::account_status(Params* params_obj)
 	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
-}; // todo: (define) 
+};  
 
 template <typename T>
 Json::Value Client<T>::Wallet::account_status_api(Params* params_obj)
 {
 	if (!params_obj)
 	{
-		Params temp_params{};
-		params_obj = &temp_params;
+		std::unique_ptr<Params> params_obj{ new Params };
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/apiTradingStatus.html";
 	std::string query = user_client._generate_query(*params_obj, 1);
 	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
-}; // todo: (define) 
+}; 
 
 template <typename T>
 Json::Value Client<T>::Wallet::dust_log(Params* params_obj)
 {
 	if (!params_obj)
 	{
-		Params temp_params{};
-		params_obj = &temp_params;
+		std::unique_ptr<Params> params_obj{ new Params };
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/userAssetDribbletLog.html";
 	std::string query = user_client._generate_query(*params_obj, 1);
 	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
-}; // todo: (define) 
+};
 
 template <typename T>
 Json::Value Client<T>::Wallet::dust_transfer(Params* params_obj)
@@ -311,52 +341,49 @@ Json::Value Client<T>::Wallet::dust_transfer(Params* params_obj)
 	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
 
 	return response;
-}; // todo: (define) 
+};
 
 template <typename T>
 Json::Value Client<T>::Wallet::asset_dividend_records(Params* params_obj) 
 {
 	if (!params_obj)
 	{
-		Params temp_params{};
-		params_obj = &temp_params;
+		std::unique_ptr<Params> params_obj{ new Params };
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/asset/assetDividend";
 	std::string query = user_client._generate_query(*params_obj, 1);
 	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
 
 	return response;
-}; // todo (define) 
+};  
 
 template <typename T>
 Json::Value Client<T>::Wallet::asset_details(Params* params_obj)
 {
 	if (!params_obj)
 	{
-		Params temp_params{};
-		params_obj = &temp_params;
+		std::unique_ptr<Params> params_obj{ new Params };
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/assetDetail.html";
 	std::string query = user_client._generate_query(*params_obj, 1);
 	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
-}; // todo (define)
+}; 
 
 template <typename T>
 Json::Value Client<T>::Wallet::trading_fees(Params* params_obj)
 {
 	if (!params_obj)
 	{
-		Params temp_params{};
-		params_obj = &temp_params;
+		std::unique_ptr<Params> params_obj{ new Params };
 	}
 	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/tradeFee.html";
 	std::string query = user_client._generate_query(*params_obj, 1);
 	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
 
 	return response;
-}; // todo (define) (params has default)
+}; 
 
 // SpotClient definitions
 
@@ -431,29 +458,25 @@ void SpotClient::v_close_stream(const std::string& symbol, const std::string& st
 	}
 }
 
-Json::Value SpotClient::v_place_order(Params& parameter_vec)
+Json::Value SpotClient::v_place_order(Params* parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	std::string query = Client::_generate_query(parameter_vec, 1);
+	std::string query = Client::_generate_query(*parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
-
-	if (this->flush_params) parameter_vec.clear_params();
 
 	return response;
 
 }
 
-Json::Value SpotClient::v_cancel_order(Params& parameter_vec)
+Json::Value SpotClient::v_cancel_order(Params* parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	std::string query = Client::_generate_query(parameter_vec, 1);
+	std::string query = Client::_generate_query(*parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
-
-	if (this->flush_params) parameter_vec.clear_params();
 
 	return response;
 
@@ -651,27 +674,23 @@ std::vector<std::string> FuturesClient::v_get_open_streams()
 	return this->_ws_client->open_streams();
 }
 
-Json::Value FuturesClient::v_place_order(Params& parameter_vec)
+Json::Value FuturesClient::v_place_order(Params* parameter_vec)
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
-	std::string query = Client::_generate_query(parameter_vec, 1);
+	std::string query = Client::_generate_query(*parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // return entire json?
-
-	if (this->flush_params) parameter_vec.clear_params();
 
 	return response;
 }
 
-Json::Value FuturesClient::v_cancel_order(Params& parameter_vec)
+Json::Value FuturesClient::v_cancel_order(Params* parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	std::string query = Client::_generate_query(parameter_vec, 1);
+	std::string query = Client::_generate_query(*parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
-
-	if (this->flush_params) parameter_vec.clear_params();
 
 	return response;
 
@@ -684,8 +703,6 @@ Json::Value FuturesClient::fetch_balances(Params& param_obj)
 	std::string query = Client::_generate_query(param_obj, 1);
 
 	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
-
-	if (this->flush_params) param_obj.clear_params();
 
 	return response;
 }
@@ -722,7 +739,7 @@ FuturesClient::~FuturesClient()
 // Params definitions
 
 Params::Params()
-	: default_recv{ 0 }, default_recv_amt{ 0 }
+	: default_recv{ 0 }, default_recv_amt{ 0 }, flush_params{ 0 }
 {};
 
 Params::Params(Params& params_obj)
