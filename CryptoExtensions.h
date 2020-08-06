@@ -4,6 +4,8 @@
 // todo: MarginClient, FuturesClient, PerpetualClient
 // todo: constructor for Futures and Spot (for one each other, snap the keys)
 // todo: param object for all methods?
+// todo: one by one check for default args
+// todo: sort v_ vs v__ 
 
 // todo:
 // FuturesClient: separate into CoinMargin and USDTMarin structs. Must decide upon constructing
@@ -273,13 +275,10 @@ public:
 };
 
 
-
-class FuturesClient : public Client<FuturesClient>
+template <typename CT> // CT = coin type
+class FuturesClient : public Client<FuturesClient<CT>>
 {
 private:
-	inline bool v_ping_client();
-	inline unsigned long long v_exchange_time();
-	Json::Value v_exchange_info();
 	inline bool v_init_ws_session();
 	inline std::string v__get_listen_key();
 	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
@@ -292,7 +291,7 @@ private:
 	Json::Value v_place_order(Params* parameter_vec);
 
 public:
-	friend Client;
+	friend Client<FuturesClient<CT>>;
 
 	FuturesClient();
 	FuturesClient(std::string key, std::string secret);
@@ -304,8 +303,8 @@ public:
 
 	// market data
 
-	inline bool v_ping_client(); // todo: why is it defined?
-	inline unsigned long long v_exchange_time(); // todo: why is it defined?
+	inline bool v_ping_client();  // todo: define lower levels
+	inline unsigned long long v_exchange_time(); // todo: define lower levels
 	Json::Value v_exchange_info(); // todo: define
 	Json::Value v_order_book(Params* params_obj); // todo: define
 	Json::Value v_public_trades_recent(Params* params_obj); // todo: define
@@ -318,25 +317,21 @@ public:
 
 
 
-	// -------------------  inter-future crtp
+	// -------------------  inter-future crtp ONLY
 
 	// todo: exception for bad_endpoint or nonexisting
 
 	 // market Data
 
-	Json::Value mark_price(Params* params_obj); // todo: define, crtp?
+	Json::Value mark_price(Params* params_obj = nullptr); // todo: define, crtp? default param
 	Json::Value public_liquidation_orders(Params* params_obj); // todo: define, crtp?
 	Json::Value open_interest(Params* params_obj); // todo: define, crtp?
-	Json::Value open_interest_stats(Params* params_obj); // todo: define, crtp?
-	Json::Value top_long_short_ratio(Params* params_obj, bool accounts = 0); // todo: define, crtp, (if accounts, else positions)
-	Json::Value global_long_short_ratio(Params* params_obj); // todo: define, crtp?
-	Json::Value taker_long_short_ratio(Params* params_obj); // todo: define, crtp?
+
 
 	// note that the following four might be only for coin margined market data
 	Json::Value continues_klines(Params* params_obj); // todo: define, crtp?
 	Json::Value index_klines(Params* params_obj); // todo: define, crtp?
 	Json::Value mark_klines(Params* params_obj); // todo: define, crtp?
-	Json::Value basis_data(Params* params_obj); // todo: define, crtp?
 
 	// note that the following four might be only for coin margined market data
 
@@ -345,6 +340,13 @@ public:
 
 	// end CRTP
 
+	// endpoints are same for both wallet types below
+
+	Json::Value open_interest_stats(Params* params_obj); 
+	Json::Value top_long_short_ratio(Params* params_obj, bool accounts = 0);
+	Json::Value global_long_short_ratio(Params* params_obj);
+	Json::Value taker_long_short_ratio(Params* params_obj);
+	Json::Value basis_data(Params* params_obj);
 
 
 	Json::Value fetch_balances(Params& param_obj);
@@ -356,13 +358,109 @@ public:
 };
 
 
+class FuturesClientUSDT : FuturesClient<FuturesClientUSDT>
+{
+public:
+	friend FuturesClient;
+
+	FuturesClientUSDT();
+	FuturesClientUSDT(std::string key, std::string secret);
+
+	// up to Client level
+
+	inline bool v__ping_client(); // todo: why is it defined?
+	inline unsigned long long v__exchange_time(); // todo: why is it defined?
+	Json::Value v__exchange_info(); // todo: define
+	Json::Value v__order_book(Params* params_obj); // todo: define
+	Json::Value v__public_trades_recent(Params* params_obj); // todo: define
+	Json::Value v__public_trades_historical(Params* params_obj); // todo: define
+	Json::Value v__public_trades_agg(Params* params_obj); // todo: define
+	Json::Value v__klines(Params* params_obj); // todo: define
+	Json::Value v__daily_ticker_stats(Params* params_obj); // todo: define
+	Json::Value v__get_ticker(Params* params_obj); // todo: define
+	Json::Value v__get_order_book_ticker(Params* params_obj); // todo: define
+
+	// market Data
+
+	Json::Value v_mark_price(Params* params_obj = nullptr); // todo: define, crtp?
+	Json::Value v_public_liquidation_orders(Params* params_obj); // todo: define, crtp?
+	Json::Value v_open_interest(Params* params_obj); // todo: define, crtp?
+
+
+	// note that the following four might be only for coin margined market data
+	Json::Value v_continues_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value v_index_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value v_mark_klines(Params* params_obj); // todo: define, crtp?
+
+	// note that the following four might be only for usdt margined market data
+
+	Json::Value v_funding_rate_history(Params* params_obj); // todo: define, crtp?
+};
+
+
+class FuturesClientCoin : FuturesClient<FuturesClientCoin>
+{
+public:
+	friend FuturesClient;
+
+	FuturesClientCoin();
+	FuturesClientCoin(std::string key, std::string secret);
+
+	// up to Client level
+
+	inline bool v__ping_client(); // todo: why is it defined?
+	inline unsigned long long v__exchange_time(); // todo: why is it defined?
+	Json::Value v__exchange_info(); // todo: define
+	Json::Value v__order_book(Params* params_obj); // todo: define
+	Json::Value v__public_trades_recent(Params* params_obj); // todo: define
+	Json::Value v__public_trades_historical(Params* params_obj); // todo: define
+	Json::Value v__public_trades_agg(Params* params_obj); // todo: define
+	Json::Value v__klines(Params* params_obj); // todo: define
+	Json::Value v__daily_ticker_stats(Params* params_obj); // todo: define
+	Json::Value v__get_ticker(Params* params_obj); // todo: define
+	Json::Value v__get_order_book_ticker(Params* params_obj); // todo: define
+
+	// market Data
+
+	Json::Value v_mark_price(Params* params_obj); // todo: define, crtp?
+	Json::Value v_public_liquidation_orders(Params* params_obj); // todo: define, crtp?
+	Json::Value v_open_interest(Params* params_obj); // todo: define, crtp?
+
+
+	// note that the following four might be only for coin margined market data
+	Json::Value v_continues_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value v_index_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value v_mark_klines(Params* params_obj); // todo: define, crtp?
+
+	// note that the following four might be only for coin margined market data
+
+	Json::Value v_funding_rate_history(Params* params_obj); // todo: define, crtp?
+};
+
 class SpotClient : public Client<SpotClient>
 {
 private:
 	// CRTP methods
+	// ------------------- crtp for all (spot + coin/usdt)
 
-	unsigned long long v_exchange_time();
-	bool v_ping_client();
+	// market data
+
+	inline bool v_ping_client();  // todo: define lower levels
+	inline unsigned long long v_exchange_time(); // todo: define lower levels
+	Json::Value v_exchange_info(); // todo: define
+	Json::Value v_order_book(Params* params_obj); // todo: define
+	Json::Value v_public_trades_recent(Params* params_obj); // todo: define
+	Json::Value v_public_trades_historical(Params* params_obj); // todo: define
+	Json::Value v_public_trades_agg(Params* params_obj); // todo: define
+	Json::Value v_klines(Params* params_obj); // todo: define
+	Json::Value v_daily_ticker_stats(Params* params_obj); // todo: define
+	Json::Value v_get_ticker(Params* params_obj); // todo: define
+	Json::Value v_get_order_book_ticker(Params* params_obj); // todo: define
+
+	// ------------------- crtp global end
+
+	// crtp infrastructure start
+
 	bool v_init_ws_session();
 	std::string v__get_listen_key();
 	void v_close_stream(const std::string& symbol, const std::string& stream_name);
@@ -370,6 +468,8 @@ private:
 	std::vector<std::string> v_get_open_streams();
 	void v_ws_auto_reconnect(const bool& reconnect);
 	inline void v_set_refresh_key_interval(const bool val);
+
+	// crtp infrastructure end
 
 	Json::Value v_place_order(Params* parameter_vec);
 	Json::Value v_cancel_order(Params* parameter_vec);
