@@ -1,13 +1,16 @@
 // todo: futures and client source files in different files?
 // todo: return empty json with "status = 1" if no cb passed.
 // todo: idea - pass stream of name to functor?
-// todo: recvWindow default for Params?
-// todo: test bool for place order
-// todo: in rest callback, if code (in json) == 200 then its ok
 // todo: MarginClient, FuturesClient, PerpetualClient
-// todo: wallet endpoints and general endpoints are inside client
-// todo: function overloading for methods that do not require params. one with, one without. or better yet, pass empty as default and append tiemstamp
+// todo: constructor for Futures and Spot (for one each other, snap the keys)
+// todo: param object for all methods?
+// todo: one by one check for default args
+// todo: sort v_ vs v__ 
 
+// todo:
+// FuturesClient: separate into CoinMargin and USDTMarin structs. Must decide upon constructing
+// do as follows: Client -> Futures -> USDT / Margined
+// this way From futures to USDT / Margined it will be abstract as well! CRTP
 
 // DOCs todos:
 // 1. order book fetch from scratch example
@@ -63,7 +66,6 @@ private:
 	struct RequestHandler // handles response
 	{
 		RequestHandler();
-
 		std::string req_raw;
 		Json::Value req_json;
 		CURLcode req_status;
@@ -163,6 +165,9 @@ struct Params
 
 	bool clear_params();
 	bool empty();
+
+	bool flush_params; // if true, param objects will be flushed at the end of methods
+
 };
 
 
@@ -178,12 +183,11 @@ protected:
 
 	explicit Client();
 	Client(std::string key, std::string secret);
-	~Client();
 
 public:
 	bool const _public_client;
 
-	std::string _generate_query(Params& params_obj);
+	std::string _generate_query(Params& params_obj, bool sign_query = 0);
 
 	const std::string _BASE_REST_FUTURES{ "https://fapi.binance.com" };
 	const std::string _BASE_REST_SPOT{ "https://api.binance.com" };
@@ -191,11 +195,26 @@ public:
 	const std::string _WS_BASE_SPOT{ "stream.binance.com" };
 	const std::string _WS_PORT{ "9443" };
 
-	bool flush_params; // if true, param objects passed to functions will be flushed
 
-	// CRTP methods
-	unsigned long long exchange_time();
+	// ----------------------CRTP methods
+	
+	// Market Data endpoints
+
 	bool ping_client();
+	unsigned long long exchange_time();
+	Json::Value exchange_info(); // todo: define
+	Json::Value order_book(Params* params_obj); // todo: define
+	Json::Value public_trades_recent(Params* params_obj); // todo: define
+	Json::Value public_trades_historical(Params* params_obj); // todo: define
+	Json::Value public_trades_agg(Params* params_obj); // todo: define
+	Json::Value klines(Params* params_obj); // todo: define
+	Json::Value daily_ticker_stats(Params* params_obj = nullptr); // todo: define
+	Json::Value get_ticker(Params* params_obj = nullptr); // todo: define
+	Json::Value get_order_book_ticker(Params* params_obj = nullptr); // todo: define
+
+
+	// Library methods
+
 	bool init_ws_session();
 	std::string _get_listen_key();
 	void close_stream(const std::string& symbol, const std::string& stream_name);
@@ -204,11 +223,11 @@ public:
 	void ws_auto_reconnect(const bool& reconnect);
 	inline void set_refresh_key_interval(const bool val);
 
-	Json::Value cancel_order(Params& parameter_vec);
-	Json::Value place_order(Params& parameter_vec);
+	Json::Value cancel_order(Params* parameter_vec);
+	Json::Value place_order(Params* parameter_vec);
 
 
-	// end CRTP methods
+	// ----------------------end CRTP methods
 
 	bool init_rest_session();
 	bool set_headers(RestSession* rest_client);
@@ -216,28 +235,34 @@ public:
 
 	// Global requests (wallet, account etc)
 
-	struct Wallet {}; // append all the below into this
+	bool exchange_status(); // todo: (define) (Returns bool 1 up 0 down) (use spot base)
+	Json::Value place_order_test(Params* parameter_vec);
 
-	bool exchange_status(); // todo: (define) (Returns bool 1 up 0 down) (use spot base) 
-	Json::Value get_all_coins(); // todo: (define) (returns Json array)
-	Json::Value daily_snapshot(const Params& params_obj); // todo: (define)
-	bool fast_withdraw_switch(bool state); // todo (define) (bool for on/on) (returns empty json)
-	Json::Value withdraw_balances(const Params& params_obj, bool SAPI = 0); // todo (define) (sapi for endpoint)
-	Json::Value deposit_history(const Params& params_obj, bool network = 0); // todo (define) (bool for network endpoint)
-	Json::Value withdraw_history(const Params& params_obj, bool network = 0); // todo (define) (bool for network endpoint)
-	Json::Value deposit_address(const Params& params_obj, bool network = 0); // todo (define) (bool for endpoint)
-	Json::Value account_status(); // todo: (define) 
-	Json::Value account_status_api(); // todo: (define) 
-	Json::Value dust_log(); // todo: (define) 
-	Json::Value dust_transfer(const Params& params_obj); // todo: (define) 
-	Json::Value asset_dividend_records(const Params& params_obj = Params{}); // todo (define) (pass empty params?)
-	Json::Value asset_details(); // todo (define)
-	Json::Value trading_fees(const Params& params_obj = Params{}); // todo (define)
+	struct Wallet 
+	{
+		Client<T> user_client;
+		explicit Wallet(Client<T>& client); // todo: if public, exception
+		Json::Value get_all_coins(Params* params_obj = nullptr); 
+		Json::Value daily_snapshot(Params* params_obj); 
+		Json::Value fast_withdraw_switch(bool state);
+		Json::Value withdraw_balances(Params* params_obj, bool SAPI = 0); 
+		Json::Value deposit_history(Params* params_obj = nullptr, bool network = 0);
+		Json::Value withdraw_history(Params* params_obj = nullptr, bool network = 0); 
+		Json::Value deposit_address(Params* params_obj, bool network = 0); 
+		Json::Value account_status(Params* params_obj = nullptr); 
+		Json::Value account_status_api(Params* params_obj = nullptr); 
+		Json::Value dust_log(Params* params_obj = nullptr);  
+		Json::Value dust_transfer(Params* params_obj);  
+		Json::Value asset_dividend_records(Params* params_obj = nullptr);
+		Json::Value asset_details(Params* params_obj = nullptr); 
+		Json::Value trading_fees(Params* params_obj = nullptr); 
+	}; 
 
-	Json::Value custom_get_req(const std::string& path);
-	Json::Value custom_post_req(const std::string& path);
-	Json::Value custom_put_req(const std::string& path);
-	Json::Value custom_delete_req(const std::string& path);
+
+	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
+	Json::Value custom_post_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
+	Json::Value custom_put_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
+	Json::Value custom_delete_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
 
 	template <typename FT>
 	unsigned int custom_stream(std::string stream_query, std::string buffer, FT functor);
@@ -245,15 +270,15 @@ public:
 	RestSession* _rest_client = nullptr; // move init
 	WebsocketClient* _ws_client = nullptr; // move init, leave decl
 
+	~Client();
+
 };
 
 
-
-class FuturesClient : public Client<FuturesClient>
+template <typename CT> // CT = coin type
+class FuturesClient : public Client<FuturesClient<CT>>
 {
 private:
-	inline unsigned long long v_exchange_time();
-	inline bool v_ping_client();
 	inline bool v_init_ws_session();
 	inline std::string v__get_listen_key();
 	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
@@ -262,14 +287,66 @@ private:
 	inline void v_ws_auto_reconnect(const bool& reconnect);
 	inline void v_set_refresh_key_interval(const bool val);
 
-	Json::Value v_cancel_order(Params& parameter_vec);
-	Json::Value v_place_order(Params& parameter_vec);
+	Json::Value v_cancel_order(Params* parameter_vec);
+	Json::Value v_place_order(Params* parameter_vec);
 
 public:
-	friend Client;
+	friend Client<FuturesClient<CT>>;
 
 	FuturesClient();
 	FuturesClient(std::string key, std::string secret);
+
+	// consider: are these crtp?? for USDT and Margined
+	// starting with v__ means it has Spot version as well
+
+	// ------------------- crtp for all (spot + coin/usdt)
+
+	// market data
+
+	inline bool v_ping_client();  // todo: define lower levels
+	inline unsigned long long v_exchange_time(); // todo: define lower levels
+	Json::Value v_exchange_info(); // todo: define
+	Json::Value v_order_book(Params* params_obj); // todo: define
+	Json::Value v_public_trades_recent(Params* params_obj); // todo: define
+	Json::Value v_public_trades_historical(Params* params_obj); // todo: define
+	Json::Value v_public_trades_agg(Params* params_obj); // todo: define
+	Json::Value v_klines(Params* params_obj); // todo: define
+	Json::Value v_daily_ticker_stats(Params* params_obj); // todo: define
+	Json::Value v_get_ticker(Params* params_obj); // todo: define
+	Json::Value v_get_order_book_ticker(Params* params_obj); // todo: define
+
+
+
+	// -------------------  inter-future crtp ONLY
+
+	// todo: exception for bad_endpoint or nonexisting
+
+	 // market Data
+
+	Json::Value mark_price(Params* params_obj = nullptr); // todo: define, crtp? default param
+	Json::Value public_liquidation_orders(Params* params_obj); // todo: define, crtp?
+	Json::Value open_interest(Params* params_obj); // todo: define, crtp?
+
+
+	// note that the following four might be only for coin margined market data
+	Json::Value continues_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value index_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value mark_klines(Params* params_obj); // todo: define, crtp?
+
+	// note that the following four might be only for coin margined market data
+
+	Json::Value funding_rate_history(Params* params_obj); // todo: define, crtp?
+
+
+	// end CRTP
+
+	// endpoints are same for both wallet types below
+
+	Json::Value open_interest_stats(Params* params_obj); 
+	Json::Value top_long_short_ratio(Params* params_obj, bool accounts = 0);
+	Json::Value global_long_short_ratio(Params* params_obj);
+	Json::Value taker_long_short_ratio(Params* params_obj);
+	Json::Value basis_data(Params* params_obj);
 
 
 	Json::Value fetch_balances(Params& param_obj);
@@ -281,13 +358,109 @@ public:
 };
 
 
+class FuturesClientUSDT : FuturesClient<FuturesClientUSDT>
+{
+public:
+	friend FuturesClient;
+
+	FuturesClientUSDT();
+	FuturesClientUSDT(std::string key, std::string secret);
+
+	// up to Client level
+
+	inline bool v__ping_client(); // todo: why is it defined?
+	inline unsigned long long v__exchange_time(); // todo: why is it defined?
+	Json::Value v__exchange_info(); // todo: define
+	Json::Value v__order_book(Params* params_obj); // todo: define
+	Json::Value v__public_trades_recent(Params* params_obj); // todo: define
+	Json::Value v__public_trades_historical(Params* params_obj); // todo: define
+	Json::Value v__public_trades_agg(Params* params_obj); // todo: define
+	Json::Value v__klines(Params* params_obj); // todo: define
+	Json::Value v__daily_ticker_stats(Params* params_obj); // todo: define
+	Json::Value v__get_ticker(Params* params_obj); // todo: define
+	Json::Value v__get_order_book_ticker(Params* params_obj); // todo: define
+
+	// market Data
+
+	Json::Value v_mark_price(Params* params_obj = nullptr); // todo: define, crtp?
+	Json::Value v_public_liquidation_orders(Params* params_obj); // todo: define, crtp?
+	Json::Value v_open_interest(Params* params_obj); // todo: define, crtp?
+
+
+	// note that the following four might be only for coin margined market data
+	Json::Value v_continues_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value v_index_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value v_mark_klines(Params* params_obj); // todo: define, crtp?
+
+	// note that the following four might be only for usdt margined market data
+
+	Json::Value v_funding_rate_history(Params* params_obj); // todo: define, crtp?
+};
+
+
+class FuturesClientCoin : FuturesClient<FuturesClientCoin>
+{
+public:
+	friend FuturesClient;
+
+	FuturesClientCoin();
+	FuturesClientCoin(std::string key, std::string secret);
+
+	// up to Client level
+
+	inline bool v__ping_client(); // todo: why is it defined?
+	inline unsigned long long v__exchange_time(); // todo: why is it defined?
+	Json::Value v__exchange_info(); // todo: define
+	Json::Value v__order_book(Params* params_obj); // todo: define
+	Json::Value v__public_trades_recent(Params* params_obj); // todo: define
+	Json::Value v__public_trades_historical(Params* params_obj); // todo: define
+	Json::Value v__public_trades_agg(Params* params_obj); // todo: define
+	Json::Value v__klines(Params* params_obj); // todo: define
+	Json::Value v__daily_ticker_stats(Params* params_obj); // todo: define
+	Json::Value v__get_ticker(Params* params_obj); // todo: define
+	Json::Value v__get_order_book_ticker(Params* params_obj); // todo: define
+
+	// market Data
+
+	Json::Value v_mark_price(Params* params_obj); // todo: define, crtp?
+	Json::Value v_public_liquidation_orders(Params* params_obj); // todo: define, crtp?
+	Json::Value v_open_interest(Params* params_obj); // todo: define, crtp?
+
+
+	// note that the following four might be only for coin margined market data
+	Json::Value v_continues_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value v_index_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value v_mark_klines(Params* params_obj); // todo: define, crtp?
+
+	// note that the following four might be only for coin margined market data
+
+	Json::Value v_funding_rate_history(Params* params_obj); // todo: define, crtp?
+};
+
 class SpotClient : public Client<SpotClient>
 {
 private:
 	// CRTP methods
+	// ------------------- crtp for all (spot + coin/usdt)
 
-	unsigned long long v_exchange_time();
-	bool v_ping_client();
+	// market data
+
+	inline bool v_ping_client();  // todo: define lower levels
+	inline unsigned long long v_exchange_time(); // todo: define lower levels
+	Json::Value v_exchange_info(); // todo: define
+	Json::Value v_order_book(Params* params_obj); // todo: define
+	Json::Value v_public_trades_recent(Params* params_obj); // todo: define
+	Json::Value v_public_trades_historical(Params* params_obj); // todo: define
+	Json::Value v_public_trades_agg(Params* params_obj); // todo: define
+	Json::Value v_klines(Params* params_obj); // todo: define
+	Json::Value v_daily_ticker_stats(Params* params_obj); // todo: define
+	Json::Value v_get_ticker(Params* params_obj); // todo: define
+	Json::Value v_get_order_book_ticker(Params* params_obj); // todo: define
+
+	// ------------------- crtp global end
+
+	// crtp infrastructure start
+
 	bool v_init_ws_session();
 	std::string v__get_listen_key();
 	void v_close_stream(const std::string& symbol, const std::string& stream_name);
@@ -296,8 +469,10 @@ private:
 	void v_ws_auto_reconnect(const bool& reconnect);
 	inline void v_set_refresh_key_interval(const bool val);
 
-	Json::Value v_place_order(Params& parameter_vec);
-	Json::Value v_cancel_order(Params& parameter_vec);
+	// crtp infrastructure end
+
+	Json::Value v_place_order(Params* parameter_vec);
+	Json::Value v_cancel_order(Params* parameter_vec);
 
 
 

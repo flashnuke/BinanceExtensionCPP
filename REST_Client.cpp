@@ -9,8 +9,8 @@ static long _INTVL_TIME_TCP = 60L;
 
 unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req) 
 {
-	req->locker->unlock();
 	(&req->req_raw)->append((char*)contents, size * nmemb);
+	req->locker->unlock();
 
 	std::string parse_errors{};
 	bool parse_status;
@@ -30,16 +30,15 @@ unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 	else if (!parse_status)
 	{
 		req->req_json["parse_status"] = parse_errors;
-		return size * nmemb;
+		return 0;
 	}
 
-	else if (req->req_json.isMember("code"))
+	else if (req->req_json.isMember("code") && req->req_json["code"] != 200)
 	{
-		return size * nmemb;
+		return 0;
 	}
 	req->req_json["request_status"] = 1;
-
-	return size * nmemb;
+	return 1;
 };
 
 RestSession::RestSession()
@@ -103,6 +102,7 @@ Json::Value RestSession::_getreq(std::string full_path)
 	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEDATA, &request);
 
 	request.req_status = curl_easy_perform(this->_get_handle);
+
 
 	return request.req_json;
 };
@@ -180,7 +180,7 @@ bool RestSession::close()
 };
 
 RestSession::RequestHandler::RequestHandler()
-	: req_raw{ "" }, req_json{ Json::Value{} }, req_status{ CURLcode{} }
+	: req_raw{ "" }, req_json{ Json::Value{} }, req_status{ CURLcode{} }, locker { nullptr }
 {
 	req_json["request_status"] = 0;
 	req_json["response"] = Json::arrayValue;

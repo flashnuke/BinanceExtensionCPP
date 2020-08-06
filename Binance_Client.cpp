@@ -6,11 +6,11 @@
 
 
 template<typename T>
-Client<T>::Client() : _public_client{ 1 }, flush_params{ 0 }
+Client<T>::Client() : _public_client{ 1 }
 {};
 
 template<typename T>
-Client<T>::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, flush_params{ 0 }
+Client<T>::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }
 {};
 
 // Client CRTP methods
@@ -42,10 +42,10 @@ template<typename T>
 void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
 
 template<typename T>
-Json::Value Client<T>::place_order(Params& parameter_vec) { return static_cast<T*>(this)->v_place_order(parameter_vec); }
+Json::Value Client<T>::place_order(Params* parameter_vec) { return static_cast<T*>(this)->v_place_order(parameter_vec); }
 
 template<typename T>
-Json::Value Client<T>::cancel_order(Params& parameter_vec) { return static_cast<T*>(this)->v_cancel_order(parameter_vec); }
+Json::Value Client<T>::cancel_order(Params* parameter_vec) { return static_cast<T*>(this)->v_cancel_order(parameter_vec); }
 
 // Client other methods
 
@@ -74,16 +74,36 @@ bool Client<T>::init_rest_session() // make separate for ws and rest
 }
 
 template <typename T>
-Json::Value Client<T>::custom_get_req(const std::string& path) { return this->_rest_client->_getreq(path); }
+Json::Value Client<T>::custom_get_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature)
+{
+	std::string query = this->_generate_query(*params_obj, signature);
+	std::string full_path = base + endpoint + query;
+	return this->_rest_client->_getreq(full_path);
+}
 
 template <typename T>
-Json::Value Client<T>::custom_post_req(const std::string& path) { return this->_rest_client->_postreq(path); }
+Json::Value Client<T>::custom_post_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature)
+{
+	std::string query = this->_generate_query(*params_obj, signature);
+	std::string full_path = base + endpoint + query;
+	return this->_rest_client->_postreq(full_path);
+}
 
 template <typename T>
-Json::Value Client<T>::custom_put_req(const std::string& path) { return this->_rest_client->_putreq(path); }
+Json::Value Client<T>::custom_put_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature) 
+{
+	std::string query = this->_generate_query(*params_obj, signature);
+	std::string full_path = base + endpoint + query;
+	return this->_rest_client->_putreq(full_path);
+}
 
 template <typename T>
-Json::Value Client<T>::custom_delete_req(const std::string& path) { return this->_rest_client->_deletereq(path); }
+Json::Value Client<T>::custom_delete_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature)
+{
+	std::string query = this->_generate_query(*params_obj, signature);
+	std::string full_path = base + endpoint + query;
+	return this->_rest_client->_deletereq(full_path);
+}
 
 template <typename T>
 bool Client<T>::set_headers(RestSession* rest_client)
@@ -125,8 +145,9 @@ unsigned int Client<T>::custom_stream(std::string stream_query, std::string buff
 }
 
 template <typename T>
-std::string Client<T>::_generate_query(Params& params_obj)
+std::string Client<T>::_generate_query(Params& params_obj, bool sign_query)
 {
+	params_obj.set_param<unsigned long long>("timestamp", local_timestamp());
 	std::unordered_map<std::string, std::string> params = params_obj.param_map;
 	std::string query;
 
@@ -138,7 +159,37 @@ std::string Client<T>::_generate_query(Params& params_obj)
 
 		query += (itr->first + "=" + itr->second);
 	}
+
+	if (sign_query)
+	{
+		std::string signature = HMACsha256(query, this->_api_secret);
+		query += "&signature=" + signature;
+		query = "?" + query;
+		params_obj.delete_param("timestamp");
+	}
+	if (params_obj.flush_params) params_obj.clear_params();
+
 	return query;
+}
+
+template <typename T>
+bool Client<T>::exchange_status()
+{
+	std::string full_path = this->_BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
+	return this->_rest_client->_getreq(full_path)["response"]["status"].asBool();
+}
+
+template <typename T>
+Json::Value Client<T>::place_order_test(Params* parameter_vec)
+{
+
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
+	std::string query = Client::_generate_query(*parameter_vec, 1);
+
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	return response;
+
 }
 
 template <typename T>
@@ -148,6 +199,207 @@ Client<T>::~Client()
 	delete _ws_client;
 };
 
+// Client Wallet definitions
+
+template <typename T>
+Client<T>::Wallet::Wallet(Client<T>& client_obj)
+	: user_client{ client_obj }
+{}
+
+template <typename T>
+Json::Value Client<T>::Wallet::get_all_coins(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+
+	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/capital/config/getall";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; 
+
+template <typename T>
+Json::Value Client<T>::Wallet::daily_snapshot(Params* params_obj)
+{
+	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/accountSnapshot";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Wallet::fast_withdraw_switch(bool state)
+{
+	Params temp_params;
+	std::string endpoint = state ? "/sapi/v1/account/enableFastWithdrawSwitch" : "/sapi/v1/account/disableFastWithdrawSwitch";
+	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
+	std::string query = user_client._generate_query(temp_params, 1);
+	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
+
+	return response;
+}; 
+
+template <typename T>
+Json::Value Client<T>::Wallet::withdraw_balances(Params* params_obj, bool SAPI)
+{
+	std::string endpoint = SAPI ? "/sapi/v1/capital/withdraw/apply" : "/wapi/v3/withdraw.html";
+	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Wallet::deposit_history(Params* params_obj, bool network)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string endpoint = network ? "/sapi/v1/capital/deposit/hisrec" : "/wapi/v3/depositHistory.html";
+	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; 
+
+template <typename T>
+Json::Value Client<T>::Wallet::withdraw_history(Params* params_obj, bool network) 
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string endpoint = network ? "/sapi/v1/capital/withdraw/history" : "/wapi/v3/withdrawHistory.html";
+	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Wallet::deposit_address(Params* params_obj, bool network)
+{
+	std::string endpoint = network ? "/sapi/v1/capital/deposit/address" : "/wapi/v3/depositAddress.html";
+	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; 
+
+template <typename T>
+Json::Value Client<T>::Wallet::account_status(Params* params_obj)
+{
+	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/accountStatus.html";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+};  
+
+template <typename T>
+Json::Value Client<T>::Wallet::account_status_api(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/apiTradingStatus.html";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; 
+
+template <typename T>
+Json::Value Client<T>::Wallet::dust_log(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/userAssetDribbletLog.html";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Wallet::dust_transfer(Params* params_obj)
+{
+	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/asset/dust";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Wallet::asset_dividend_records(Params* params_obj) 
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/asset/assetDividend";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
+
+	return response;
+};  
+
+template <typename T>
+Json::Value Client<T>::Wallet::asset_details(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/assetDetail.html";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; 
+
+template <typename T>
+Json::Value Client<T>::Wallet::trading_fees(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/tradeFee.html";
+	std::string query = user_client._generate_query(*params_obj, 1);
+	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+
+	return response;
+}; 
 
 // SpotClient definitions
 
@@ -164,13 +416,7 @@ SpotClient::SpotClient(std::string key, std::string secret)
 	this->init_ws_session();
 }
 
-unsigned long long SpotClient::v_exchange_time()
-{
-	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/time";
-	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
-
-	return std::atoll(ex_time.c_str());
-}
+//  ------------------------------ SpotClient CRTP methods - Global
 
 bool SpotClient::v_ping_client()
 {
@@ -185,6 +431,91 @@ bool SpotClient::v_ping_client()
 		throw("bad_ping");
 	}
 }
+
+unsigned long long SpotClient::v_exchange_time()
+{
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/time";
+	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
+
+	return std::atoll(ex_time.c_str());
+}
+Json::Value SpotClient::v_exchange_info() // todo: define
+{
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v1/exchangeInfo";
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value SpotClient::v_order_book(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/depth" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value SpotClient::v_public_trades_recent(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/trades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value SpotClient::v_public_trades_historical(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/historicalTrades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value SpotClient::v_public_trades_agg(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/aggTrades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value SpotClient::v_klines(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/klines" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value SpotClient::v_daily_ticker_stats(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/ticker/24hr" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value SpotClient::v_get_ticker(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/ticker/price" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value SpotClient::v_get_order_book_ticker(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/ticker/bookTicker" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+
+
+
+//  ------------------------------ End SpotClient CRTP methods - Global
+
+//  ------------------------------ SpotClient CRTP methods - Client infrastructure
 
 bool SpotClient::v_init_ws_session()
 {
@@ -222,39 +553,28 @@ void SpotClient::v_close_stream(const std::string& symbol, const std::string& st
 	}
 }
 
-Json::Value SpotClient::v_place_order(Params& parameter_vec)
+//  ------------------------------ End SpotClient CRTP methods - Client infrastructure
+
+
+Json::Value SpotClient::v_place_order(Params* parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(parameter_vec);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(*parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
-
-	if (this->flush_params) parameter_vec.clear_params();
 
 	return response;
 
 }
 
-Json::Value SpotClient::v_cancel_order(Params& parameter_vec)
+Json::Value SpotClient::v_cancel_order(Params* parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(parameter_vec);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(*parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
-
-	if (this->flush_params) parameter_vec.clear_params();
 
 	return response;
 
@@ -333,52 +653,98 @@ void SpotClient::v_ws_auto_reconnect(const bool& reconnect)
 	this->_ws_client->_set_reconnect(reconnect);
 }
 
-SpotClient::~SpotClient()
-{
-	delete _rest_client;
-	delete _ws_client;
-};
+SpotClient::~SpotClient() // todo: is delete restand ws client needed ? ? ?
+{};
 
 // FuturesClient definitions
 
-FuturesClient::FuturesClient()
-	: Client()
+template <typename CT>
+FuturesClient<CT>::FuturesClient()
+	: Client<FuturesClient<CT>>()
 {
 	this->init_ws_session();
 	this->init_rest_session();
 };
 
-FuturesClient::FuturesClient(std::string key, std::string secret)
-	: Client(key, secret)
+template <typename CT>
+FuturesClient<CT>::FuturesClient(std::string key, std::string secret)
+	: Client<FuturesClient<CT>>(key, secret)
 {
 	this->init_rest_session();
 	this->init_ws_session();
 }
 
-unsigned long long FuturesClient::v_exchange_time()
-{
-	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/time"; // fix
-	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
+//  ------------------------------ FuturesClient CRTP methods - Global
 
-	return std::atoll(ex_time.c_str());
-}
+template<typename CT>
+unsigned long long FuturesClient<CT>::v_exchange_time() { return static_cast<CT*>(this)->v__exchange_time(); }
 
-bool FuturesClient::v_ping_client()
-{
-	try
-	{
-		std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ping";
-		Json::Value ping_response = (this->_rest_client)->_getreq(full_path)["response"];
-		return (ping_response != Json::nullValue);
-	}
-	catch (...)
-	{
-		throw("bad_ping");
-	}
-}
+template<typename CT>
+bool FuturesClient<CT>::v_ping_client() { return static_cast<CT*>(this)->v__ping_client(); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_exchange_info() { return static_cast<CT*>(this)->v__exchange_info(); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_order_book(Params* params_obj) { return static_cast<CT*>(this)->v__order_book(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_public_trades_recent(Params* params_obj) { return static_cast<CT*>(this)->v__public_trades_recent(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_public_trades_historical(Params* params_obj) { return static_cast<CT*>(this)->v__public_trades_historical(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_public_trades_agg(Params* params_obj) { return static_cast<CT*>(this)->v__public_trades_agg(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_klines(Params* params_obj) { return static_cast<CT*>(this)->v__klines(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_daily_ticker_stats(Params* params_obj) { return static_cast<CT*>(this)->v_daily__ticker_stats(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_get_ticker(Params* params_obj) { return static_cast<CT*>(this)->v__get_ticker(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_get_order_book_ticker(Params* params_obj) { return static_cast<CT*>(this)->v__get_order_book_ticker(params_obj); }
+
+//  ------------------------------ End FuturesClient CRTP methods - Global
 
 
-bool FuturesClient::v_init_ws_session()
+
+//  ------------------------------ FuturesClient CRTP methods - Futures unique 
+
+
+template<typename CT>
+Json::Value FuturesClient<CT>::mark_price(Params* params_obj) { return static_cast<CT*>(this)->v_mark_price(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::public_liquidation_orders(Params* params_obj) { return static_cast<CT*>(this)->v_public_liquidation_orders(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::open_interest(Params* params_obj) { return static_cast<CT*>(this)->v_open_interest(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::continues_klines(Params* params_obj) { return static_cast<CT*>(this)->v_continues_klines(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::index_klines(Params* params_obj) { return static_cast<CT*>(this)->v_index_klines(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::mark_klines(Params* params_obj) { return static_cast<CT*>(this)->v_get_ticker(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::funding_rate_history(Params* params_obj) { return static_cast<CT*>(this)->v_funding_rate_history(params_obj); }
+
+
+//  ------------------------------ End FuturesClient CRTP methods - Futures unique 
+
+
+
+
+template <typename CT>
+bool FuturesClient<CT>::v_init_ws_session()
 {
 	try
 	{
@@ -392,24 +758,21 @@ bool FuturesClient::v_init_ws_session()
 	}
 }
 
-std::string FuturesClient::v__get_listen_key()
+template <typename CT>
+std::string FuturesClient<CT>::v__get_listen_key()
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey";
 	Params temp_params;
-	temp_params.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(temp_params);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(temp_params, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
 	return response["response"]["listenKey"].asString();
 }
 
-template <class FT>
-unsigned int FuturesClient::userStream(std::string& buffer, FT& functor)
+template <typename CT>
+	template <class FT>
+unsigned int FuturesClient<CT>::userStream(std::string& buffer, FT& functor)
 {
 	RestSession* keep_alive_session = new RestSession{ this->_api_key, this->_api_secret };
 
@@ -440,7 +803,8 @@ unsigned int FuturesClient::userStream(std::string& buffer, FT& functor)
 	}
 }
 
-void FuturesClient::v_close_stream(const std::string& symbol, const std::string& stream_name)
+template <typename CT>
+void FuturesClient<CT>::v_close_stream(const std::string& symbol, const std::string& stream_name)
 {
 	try
 	{
@@ -452,98 +816,465 @@ void FuturesClient::v_close_stream(const std::string& symbol, const std::string&
 	}
 }
 
-std::vector<std::string> FuturesClient::v_get_open_streams()
+template <typename CT>
+std::vector<std::string> FuturesClient<CT>::v_get_open_streams()
 {
 	return this->_ws_client->open_streams();
 }
 
-Json::Value FuturesClient::v_place_order(Params& parameter_vec)
+template <typename CT> // todo: crtp
+Json::Value FuturesClient<CT>::v_place_order(Params* parameter_vec)
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
-	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(parameter_vec);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(*parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // return entire json?
 
-	if (this->flush_params) parameter_vec.clear_params();
-
 	return response;
 }
 
-Json::Value FuturesClient::v_cancel_order(Params& parameter_vec)
+template <typename CT> // todo: crtp
+Json::Value FuturesClient<CT>::v_cancel_order(Params* parameter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	parameter_vec.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(parameter_vec);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(*parameter_vec, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
-	if (this->flush_params) parameter_vec.clear_params();
-
 	return response;
 
 }
 
-Json::Value FuturesClient::fetch_balances(Params& param_obj)
+template <typename CT> // todo: crtp
+Json::Value FuturesClient<CT>::fetch_balances(Params& param_obj)
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v2/balance";
 
-	param_obj.set_param<unsigned long long>("timestamp", local_timestamp());
-	std::string query = Client::_generate_query(param_obj);
-
-	std::string signature = HMACsha256(query, this->_api_secret);
-	query += ("&signature=" + signature);
-	query = "?" + query;
+	std::string query = Client::_generate_query(param_obj, 1);
 
 	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
-
-	if (this->flush_params) param_obj.clear_params();
 
 	return response;
 }
 
-
-unsigned int FuturesClient::aggTrade(std::string symbol)
+template <typename CT> // todo: crtp
+unsigned int FuturesClient<CT>::aggTrade(std::string symbol)
 {
 	return 0;
 }
 
-
-void FuturesClient::v_set_refresh_key_interval(const bool val)
+template <typename CT> // todo: crtp
+void FuturesClient<CT>::v_set_refresh_key_interval(const bool val)
 {
 	this->_ws_client->refresh_listenkey_interval = val;
 }
 
-bool FuturesClient::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
+template <typename CT> // todo: crtp
+bool FuturesClient<CT>::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
 {
 	std::string full_stream_name = symbol + '@' + stream_name;
 	return this->_ws_client->is_open(full_stream_name);
 }
 
-void FuturesClient::v_ws_auto_reconnect(const bool& reconnect)
+template <typename CT> // todo: crtp
+void FuturesClient<CT>::v_ws_auto_reconnect(const bool& reconnect)
 {
 	this->_ws_client->_set_reconnect(reconnect);
 }
 
-FuturesClient::~FuturesClient()
+template <typename CT>
+Json::Value FuturesClient<CT>::open_interest_stats(Params* params_obj)
 {
-	delete _rest_client;
-	delete _ws_client;
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/futures/data/openInterestHist" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
 }
+
+template <typename CT>
+Json::Value FuturesClient<CT>::top_long_short_ratio(Params* params_obj, bool accounts)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string endpoint = accounts ? "/futures/data/topLongShortAccountRatio" : "/futures/data/topLongShortPositionRatio";
+	std::string full_path = this->_BASE_REST_FUTURES + endpoint + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+template <typename CT>
+Json::Value FuturesClient<CT>::global_long_short_ratio(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/futures/data/globalLongShortAccountRatio" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+template <typename CT>
+Json::Value FuturesClient<CT>::taker_long_short_ratio(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/futures/data/takerlongshortRatio" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+template <typename CT>
+Json::Value FuturesClient<CT>::basis_data(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/futures/data/basis" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+template <typename CT> // todo: is delete rest and ws client needed???
+FuturesClient<CT>::~FuturesClient()
+{}
+
+// FuturesClientUSDT definitions
+
+
+FuturesClientUSDT::FuturesClientUSDT()
+	: FuturesClient()
+{};
+
+FuturesClientUSDT::FuturesClientUSDT(std::string key, std::string secret)
+	: FuturesClient(key, secret)
+{}
+
+// ------------------------------ Futures USDT CRTP methods - Global
+
+inline bool FuturesClientUSDT::v__ping_client()
+{
+	try
+	{
+		std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ping";
+		Json::Value ping_response = (this->_rest_client)->_getreq(full_path)["response"];
+		return (ping_response != Json::nullValue);
+	}
+	catch (...)
+	{
+		throw("bad_ping");
+	}
+}
+
+inline unsigned long long FuturesClientUSDT::v__exchange_time() // todo: why is it defined?
+{
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/time"; // fix
+	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
+
+	return std::atoll(ex_time.c_str());
+}
+
+Json::Value FuturesClientUSDT::v__exchange_info() // todo: define
+{
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/exchangeInfo";
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__order_book(Params* params_obj)
+{	
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/depth" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__public_trades_recent(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/trades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__public_trades_historical(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/historicalTrades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__public_trades_agg(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/aggTrades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__klines(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/klines" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__daily_ticker_stats(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ticker/24hr" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__get_ticker(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ticker/price" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__get_order_book_ticker(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ticker/bookTicker" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+
+// ------------------------------ End Futures USDT CRTP methods - Global
+
+
+// ------------------------------ Futures USDT CRTP methods - Unique methods
+
+
+Json::Value FuturesClientUSDT::v_mark_price(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : ""; // todo: copy this format for everything?
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/premiumIndex" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_public_liquidation_orders(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/allForceOrders" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+Json::Value FuturesClientUSDT::v_open_interest(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/openInterest" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+
+
+// note that the following four might be only for coin margined market data
+
+Json::Value FuturesClientUSDT::v_continues_klines(Params* params_obj)
+{
+	throw("non existing endpoint");
+}
+Json::Value FuturesClientUSDT::v_index_klines(Params* params_obj)
+{
+	throw("non existing endpoint");
+}
+Json::Value FuturesClientUSDT::v_mark_klines(Params* params_obj)
+{
+	throw("non existing endpoint");
+}
+
+
+// note that the following four might be only for usdt margined market data
+
+Json::Value FuturesClientUSDT::v_funding_rate_history(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/fundingRate" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+// ------------------------------ End Futures USDT CRTP methods - Unique methods
+
+
+// FuturesClientCoin definitions
+
+FuturesClientCoin::FuturesClientCoin()
+	: FuturesClient()
+{};
+
+FuturesClientCoin::FuturesClientCoin(std::string key, std::string secret)
+	: FuturesClient(key, secret)
+{}
+
+// ------------------------------ Futures Coin CRTP methods - Global
+
+inline bool FuturesClientCoin::v__ping_client()
+{
+	try
+	{
+		std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/ping";
+		Json::Value ping_response = (this->_rest_client)->_getreq(full_path)["response"];
+		return (ping_response != Json::nullValue);
+	}
+	catch (...)
+	{
+		throw("bad_ping");
+	}
+}
+
+inline unsigned long long FuturesClientCoin::v__exchange_time()
+{
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/time"; // fix
+	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
+
+	return std::atoll(ex_time.c_str());
+}
+
+Json::Value FuturesClientCoin::v__exchange_info()
+{
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/exchangeInfo";
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__order_book(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/depth" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__public_trades_recent(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/trades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__public_trades_historical(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/historicalTrades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__public_trades_agg(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/aggTrades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__klines(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/klines" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__daily_ticker_stats(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/ticker/24hr" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__get_ticker(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/ticker/price" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__get_order_book_ticker(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj);
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/ticker/bookTicker" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+
+// ------------------------------ End Futures Coin CRTP methods - Global
+
+
+// ------------------------------ Futures Coin CRTP methods - Unique methods (no spot)
+
+
+Json::Value FuturesClientCoin::v_mark_price(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : ""; 
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/premiumIndex" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_public_liquidation_orders(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/allForceOrders" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+Json::Value FuturesClientCoin::v_open_interest(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/openInterest" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+
+
+// note that the following four might be only for coin margined market data
+
+Json::Value FuturesClientCoin::v_continues_klines(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/continuousKlines" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+Json::Value FuturesClientCoin::v_index_klines(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/indexPriceKlines" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+Json::Value FuturesClientCoin::v_mark_klines(Params* params_obj)
+{
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/markPriceKlines" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+
+// note that the following four might be only for usdt margined market data
+
+Json::Value FuturesClientCoin::v_funding_rate_history(Params* params_obj)
+{
+	throw("non-existing endpoint");
+}
+
+// ------------------------------ End Futures Coin CRTP methods - Unique methods
 
 // Params definitions
 
 Params::Params()
-	: default_recv{ 0 }, default_recv_amt{ 0 }
+	: default_recv{ 0 }, default_recv_amt{ 0 }, flush_params{ 0 }
 {};
 
 Params::Params(Params& params_obj)
