@@ -2,8 +2,7 @@
 #include "CryptoExtensions.h"
 #include "Websocket_Client.cpp" // because of templates
 
-// Client definitions
-
+//  ------------------------------ Start Client General methods - Infrastructure
 
 template<typename T>
 Client<T>::Client() : _public_client{ 1 }
@@ -13,12 +12,16 @@ template<typename T>
 Client<T>::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }
 {};
 
-// Client CRTP methods
-template<typename T>
-unsigned long long Client<T>::exchange_time() { return static_cast<T*>(this)->v_exchange_time(); }
+template <typename T>
+Client<T>::~Client()
+{
+	delete _rest_client;
+	delete _ws_client;
+};
 
-template<typename T>
-bool Client<T>::ping_client() { return static_cast<T*>(this)->v_ping_client(); }
+//  ------------------------------ End Client General methods - Infrastructure
+
+//  ------------------------------ Start | Client CRTP methods - Infrastructure
 
 template<typename T>
 bool Client<T>::init_ws_session() { return static_cast<T*>(this)->v_init_ws_session(); }
@@ -41,16 +44,62 @@ void Client<T>::ws_auto_reconnect(const bool& reconnect) { static_cast<T*>(this)
 template<typename T>
 void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
 
-template<typename T>
-Json::Value Client<T>::place_order(Params* parameter_vec) { return static_cast<T*>(this)->v_place_order(parameter_vec); }
+//  ------------------------------ End Client CRTP methods - Infrastructure
+
+//  ------------------------------ Start | Client CRTP methods - Market Data Endpoints 
 
 template<typename T>
-Json::Value Client<T>::cancel_order(Params* parameter_vec) { return static_cast<T*>(this)->v_cancel_order(parameter_vec); }
+unsigned long long Client<T>::exchange_time() { return static_cast<T*>(this)->v_exchange_time(); }
 
-// Client other methods
+template<typename T>
+bool Client<T>::ping_client() { return static_cast<T*>(this)->v_ping_client(); }
+
+template<typename T>
+Json::Value Client<T>::exchange_info() { return static_cast<T*>(this)->v_exchange_info(); }
+
+template<typename T>
+Json::Value Client<T>::order_book(Params* params_obj) { return static_cast<T*>(this)->v_order_book(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::public_trades_recent(Params* params_obj) { return static_cast<T*>(this)->v_public_trades_recent(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::public_trades_historical(Params* params_obj) { return static_cast<T*>(this)->v_public_trades_historical(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::public_trades_agg(Params* params_obj) { return static_cast<T*>(this)->v_public_trades_agg(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::klines(Params* params_obj) { return static_cast<T*>(this)->v_klines(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::daily_ticker_stats(Params* params_obj) { return static_cast<T*>(this)->v_daily_ticker_stats(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::get_ticker(Params* params_obj) { return static_cast<T*>(this)->v_get_ticker(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::get_order_book_ticker(Params* params_obj) { return static_cast<T*>(this)->v_get_order_book_ticker(params_obj); }
+
+//  ------------------------------ End | Client CRTP methods - Market Data Endpoints 
+
+
+//  ------------------------------ Start Client CRTP methods - Trade Endpoints
+
+template<typename T> // todo: update implementation 
+Json::Value Client<T>::place_order(Params* params_obj) { return static_cast<T*>(this)->v_place_order(params_obj); }
+
+template<typename T> // todo: update implementation
+Json::Value Client<T>::cancel_order(Params* params_obj) { return static_cast<T*>(this)->v_cancel_order(params_obj); }
+
+//  ------------------------------ End Client CRTP methods - Trade Endpoints
+
+
+
+//  ------------------------------ Start Client General methods - Infrastructure
 
 template <typename T>
-bool Client<T>::init_rest_session() // make separate for ws and rest
+bool Client<T>::init_rest_session()
 {
 	try
 	{
@@ -173,18 +222,18 @@ std::string Client<T>::_generate_query(Params& params_obj, bool sign_query)
 }
 
 template <typename T>
-bool Client<T>::exchange_status()
+bool Client<T>::exchange_status() // todo: is this abstract?
 {
 	std::string full_path = this->_BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
 	return this->_rest_client->_getreq(full_path)["response"]["status"].asBool();
 }
 
 template <typename T>
-Json::Value Client<T>::place_order_test(Params* parameter_vec)
+Json::Value Client<T>::place_order_test(Params* paramparams_objeter_vec)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	std::string query = Client::_generate_query(*parameter_vec, 1);
+	std::string query = Client::_generate_query(*params_obj, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
@@ -192,14 +241,14 @@ Json::Value Client<T>::place_order_test(Params* parameter_vec)
 
 }
 
-template <typename T>
-Client<T>::~Client()
-{
-	delete _rest_client;
-	delete _ws_client;
-};
 
-// Client Wallet definitions
+//  ------------------------------ End Client General methods - Infrastructure
+
+
+// ***************************************************************************
+
+
+//  ------------------------------ Start Client Wallet - User Wallet Endpoints
 
 template <typename T>
 Client<T>::Wallet::Wallet(Client<T>& client_obj)
@@ -401,7 +450,13 @@ Json::Value Client<T>::Wallet::trading_fees(Params* params_obj)
 	return response;
 }; 
 
-// SpotClient definitions
+//  ------------------------------ End Client Wallet - User Wallet Endpoints
+
+
+// =======================================================================================================
+
+
+//  ------------------------------ Start SpotClient General methods - Infrastructure
 
 SpotClient::SpotClient() : Client()
 {
@@ -416,7 +471,73 @@ SpotClient::SpotClient(std::string key, std::string secret)
 	this->init_ws_session();
 }
 
-//  ------------------------------ SpotClient CRTP methods - Global
+
+SpotClient::~SpotClient() // todo: is delete restand ws client needed ? ? ?
+{};
+
+//  ------------------------------ End SpotClient General methods - Infrastructure
+
+//  ------------------------------ Start SpotClient CRTP methods - Client infrastructure
+
+bool SpotClient::v_init_ws_session()
+{
+	try
+	{
+		if (this->_ws_client) delete this->_ws_client;
+		this->_ws_client = new WebsocketClient{ this->_WS_BASE_SPOT, this->_WS_PORT };
+		return 1;
+	}
+	catch (...)
+	{
+		throw("bad_init_ws");
+	}
+}
+
+std::string SpotClient::v__get_listen_key()
+{
+	// no signature is needed here
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream";
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+
+void SpotClient::v_close_stream(const std::string& symbol, const std::string& stream_name)
+{
+	try
+	{
+		this->_ws_client->close_stream(symbol + "@" + stream_name);
+	}
+	catch (...)
+	{
+		throw("stream_close_exc");
+	}
+}
+void SpotClient::v_set_refresh_key_interval(const bool val)
+{
+	this->_ws_client->refresh_listenkey_interval = val;
+}
+
+bool SpotClient::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
+{
+	std::string full_stream_name = symbol + '@' + stream_name;
+	return this->_ws_client->is_open(full_stream_name);
+}
+
+std::vector<std::string> SpotClient::v_get_open_streams()
+{
+	return this->_ws_client->open_streams();
+}
+
+void SpotClient::v_ws_auto_reconnect(const bool& reconnect)
+{
+	this->_ws_client->_set_reconnect(reconnect);
+}
+
+//  ------------------------------ End SpotClient CRTP methods - Client infrastructure
+
+//  ------------------------------ Start SpotClient CRTP methods - Market Data Implementations
 
 bool SpotClient::v_ping_client()
 {
@@ -510,57 +631,18 @@ Json::Value SpotClient::v_get_order_book_ticker(Params* params_obj)
 	return response;
 }
 
+//  ------------------------------ End SpotClient CRTP methods - Market Data Implementations
 
 
 
-//  ------------------------------ End SpotClient CRTP methods - Global
 
-//  ------------------------------ SpotClient CRTP methods - Client infrastructure
+//  ------------------------------ Start SpotClient CRTP methods - Trade Implementations
 
-bool SpotClient::v_init_ws_session()
-{
-	try
-	{
-		if (this->_ws_client) delete this->_ws_client;
-		this->_ws_client = new WebsocketClient{ this->_WS_BASE_SPOT, this->_WS_PORT };
-		return 1;
-	}
-	catch (...)
-	{
-		throw("bad_init_ws");
-	}
-}
-
-std::string SpotClient::v__get_listen_key()
-{
-	// no signature is needed here
-	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream";
-	Json::Value response = (this->_rest_client)->_postreq(full_path);
-
-	return response["response"]["listenKey"].asString();
-}
-
-
-void SpotClient::v_close_stream(const std::string& symbol, const std::string& stream_name)
-{
-	try
-	{
-		this->_ws_client->close_stream(symbol + "@" + stream_name);
-	}
-	catch (...)
-	{
-		throw("stream_close_exc");
-	}
-}
-
-//  ------------------------------ End SpotClient CRTP methods - Client infrastructure
-
-
-Json::Value SpotClient::v_place_order(Params* parameter_vec)
+Json::Value SpotClient::v_place_order(Params* params_obj)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	std::string query = Client::_generate_query(*parameter_vec, 1);
+	std::string query = Client::_generate_query(*params_obj, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
@@ -568,11 +650,11 @@ Json::Value SpotClient::v_place_order(Params* parameter_vec)
 
 }
 
-Json::Value SpotClient::v_cancel_order(Params* parameter_vec)
+Json::Value SpotClient::v_cancel_order(Params* params_obj)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	std::string query = Client::_generate_query(*parameter_vec, 1);
+	std::string query = Client::_generate_query(*params_obj, 1);
 
 	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
 
@@ -580,7 +662,10 @@ Json::Value SpotClient::v_cancel_order(Params* parameter_vec)
 
 }
 
+//  ------------------------------ End SpotClient CRTP methods - Trade Implementations
 
+
+//  ------------------------------ Start SpotClient CRTP methods - WS Streams 
 
 template <class FT>
 unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& functor)
@@ -630,33 +715,13 @@ unsigned int SpotClient::userStream(std::string& buffer, FT& functor)
 	}
 }
 
+//  ------------------------------ End SpotClient CRTP methods - WS Streams 
 
 
-void SpotClient::v_set_refresh_key_interval(const bool val)
-{
-	this->_ws_client->refresh_listenkey_interval = val;
-}
+// =======================================================================================================
 
-bool SpotClient::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
-{
-	std::string full_stream_name = symbol + '@' + stream_name;
-	return this->_ws_client->is_open(full_stream_name);
-}
 
-std::vector<std::string> SpotClient::v_get_open_streams()
-{
-	return this->_ws_client->open_streams();
-}
-
-void SpotClient::v_ws_auto_reconnect(const bool& reconnect)
-{
-	this->_ws_client->_set_reconnect(reconnect);
-}
-
-SpotClient::~SpotClient() // todo: is delete restand ws client needed ? ? ?
-{};
-
-// FuturesClient definitions
+//  ------------------------------ Start FuturesClient General methods - Infrastructure
 
 template <typename CT>
 FuturesClient<CT>::FuturesClient()
@@ -674,74 +739,14 @@ FuturesClient<CT>::FuturesClient(std::string key, std::string secret)
 	this->init_ws_session();
 }
 
-//  ------------------------------ FuturesClient CRTP methods - Global
+template <typename CT> // todo: is delete rest and ws client needed???
+FuturesClient<CT>::~FuturesClient()
+{}
 
-template<typename CT>
-unsigned long long FuturesClient<CT>::v_exchange_time() { return static_cast<CT*>(this)->v__exchange_time(); }
-
-template<typename CT>
-bool FuturesClient<CT>::v_ping_client() { return static_cast<CT*>(this)->v__ping_client(); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::v_exchange_info() { return static_cast<CT*>(this)->v__exchange_info(); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::v_order_book(Params* params_obj) { return static_cast<CT*>(this)->v__order_book(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::v_public_trades_recent(Params* params_obj) { return static_cast<CT*>(this)->v__public_trades_recent(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::v_public_trades_historical(Params* params_obj) { return static_cast<CT*>(this)->v__public_trades_historical(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::v_public_trades_agg(Params* params_obj) { return static_cast<CT*>(this)->v__public_trades_agg(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::v_klines(Params* params_obj) { return static_cast<CT*>(this)->v__klines(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::v_daily_ticker_stats(Params* params_obj) { return static_cast<CT*>(this)->v_daily__ticker_stats(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::v_get_ticker(Params* params_obj) { return static_cast<CT*>(this)->v__get_ticker(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::v_get_order_book_ticker(Params* params_obj) { return static_cast<CT*>(this)->v__get_order_book_ticker(params_obj); }
-
-//  ------------------------------ End FuturesClient CRTP methods - Global
+//  ------------------------------ End FuturesClient General methods - Infrastructure
 
 
-
-//  ------------------------------ FuturesClient CRTP methods - Futures unique 
-
-
-template<typename CT>
-Json::Value FuturesClient<CT>::mark_price(Params* params_obj) { return static_cast<CT*>(this)->v_mark_price(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::public_liquidation_orders(Params* params_obj) { return static_cast<CT*>(this)->v_public_liquidation_orders(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::open_interest(Params* params_obj) { return static_cast<CT*>(this)->v_open_interest(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::continues_klines(Params* params_obj) { return static_cast<CT*>(this)->v_continues_klines(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::index_klines(Params* params_obj) { return static_cast<CT*>(this)->v_index_klines(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::mark_klines(Params* params_obj) { return static_cast<CT*>(this)->v_get_ticker(params_obj); }
-
-template<typename CT>
-Json::Value FuturesClient<CT>::funding_rate_history(Params* params_obj) { return static_cast<CT*>(this)->v_funding_rate_history(params_obj); }
-
-
-//  ------------------------------ End FuturesClient CRTP methods - Futures unique 
-
-
-
+//  ------------------------------ Start FuturesClient CRTP methods - Client infrastructure
 
 template <typename CT>
 bool FuturesClient<CT>::v_init_ws_session()
@@ -771,7 +776,7 @@ std::string FuturesClient<CT>::v__get_listen_key()
 }
 
 template <typename CT>
-	template <class FT>
+template <class FT>
 unsigned int FuturesClient<CT>::userStream(std::string& buffer, FT& functor)
 {
 	RestSession* keep_alive_session = new RestSession{ this->_api_key, this->_api_secret };
@@ -817,16 +822,103 @@ void FuturesClient<CT>::v_close_stream(const std::string& symbol, const std::str
 }
 
 template <typename CT>
+void FuturesClient<CT>::v_set_refresh_key_interval(const bool val)
+{
+	this->_ws_client->refresh_listenkey_interval = val;
+}
+
+template <typename CT>
+bool FuturesClient<CT>::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
+{
+	std::string full_stream_name = symbol + '@' + stream_name;
+	return this->_ws_client->is_open(full_stream_name);
+}
+
+template <typename CT>
+void FuturesClient<CT>::v_ws_auto_reconnect(const bool& reconnect)
+{
+	this->_ws_client->_set_reconnect(reconnect);
+}
+
+template <typename CT>
 std::vector<std::string> FuturesClient<CT>::v_get_open_streams()
 {
 	return this->_ws_client->open_streams();
 }
 
+//  ------------------------------ End FuturesClient CRTP methods - Client infrastructure
+
+//  ------------------------------ Start FuturesClient CRTP methods - Market Data Implementations
+
+template<typename CT>
+unsigned long long FuturesClient<CT>::v_exchange_time() { return static_cast<CT*>(this)->v__exchange_time(); }
+
+template<typename CT>
+bool FuturesClient<CT>::v_ping_client() { return static_cast<CT*>(this)->v__ping_client(); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_exchange_info() { return static_cast<CT*>(this)->v__exchange_info(); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_order_book(Params* params_obj) { return static_cast<CT*>(this)->v__order_book(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_public_trades_recent(Params* params_obj) { return static_cast<CT*>(this)->v__public_trades_recent(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_public_trades_historical(Params* params_obj) { return static_cast<CT*>(this)->v__public_trades_historical(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_public_trades_agg(Params* params_obj) { return static_cast<CT*>(this)->v__public_trades_agg(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_klines(Params* params_obj) { return static_cast<CT*>(this)->v__klines(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_daily_ticker_stats(Params* params_obj) { return static_cast<CT*>(this)->v_daily__ticker_stats(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_get_ticker(Params* params_obj) { return static_cast<CT*>(this)->v__get_ticker(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_get_order_book_ticker(Params* params_obj) { return static_cast<CT*>(this)->v__get_order_book_ticker(params_obj); }
+
+//  ------------------------------ End FuturesClient CRTP methods - Market Data Implementations
+
+
+//  ------------------------------ Start FuturesClient CRTP methods - Unique Endpoints
+
+template<typename CT>
+Json::Value FuturesClient<CT>::mark_price(Params* params_obj) { return static_cast<CT*>(this)->v_mark_price(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::public_liquidation_orders(Params* params_obj) { return static_cast<CT*>(this)->v_public_liquidation_orders(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::open_interest(Params* params_obj) { return static_cast<CT*>(this)->v_open_interest(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::continues_klines(Params* params_obj) { return static_cast<CT*>(this)->v_continues_klines(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::index_klines(Params* params_obj) { return static_cast<CT*>(this)->v_index_klines(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::mark_klines(Params* params_obj) { return static_cast<CT*>(this)->v_get_ticker(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::funding_rate_history(Params* params_obj) { return static_cast<CT*>(this)->v_funding_rate_history(params_obj); }
+
+//  ------------------------------ End FuturesClient CRTP methods - Unique Endpoints
+
+
+//  ------------------------------ Start FuturesClient CRTP methods - Trade Implementations
+
 template <typename CT> // todo: crtp
-Json::Value FuturesClient<CT>::v_place_order(Params* parameter_vec)
+Json::Value FuturesClient<CT>::v_place_order(Params* params_obj)
 {
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
-	std::string query = Client::_generate_query(*parameter_vec, 1);
+	std::string query = Client::_generate_query(*params_obj, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // return entire json?
 
@@ -834,11 +926,11 @@ Json::Value FuturesClient<CT>::v_place_order(Params* parameter_vec)
 }
 
 template <typename CT> // todo: crtp
-Json::Value FuturesClient<CT>::v_cancel_order(Params* parameter_vec)
+Json::Value FuturesClient<CT>::v_cancel_order(Params* params_obj)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	std::string query = Client::_generate_query(*parameter_vec, 1);
+	std::string query = Client::_generate_query(*params_obj, 1);
 
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
@@ -846,42 +938,22 @@ Json::Value FuturesClient<CT>::v_cancel_order(Params* parameter_vec)
 
 }
 
-template <typename CT> // todo: crtp
-Json::Value FuturesClient<CT>::fetch_balances(Params& param_obj)
-{
-	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v2/balance";
+//  ------------------------------ End FuturesClient CRTP methods - Trade Implementations
 
-	std::string query = Client::_generate_query(param_obj, 1);
 
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+//  ------------------------------ Start FuturesClient CRTP methods - WS Streams 
 
-	return response;
-}
-
+// todo: make UserStream abstract and add here
 template <typename CT> // todo: crtp
 unsigned int FuturesClient<CT>::aggTrade(std::string symbol)
 {
 	return 0;
 }
 
-template <typename CT> // todo: crtp
-void FuturesClient<CT>::v_set_refresh_key_interval(const bool val)
-{
-	this->_ws_client->refresh_listenkey_interval = val;
-}
+//  ------------------------------ End FuturesClient CRTP methods - WS Streams 
 
-template <typename CT> // todo: crtp
-bool FuturesClient<CT>::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
-{
-	std::string full_stream_name = symbol + '@' + stream_name;
-	return this->_ws_client->is_open(full_stream_name);
-}
 
-template <typename CT> // todo: crtp
-void FuturesClient<CT>::v_ws_auto_reconnect(const bool& reconnect)
-{
-	this->_ws_client->_set_reconnect(reconnect);
-}
+//  ------------------------------ Start FuturesClient General methods - Markets Stats
 
 template <typename CT>
 Json::Value FuturesClient<CT>::open_interest_stats(Params* params_obj)
@@ -929,12 +1001,13 @@ Json::Value FuturesClient<CT>::basis_data(Params* params_obj)
 	return response;
 }
 
-template <typename CT> // todo: is delete rest and ws client needed???
-FuturesClient<CT>::~FuturesClient()
-{}
+//  ------------------------------ End FuturesClient General methods - Markets Stats
 
-// FuturesClientUSDT definitions
 
+// =======================================================================================================
+
+
+//  ------------------------------ Start FuturesClientUSDT General methods - Infrastructure
 
 FuturesClientUSDT::FuturesClientUSDT()
 	: FuturesClient()
@@ -944,7 +1017,10 @@ FuturesClientUSDT::FuturesClientUSDT(std::string key, std::string secret)
 	: FuturesClient(key, secret)
 {}
 
-// ------------------------------ Futures USDT CRTP methods - Global
+FuturesClientUSDT::~FuturesClientUSDT()
+{}
+
+//  ------------------------------ Start FuturesClientUSDT CRTP methods - Market Data Implementations
 
 inline bool FuturesClientUSDT::v__ping_client()
 {
@@ -977,7 +1053,7 @@ Json::Value FuturesClientUSDT::v__exchange_info() // todo: define
 
 Json::Value FuturesClientUSDT::v__order_book(Params* params_obj)
 {	
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/depth" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -985,7 +1061,7 @@ Json::Value FuturesClientUSDT::v__order_book(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__public_trades_recent(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/trades" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -993,7 +1069,7 @@ Json::Value FuturesClientUSDT::v__public_trades_recent(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__public_trades_historical(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/historicalTrades" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -1001,7 +1077,7 @@ Json::Value FuturesClientUSDT::v__public_trades_historical(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__public_trades_agg(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/aggTrades" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -1009,7 +1085,7 @@ Json::Value FuturesClientUSDT::v__public_trades_agg(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__klines(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/klines" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -1017,7 +1093,7 @@ Json::Value FuturesClientUSDT::v__klines(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__daily_ticker_stats(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ticker/24hr" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -1025,7 +1101,7 @@ Json::Value FuturesClientUSDT::v__daily_ticker_stats(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__get_ticker(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ticker/price" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -1033,18 +1109,16 @@ Json::Value FuturesClientUSDT::v__get_ticker(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__get_order_book_ticker(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ticker/bookTicker" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
 
+//  ------------------------------ End FuturesClientUSDT CRTP methods - Market Data Implementations
 
-// ------------------------------ End Futures USDT CRTP methods - Global
 
-
-// ------------------------------ Futures USDT CRTP methods - Unique methods
-
+//  ------------------------------ Start FuturesClientUSDT CRTP methods - Unique Endpoints
 
 Json::Value FuturesClientUSDT::v_mark_price(Params* params_obj)
 {
@@ -1069,9 +1143,7 @@ Json::Value FuturesClientUSDT::v_open_interest(Params* params_obj)
 	return response;
 }
 
-
-
-// note that the following four might be only for coin margined market data
+// ~~~ Do not exist for this client
 
 Json::Value FuturesClientUSDT::v_continues_klines(Params* params_obj)
 {
@@ -1087,7 +1159,7 @@ Json::Value FuturesClientUSDT::v_mark_klines(Params* params_obj)
 }
 
 
-// note that the following four might be only for usdt margined market data
+// ~~~ Unique for this Client 
 
 Json::Value FuturesClientUSDT::v_funding_rate_history(Params* params_obj)
 {
@@ -1097,10 +1169,13 @@ Json::Value FuturesClientUSDT::v_funding_rate_history(Params* params_obj)
 	return response;
 }
 
-// ------------------------------ End Futures USDT CRTP methods - Unique methods
+//  ------------------------------ End FuturesClientUSDT CRTP methods - Unique Endpoints
 
 
-// FuturesClientCoin definitions
+// =======================================================================================================
+
+
+//  ------------------------------ Start FuturesClientCoin General methods - Infrastructure
 
 FuturesClientCoin::FuturesClientCoin()
 	: FuturesClient()
@@ -1110,7 +1185,12 @@ FuturesClientCoin::FuturesClientCoin(std::string key, std::string secret)
 	: FuturesClient(key, secret)
 {}
 
-// ------------------------------ Futures Coin CRTP methods - Global
+FuturesClientCoin::~FuturesClientCoin()
+{}
+
+//  ------------------------------ End FuturesClientCoin General methods - Infrastructure
+
+//  ------------------------------ Start FuturesClientCoin CRTP methods - Market Data Implementations
 
 inline bool FuturesClientCoin::v__ping_client()
 {
@@ -1205,12 +1285,10 @@ Json::Value FuturesClientCoin::v__get_order_book_ticker(Params* params_obj)
 	return response;
 }
 
+//  ------------------------------ End FuturesClientCoin CRTP methods - Market Data Implementations
 
-// ------------------------------ End Futures Coin CRTP methods - Global
 
-
-// ------------------------------ Futures Coin CRTP methods - Unique methods (no spot)
-
+//  ------------------------------ Start FuturesClientCoin CRTP methods - Unique Endpoints
 
 Json::Value FuturesClientCoin::v_mark_price(Params* params_obj)
 {
@@ -1236,8 +1314,7 @@ Json::Value FuturesClientCoin::v_open_interest(Params* params_obj)
 }
 
 
-
-// note that the following four might be only for coin margined market data
+// ~~~ Unique for this Client 
 
 Json::Value FuturesClientCoin::v_continues_klines(Params* params_obj)
 {
@@ -1262,16 +1339,20 @@ Json::Value FuturesClientCoin::v_mark_klines(Params* params_obj)
 }
 
 
-// note that the following four might be only for usdt margined market data
+// ~~~ Do not exist for this client
 
 Json::Value FuturesClientCoin::v_funding_rate_history(Params* params_obj)
 {
 	throw("non-existing endpoint");
 }
 
-// ------------------------------ End Futures Coin CRTP methods - Unique methods
+//  ------------------------------ End FuturesClientCoin CRTP methods - Unique Endpoints
 
-// Params definitions
+
+// =======================================================================================================
+
+
+//  ------------------------------ Start Params methods
 
 Params::Params()
 	: default_recv{ 0 }, default_recv_amt{ 0 }, flush_params{ 0 }
@@ -1363,3 +1444,5 @@ bool Params::empty()
 {
 	return this->param_map.empty();
 }
+
+//  ------------------------------ End Params methods
