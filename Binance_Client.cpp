@@ -13,12 +13,46 @@ template<typename T>
 Client<T>::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }
 {};
 
-// Client CRTP methods
+//  ------------------------------ Client CRTP methods - mutual endpoints 
 template<typename T>
 unsigned long long Client<T>::exchange_time() { return static_cast<T*>(this)->v_exchange_time(); }
 
 template<typename T>
 bool Client<T>::ping_client() { return static_cast<T*>(this)->v_ping_client(); }
+
+template<typename T>
+Json::Value Client<T>::exchange_info() { return static_cast<T*>(this)->v_exchange_info(); }
+
+template<typename T>
+Json::Value Client<T>::order_book(Params* params_obj) { return static_cast<T*>(this)->v_order_book(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::public_trades_recent(Params* params_obj) { return static_cast<T*>(this)->v_public_trades_recent(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::public_trades_historical(Params* params_obj) { return static_cast<T*>(this)->v_public_trades_historical(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::public_trades_agg(Params* params_obj) { return static_cast<T*>(this)->v_public_trades_agg(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::klines(Params* params_obj) { return static_cast<T*>(this)->v_klines(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::daily_ticker_stats(Params* params_obj) { return static_cast<T*>(this)->v_daily_ticker_stats(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::get_ticker(Params* params_obj) { return static_cast<T*>(this)->v_get_ticker(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::get_order_book_ticker(Params* params_obj) { return static_cast<T*>(this)->v_get_order_book_ticker(params_obj); }
+
+
+//  ------------------------------ End Client CRTP methods - mutual endpoints 
+
+
+//  ------------------------------ Client CRTP methods - Infrastructure
+
 
 template<typename T>
 bool Client<T>::init_ws_session() { return static_cast<T*>(this)->v_init_ws_session(); }
@@ -46,6 +80,10 @@ Json::Value Client<T>::place_order(Params* parameter_vec) { return static_cast<T
 
 template<typename T>
 Json::Value Client<T>::cancel_order(Params* parameter_vec) { return static_cast<T*>(this)->v_cancel_order(parameter_vec); }
+
+
+//  ------------------------------ End Client CRTP methods - Infrastructure
+
 
 // Client other methods
 
@@ -977,7 +1015,7 @@ Json::Value FuturesClientUSDT::v__exchange_info() // todo: define
 
 Json::Value FuturesClientUSDT::v__order_book(Params* params_obj)
 {	
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/depth" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -985,7 +1023,7 @@ Json::Value FuturesClientUSDT::v__order_book(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__public_trades_recent(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/trades" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -993,7 +1031,7 @@ Json::Value FuturesClientUSDT::v__public_trades_recent(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__public_trades_historical(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/historicalTrades" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -1001,7 +1039,7 @@ Json::Value FuturesClientUSDT::v__public_trades_historical(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__public_trades_agg(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/aggTrades" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -1009,7 +1047,7 @@ Json::Value FuturesClientUSDT::v__public_trades_agg(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__klines(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/klines" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -1017,7 +1055,7 @@ Json::Value FuturesClientUSDT::v__klines(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__daily_ticker_stats(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ticker/24hr" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -1025,7 +1063,7 @@ Json::Value FuturesClientUSDT::v__daily_ticker_stats(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__get_ticker(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ticker/price" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -1033,7 +1071,7 @@ Json::Value FuturesClientUSDT::v__get_ticker(Params* params_obj)
 
 Json::Value FuturesClientUSDT::v__get_order_book_ticker(Params* params_obj)
 {
-	std::string query = this->_generate_query(*params_obj);
+	std::string query = params_obj ? this->_generate_query(*params_obj) : "";
 	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/ticker/bookTicker" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;

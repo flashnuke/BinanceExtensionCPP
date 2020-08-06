@@ -181,10 +181,11 @@ protected:
 	std::string _api_key;
 	std::string _api_secret;
 
+
+public:
 	explicit Client();
 	Client(std::string key, std::string secret);
 
-public:
 	bool const _public_client;
 
 	std::string _generate_query(Params& params_obj, bool sign_query = 0);
@@ -358,7 +359,7 @@ public:
 };
 
 
-class FuturesClientUSDT : FuturesClient<FuturesClientUSDT>
+class FuturesClientUSDT : public FuturesClient<FuturesClientUSDT>
 {
 public:
 	friend FuturesClient;
@@ -368,37 +369,37 @@ public:
 
 	// up to Client level
 
-	inline bool v__ping_client(); // todo: why is it defined?
-	inline unsigned long long v__exchange_time(); // todo: why is it defined?
-	Json::Value v__exchange_info(); // todo: define
-	Json::Value v__order_book(Params* params_obj); // todo: define
-	Json::Value v__public_trades_recent(Params* params_obj); // todo: define
-	Json::Value v__public_trades_historical(Params* params_obj); // todo: define
-	Json::Value v__public_trades_agg(Params* params_obj); // todo: define
-	Json::Value v__klines(Params* params_obj); // todo: define
-	Json::Value v__daily_ticker_stats(Params* params_obj); // todo: define
-	Json::Value v__get_ticker(Params* params_obj); // todo: define
-	Json::Value v__get_order_book_ticker(Params* params_obj); // todo: define
+	inline bool v__ping_client();
+	inline unsigned long long v__exchange_time(); 
+	Json::Value v__exchange_info(); 
+	Json::Value v__order_book(Params* params_obj);
+	Json::Value v__public_trades_recent(Params* params_obj);
+	Json::Value v__public_trades_historical(Params* params_obj);
+	Json::Value v__public_trades_agg(Params* params_obj);
+	Json::Value v__klines(Params* params_obj); 
+	Json::Value v__daily_ticker_stats(Params* params_obj); 
+	Json::Value v__get_ticker(Params* params_obj);
+	Json::Value v__get_order_book_ticker(Params* params_obj);
 
 	// market Data
 
-	Json::Value v_mark_price(Params* params_obj = nullptr); // todo: define, crtp?
-	Json::Value v_public_liquidation_orders(Params* params_obj); // todo: define, crtp?
-	Json::Value v_open_interest(Params* params_obj); // todo: define, crtp?
+	Json::Value v_mark_price(Params* params_obj = nullptr); 
+	Json::Value v_public_liquidation_orders(Params* params_obj); 
+	Json::Value v_open_interest(Params* params_obj); 
 
 
 	// note that the following four might be only for coin margined market data
-	Json::Value v_continues_klines(Params* params_obj); // todo: define, crtp?
-	Json::Value v_index_klines(Params* params_obj); // todo: define, crtp?
-	Json::Value v_mark_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value v_continues_klines(Params* params_obj); 
+	Json::Value v_index_klines(Params* params_obj); 
+	Json::Value v_mark_klines(Params* params_obj); 
 
 	// note that the following four might be only for usdt margined market data
 
-	Json::Value v_funding_rate_history(Params* params_obj); // todo: define, crtp?
+	Json::Value v_funding_rate_history(Params* params_obj); 
 };
 
 
-class FuturesClientCoin : FuturesClient<FuturesClientCoin>
+class FuturesClientCoin : public FuturesClient<FuturesClientCoin>
 {
 public:
 	friend FuturesClient;
@@ -408,33 +409,33 @@ public:
 
 	// up to Client level
 
-	inline bool v__ping_client(); // todo: why is it defined?
-	inline unsigned long long v__exchange_time(); // todo: why is it defined?
-	Json::Value v__exchange_info(); // todo: define
-	Json::Value v__order_book(Params* params_obj); // todo: define
-	Json::Value v__public_trades_recent(Params* params_obj); // todo: define
-	Json::Value v__public_trades_historical(Params* params_obj); // todo: define
-	Json::Value v__public_trades_agg(Params* params_obj); // todo: define
-	Json::Value v__klines(Params* params_obj); // todo: define
-	Json::Value v__daily_ticker_stats(Params* params_obj); // todo: define
-	Json::Value v__get_ticker(Params* params_obj); // todo: define
-	Json::Value v__get_order_book_ticker(Params* params_obj); // todo: define
+	inline bool v__ping_client(); 
+	inline unsigned long long v__exchange_time(); 
+	Json::Value v__exchange_info(); 
+	Json::Value v__order_book(Params* params_obj); 
+	Json::Value v__public_trades_recent(Params* params_obj); 
+	Json::Value v__public_trades_historical(Params* params_obj); 
+	Json::Value v__public_trades_agg(Params* params_obj);
+	Json::Value v__klines(Params* params_obj);
+	Json::Value v__daily_ticker_stats(Params* params_obj); 
+	Json::Value v__get_ticker(Params* params_obj);
+	Json::Value v__get_order_book_ticker(Params* params_obj); 
 
 	// market Data
 
-	Json::Value v_mark_price(Params* params_obj); // todo: define, crtp?
-	Json::Value v_public_liquidation_orders(Params* params_obj); // todo: define, crtp?
-	Json::Value v_open_interest(Params* params_obj); // todo: define, crtp?
+	Json::Value v_mark_price(Params* params_obj); 
+	Json::Value v_public_liquidation_orders(Params* params_obj);
+	Json::Value v_open_interest(Params* params_obj); 
 
 
 	// note that the following four might be only for coin margined market data
-	Json::Value v_continues_klines(Params* params_obj); // todo: define, crtp?
-	Json::Value v_index_klines(Params* params_obj); // todo: define, crtp?
-	Json::Value v_mark_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value v_continues_klines(Params* params_obj); 
+	Json::Value v_index_klines(Params* params_obj); 
+	Json::Value v_mark_klines(Params* params_obj);
 
 	// note that the following four might be only for coin margined market data
 
-	Json::Value v_funding_rate_history(Params* params_obj); // todo: define, crtp?
+	Json::Value v_funding_rate_history(Params* params_obj); 
 };
 
 class SpotClient : public Client<SpotClient>
@@ -446,16 +447,16 @@ private:
 	// market data
 
 	inline bool v_ping_client();  // todo: define lower levels
-	inline unsigned long long v_exchange_time(); // todo: define lower levels
-	Json::Value v_exchange_info(); // todo: define
-	Json::Value v_order_book(Params* params_obj); // todo: define
-	Json::Value v_public_trades_recent(Params* params_obj); // todo: define
-	Json::Value v_public_trades_historical(Params* params_obj); // todo: define
-	Json::Value v_public_trades_agg(Params* params_obj); // todo: define
-	Json::Value v_klines(Params* params_obj); // todo: define
-	Json::Value v_daily_ticker_stats(Params* params_obj); // todo: define
-	Json::Value v_get_ticker(Params* params_obj); // todo: define
-	Json::Value v_get_order_book_ticker(Params* params_obj); // todo: define
+	inline unsigned long long v_exchange_time(); 
+	Json::Value v_exchange_info(); 
+	Json::Value v_order_book(Params* params_obj); 
+	Json::Value v_public_trades_recent(Params* params_obj);
+	Json::Value v_public_trades_historical(Params* params_obj);
+	Json::Value v_public_trades_agg(Params* params_obj); 
+	Json::Value v_klines(Params* params_obj); 
+	Json::Value v_daily_ticker_stats(Params* params_obj); 
+	Json::Value v_get_ticker(Params* params_obj);
+	Json::Value v_get_order_book_ticker(Params* params_obj);
 
 	// ------------------- crtp global end
 
