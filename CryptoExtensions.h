@@ -3,7 +3,12 @@
 // todo: idea - pass stream of name to functor?
 // todo: MarginClient, FuturesClient, PerpetualClient
 // todo: constructor for Futures and Spot (for one each other, snap the keys)
-// todo: FuturesClient: separate into CoinMargin and USDTMarin structs. Must decide upon constructing
+// todo: param object for all methods?
+
+// todo:
+// FuturesClient: separate into CoinMargin and USDTMarin structs. Must decide upon constructing
+// do as follows: Client -> Futures -> USDT / Margined
+// this way From futures to USDT / Margined it will be abstract as well! CRTP
 
 // DOCs todos:
 // 1. order book fetch from scratch example
@@ -189,9 +194,25 @@ public:
 	const std::string _WS_PORT{ "9443" };
 
 
-	// CRTP methods
-	unsigned long long exchange_time();
+	// ----------------------CRTP methods
+	
+	// Market Data endpoints
+
 	bool ping_client();
+	unsigned long long exchange_time();
+	Json::Value exchange_info(); // todo: define
+	Json::Value order_book(Params* params_obj); // todo: define
+	Json::Value public_trades_recent(Params* params_obj); // todo: define
+	Json::Value public_trades_historical(Params* params_obj); // todo: define
+	Json::Value public_trades_agg(Params* params_obj); // todo: define
+	Json::Value klines(Params* params_obj); // todo: define
+	Json::Value daily_ticker_stats(Params* params_obj = nullptr); // todo: define
+	Json::Value get_ticker(Params* params_obj = nullptr); // todo: define
+	Json::Value get_order_book_ticker(Params* params_obj = nullptr); // todo: define
+
+
+	// Library methods
+
 	bool init_ws_session();
 	std::string _get_listen_key();
 	void close_stream(const std::string& symbol, const std::string& stream_name);
@@ -204,7 +225,7 @@ public:
 	Json::Value place_order(Params* parameter_vec);
 
 
-	// end CRTP methods
+	// ----------------------end CRTP methods
 
 	bool init_rest_session();
 	bool set_headers(RestSession* rest_client);
@@ -256,8 +277,9 @@ public:
 class FuturesClient : public Client<FuturesClient>
 {
 private:
-	inline unsigned long long v_exchange_time();
 	inline bool v_ping_client();
+	inline unsigned long long v_exchange_time();
+	Json::Value v_exchange_info();
 	inline bool v_init_ws_session();
 	inline std::string v__get_listen_key();
 	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
@@ -274,6 +296,55 @@ public:
 
 	FuturesClient();
 	FuturesClient(std::string key, std::string secret);
+
+	// consider: are these crtp?? for USDT and Margined
+	// starting with v__ means it has Spot version as well
+
+	// ------------------- crtp for all (spot + coin/usdt)
+
+	// market data
+
+	inline bool v_ping_client(); // todo: why is it defined?
+	inline unsigned long long v_exchange_time(); // todo: why is it defined?
+	Json::Value v_exchange_info(); // todo: define
+	Json::Value v_order_book(Params* params_obj); // todo: define
+	Json::Value v_public_trades_recent(Params* params_obj); // todo: define
+	Json::Value v_public_trades_historical(Params* params_obj); // todo: define
+	Json::Value v_public_trades_agg(Params* params_obj); // todo: define
+	Json::Value v_klines(Params* params_obj); // todo: define
+	Json::Value v_daily_ticker_stats(Params* params_obj); // todo: define
+	Json::Value v_get_ticker(Params* params_obj); // todo: define
+	Json::Value v_get_order_book_ticker(Params* params_obj); // todo: define
+
+
+
+	// -------------------  inter-future crtp
+
+	// todo: exception for bad_endpoint or nonexisting
+
+	 // market Data
+
+	Json::Value mark_price(Params* params_obj); // todo: define, crtp?
+	Json::Value public_liquidation_orders(Params* params_obj); // todo: define, crtp?
+	Json::Value open_interest(Params* params_obj); // todo: define, crtp?
+	Json::Value open_interest_stats(Params* params_obj); // todo: define, crtp?
+	Json::Value top_long_short_ratio(Params* params_obj, bool accounts = 0); // todo: define, crtp, (if accounts, else positions)
+	Json::Value global_long_short_ratio(Params* params_obj); // todo: define, crtp?
+	Json::Value taker_long_short_ratio(Params* params_obj); // todo: define, crtp?
+
+	// note that the following four might be only for coin margined market data
+	Json::Value continues_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value index_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value mark_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value basis_data(Params* params_obj); // todo: define, crtp?
+
+	// note that the following four might be only for coin margined market data
+
+	Json::Value funding_rate_history(Params* params_obj); // todo: define, crtp?
+
+
+	// end CRTP
+
 
 
 	Json::Value fetch_balances(Params& param_obj);
