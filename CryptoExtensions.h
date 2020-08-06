@@ -1,16 +1,9 @@
 // todo: futures and client source files in different files?
 // todo: return empty json with "status = 1" if no cb passed.
 // todo: idea - pass stream of name to functor?
-// todo: MarginClient, FuturesClient, PerpetualClient
-// todo: constructor for Futures and Spot (for one each other, snap the keys)
 // todo: param object for all methods?
 // todo: one by one check for default args
-// todo: sort v_ vs v__ 
 
-// todo:
-// FuturesClient: separate into CoinMargin and USDTMarin structs. Must decide upon constructing
-// do as follows: Client -> Futures -> USDT / Margined
-// this way From futures to USDT / Margined it will be abstract as well! CRTP
 
 // DOCs todos:
 // 1. order book fetch from scratch example
@@ -224,8 +217,8 @@ public:
 	void ws_auto_reconnect(const bool& reconnect);
 	inline void set_refresh_key_interval(const bool val);
 
-	Json::Value cancel_order(Params* parameter_vec);
-	Json::Value place_order(Params* parameter_vec);
+	Json::Value cancel_order(Params* params_obj);
+	Json::Value place_order(Params* params_obj);
 
 
 	// ----------------------end CRTP methods
@@ -237,7 +230,7 @@ public:
 	// Global requests (wallet, account etc)
 
 	bool exchange_status(); // todo: (define) (Returns bool 1 up 0 down) (use spot base)
-	Json::Value place_order_test(Params* parameter_vec);
+	Json::Value place_order_test(Params* params_obj);
 
 	struct Wallet 
 	{
@@ -288,8 +281,8 @@ private:
 	inline void v_ws_auto_reconnect(const bool& reconnect);
 	inline void v_set_refresh_key_interval(const bool val);
 
-	Json::Value v_cancel_order(Params* parameter_vec);
-	Json::Value v_place_order(Params* parameter_vec);
+	Json::Value v_cancel_order(Params* params_obj);
+	Json::Value v_place_order(Params* params_obj);
 
 public:
 	friend Client<FuturesClient<CT>>;
@@ -350,7 +343,6 @@ public:
 	Json::Value basis_data(Params* params_obj);
 
 
-	Json::Value fetch_balances(Params& param_obj);
 	unsigned int aggTrade(std::string symbol);
 	template <class FT>
 	unsigned int userStream(std::string& buffer, FT& functor);
@@ -396,6 +388,8 @@ public:
 	// note that the following four might be only for usdt margined market data
 
 	Json::Value v_funding_rate_history(Params* params_obj); 
+
+	~FuturesClientUSDT();
 };
 
 
@@ -436,6 +430,8 @@ public:
 	// note that the following four might be only for coin margined market data
 
 	Json::Value v_funding_rate_history(Params* params_obj); 
+
+	~FuturesClientCoin();
 };
 
 class SpotClient : public Client<SpotClient>
@@ -470,10 +466,10 @@ private:
 	void v_ws_auto_reconnect(const bool& reconnect);
 	inline void v_set_refresh_key_interval(const bool val);
 
-	// crtp infrastructure end
+	// crtp infrastructure end , todo: make this more organized ofc
 
-	Json::Value v_place_order(Params* parameter_vec);
-	Json::Value v_cancel_order(Params* parameter_vec);
+	Json::Value v_place_order(Params* params_obj);
+	Json::Value v_cancel_order(Params* params_obj);
 
 
 
