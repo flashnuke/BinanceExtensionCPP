@@ -3,6 +3,8 @@
 // todo: idea - pass stream of name to functor?
 // todo: param object for all methods?
 // todo: one by one check for default args
+// todo: default param for all (nullptr). where sign is needed, use unique_ptr
+// todo important: testnet bool for every futures method! or just define a member attribute as bool
 
 
 // DOCs todos:
@@ -10,6 +12,7 @@
 // 2. ws symbols must be lower case
 // 3. v_ is for crtp
 // 4. custom requests, pass params into query
+// 5. I let passing empty or none params so the user can receive the error and see whats missing! better than runtime error
 
 // First make everything for spot and then for futures
 
@@ -196,15 +199,29 @@ public:
 
 	bool ping_client();
 	unsigned long long exchange_time();
-	Json::Value exchange_info(); // todo: define
-	Json::Value order_book(Params* params_obj); // todo: define
-	Json::Value public_trades_recent(Params* params_obj); // todo: define
-	Json::Value public_trades_historical(Params* params_obj); // todo: define
-	Json::Value public_trades_agg(Params* params_obj); // todo: define
-	Json::Value klines(Params* params_obj); // todo: define
-	Json::Value daily_ticker_stats(Params* params_obj = nullptr); // todo: define
-	Json::Value get_ticker(Params* params_obj = nullptr); // todo: define
-	Json::Value get_order_book_ticker(Params* params_obj = nullptr); // todo: define
+	Json::Value exchange_info(); 
+	Json::Value order_book(Params* params_obj); 
+	Json::Value public_trades_recent(Params* params_obj);
+	Json::Value public_trades_historical(Params* params_obj); 
+	Json::Value public_trades_agg(Params* params_obj); 
+	Json::Value klines(Params* params_obj); 
+	Json::Value daily_ticker_stats(Params* params_obj = nullptr); 
+	Json::Value get_ticker(Params* params_obj = nullptr); 
+	Json::Value get_order_book_ticker(Params* params_obj = nullptr);
+
+
+	// Trading endpoints
+
+	Json::Value test_new_order(Params* params_obj);
+	Json::Value new_order(Params* params_obj);
+	Json::Value cancel_order(Params* params_obj);
+	Json::Value cancel_all_orders(Params* params_obj);
+	Json::Value query_order(Params* params_obj);
+	Json::Value open_orders(Params* params_obj = nullptr);
+	Json::Value all_orders(Params* params_obj);
+	Json::Value account_info(Params* params_obj = nullptr);
+	Json::Value account_trades_list(Params* params_obj);
+
 
 
 	// Library methods
@@ -216,9 +233,6 @@ public:
 	std::vector<std::string> get_open_streams();
 	void ws_auto_reconnect(const bool& reconnect);
 	inline void set_refresh_key_interval(const bool val);
-
-	Json::Value cancel_order(Params* params_obj);
-	Json::Value place_order(Params* params_obj);
 
 
 	// ----------------------end CRTP methods
@@ -234,8 +248,11 @@ public:
 
 	struct Wallet 
 	{
-		Client<T> user_client;
+		Client<T>* user_client;
 		explicit Wallet(Client<T>& client); // todo: if public, exception
+		explicit Wallet(const Client<T>& client); // todo: if public, exception
+		~Wallet();
+
 		Json::Value get_all_coins(Params* params_obj = nullptr); 
 		Json::Value daily_snapshot(Params* params_obj); 
 		Json::Value fast_withdraw_switch(bool state);
@@ -251,6 +268,40 @@ public:
 		Json::Value asset_details(Params* params_obj = nullptr); 
 		Json::Value trading_fees(Params* params_obj = nullptr); 
 	}; 
+
+	struct SubAccount // for corporate accounts
+	{
+		Client<T>* user_client;
+		explicit SubAccount(Client<T>& client); // todo: if public, exception
+		explicit SubAccount(const Client<T>& client); // todo: if public, exception
+		~SubAccount();
+
+		Json::Value get_all_subaccounts(Params* params_obj = nullptr); 
+
+		Json::Value transfer_master_history(Params* params_obj); 
+		Json::Value transfer_master_to_subaccount(Params* params_obj); 
+
+		Json::Value get_subaccount_balances(Params* params_obj); 
+		Json::Value get_subaccount_deposit_address(Params* params_obj); 
+		Json::Value get_subaccount_deposit_history(Params* params_obj); 
+		Json::Value get_subaccount_future_margin_status(Params* params_obj = nullptr); 
+
+		Json::Value enable_subaccount_margin(Params* params_obj); 
+		Json::Value get_subaccount_margin_status(Params* params_obj); 
+		Json::Value get_subaccount_margin_summary(Params* params_obj = nullptr);
+
+		Json::Value enable_subaccount_futures(Params* params_obj);
+		Json::Value get_subaccount_futures_status(Params* params_obj); 
+		Json::Value get_subaccount_futures_summary(Params* params_obj = nullptr); 
+		Json::Value get_subaccount_futures_positionrisk(Params* params_obj); 
+
+		Json::Value transfer_to_subaccount_futures(Params* params_obj);
+		Json::Value transfer_to_subaccount_margin(Params* params_obj);
+		Json::Value transfer_subaccount_to_subaccount(Params* params_obj); 
+		Json::Value transfer_subaccount_to_master(Params* params_obj); 
+		Json::Value transfer_subaccount_history(Params* params_obj); 
+
+	};
 
 
 	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
@@ -281,8 +332,6 @@ private:
 	inline void v_ws_auto_reconnect(const bool& reconnect);
 	inline void v_set_refresh_key_interval(const bool val);
 
-	Json::Value v_cancel_order(Params* params_obj);
-	Json::Value v_place_order(Params* params_obj);
 
 public:
 	friend Client<FuturesClient<CT>>;
@@ -298,16 +347,54 @@ public:
 	// market data
 
 	inline bool v_ping_client();  // todo: define lower levels
-	inline unsigned long long v_exchange_time(); // todo: define lower levels
-	Json::Value v_exchange_info(); // todo: define
-	Json::Value v_order_book(Params* params_obj); // todo: define
-	Json::Value v_public_trades_recent(Params* params_obj); // todo: define
-	Json::Value v_public_trades_historical(Params* params_obj); // todo: define
-	Json::Value v_public_trades_agg(Params* params_obj); // todo: define
-	Json::Value v_klines(Params* params_obj); // todo: define
-	Json::Value v_daily_ticker_stats(Params* params_obj); // todo: define
-	Json::Value v_get_ticker(Params* params_obj); // todo: define
-	Json::Value v_get_order_book_ticker(Params* params_obj); // todo: define
+	inline unsigned long long v_exchange_time();
+	Json::Value v_exchange_info();
+	Json::Value v_order_book(Params* params_obj);
+	Json::Value v_public_trades_recent(Params* params_obj);
+	Json::Value v_public_trades_historical(Params* params_obj);
+	Json::Value v_public_trades_agg(Params* params_obj);
+	Json::Value v_klines(Params* params_obj);
+	Json::Value v_daily_ticker_stats(Params* params_obj);
+	Json::Value v_get_ticker(Params* params_obj);
+	Json::Value v_get_order_book_ticker(Params* params_obj);
+
+	// trading endpoints
+
+	// -- mutual with spot
+
+	Json::Value v_test_new_order(Params* params_obj);
+	Json::Value v_new_order(Params* params_obj);
+	Json::Value v_cancel_order(Params* params_obj);
+	Json::Value v_cancel_all_orders(Params* params_obj);
+	Json::Value v_query_order(Params* params_obj);
+	Json::Value v_open_orders(Params* params_obj = nullptr);
+	Json::Value v_all_orders(Params* params_obj);
+	Json::Value v_account_info(Params* params_obj = nullptr);
+	Json::Value v_account_trades_list(Params* params_obj);
+
+	// -- unique to future endpoints
+
+	Json::Value futures_transfer(Params* params_obj);
+	Json::Value futures_transfer_history(Params* params_obj);
+	Json::Value change_position_mode(Params* params_obj);
+	Json::Value get_position_mode(Params* params_obj = nullptr);
+	Json::Value batch_orders(Params* params_obj);
+	Json::Value cancel_batch_orders(Params* params_obj);
+	Json::Value cancel_all_orders_timer(Params* params_obj);
+	Json::Value query_open_order(Params* params_obj);
+	Json::Value account_balances(Params* params_obj = nullptr);
+	Json::Value change_leverage(Params* params_obj);
+	Json::Value change_margin_type(Params* params_obj);
+	Json::Value change_position_margin(Params* params_obj);
+	Json::Value change_position_margin_history(Params* params_obj);
+	Json::Value position_info(Params* params_obj = nullptr);
+	Json::Value get_income_history(Params* params_obj);
+	Json::Value get_leverage_bracket(Params* params_obj = nullptr);
+
+
+	// -- unique to USDT endpoint
+
+	Json::Value pos_adl_quantile_est(Params* params_obj = nullptr); // todo: define, default param
 
 
 
@@ -389,6 +476,45 @@ public:
 
 	Json::Value v_funding_rate_history(Params* params_obj); 
 
+
+	// trading endpoints
+
+// -- mutual with spot
+
+	Json::Value v__test_new_order(Params* params_obj);
+	Json::Value v__new_order(Params* params_obj);
+	Json::Value v__cancel_order(Params* params_obj);
+	Json::Value v__cancel_all_orders(Params* params_obj);
+	Json::Value v__query_order(Params* params_obj);
+	Json::Value v__open_orders(Params* params_obj = nullptr);
+	Json::Value v__all_orders(Params* params_obj);
+	Json::Value v__account_info(Params* params_obj = nullptr);
+	Json::Value v__account_trades_list(Params* params_obj);
+
+	// -- unique to future endpoints
+
+	Json::Value v_futures_transfer(Params* params_obj);
+	Json::Value v_futures_transfer_history(Params* params_obj);
+	Json::Value v_change_position_mode(Params* params_obj);
+	Json::Value v_get_position_mode(Params* params_obj = nullptr);
+	Json::Value v_batch_orders(Params* params_obj);
+	Json::Value v_cancel_batch_orders(Params* params_obj);
+	Json::Value v_cancel_all_orders_timer(Params* params_obj);
+	Json::Value v_query_open_order(Params* params_obj);
+	Json::Value v_account_balances(Params* params_obj = nullptr);
+	Json::Value v_change_leverage(Params* params_obj);
+	Json::Value v_change_margin_type(Params* params_obj);
+	Json::Value v_change_position_margin(Params* params_obj);
+	Json::Value v_change_position_margin_history(Params* params_obj);
+	Json::Value v_position_info(Params* params_obj = nullptr);
+	Json::Value v_get_income_history(Params* params_obj);
+	Json::Value v_get_leverage_bracket(Params* params_obj = nullptr);
+
+
+	// -- unique to USDT endpoint
+
+	Json::Value v_pos_adl_quantile_est(Params* params_obj = nullptr); // todo: define, default param
+
 	~FuturesClientUSDT();
 };
 
@@ -431,6 +557,44 @@ public:
 
 	Json::Value v_funding_rate_history(Params* params_obj); 
 
+	// trading endpoints
+
+// -- mutual with spot
+
+	Json::Value v__test_new_order(Params* params_obj);
+	Json::Value v__new_order(Params* params_obj);
+	Json::Value v__cancel_order(Params* params_obj);
+	Json::Value v__cancel_all_orders(Params* params_obj);
+	Json::Value v__query_order(Params* params_obj);
+	Json::Value v__open_orders(Params* params_obj = nullptr);
+	Json::Value v__all_orders(Params* params_obj);
+	Json::Value v__account_info(Params* params_obj = nullptr);
+	Json::Value v__account_trades_list(Params* params_obj);
+
+	// -- unique to future endpoints
+
+	Json::Value v_futures_transfer(Params* params_obj);
+	Json::Value v_futures_transfer_history(Params* params_obj);
+	Json::Value v_change_position_mode(Params* params_obj);
+	Json::Value v_get_position_mode(Params* params_obj = nullptr);
+	Json::Value v_batch_orders(Params* params_obj);
+	Json::Value v_cancel_batch_orders(Params* params_obj);
+	Json::Value v_cancel_all_orders_timer(Params* params_obj);
+	Json::Value v_query_open_order(Params* params_obj);
+	Json::Value v_account_balances(Params* params_obj = nullptr);
+	Json::Value v_change_leverage(Params* params_obj);
+	Json::Value v_change_margin_type(Params* params_obj);
+	Json::Value v_change_position_margin(Params* params_obj);
+	Json::Value v_change_position_margin_history(Params* params_obj);
+	Json::Value v_position_info(Params* params_obj = nullptr);
+	Json::Value v_get_income_history(Params* params_obj);
+	Json::Value v_get_leverage_bracket(Params* params_obj = nullptr);
+
+
+	// -- unique to USDT endpoint
+
+	Json::Value v_pos_adl_quantile_est(Params* params_obj = nullptr);
+
 	~FuturesClientCoin();
 };
 
@@ -442,7 +606,7 @@ private:
 
 	// market data
 
-	inline bool v_ping_client();  // todo: define lower levels
+	inline bool v_ping_client(); 
 	inline unsigned long long v_exchange_time(); 
 	Json::Value v_exchange_info(); 
 	Json::Value v_order_book(Params* params_obj); 
@@ -456,6 +620,29 @@ private:
 
 	// ------------------- crtp global end
 
+	// Trading endpoints
+
+	// ---- CRTP implementations
+
+	Json::Value v_test_new_order(Params* params_obj);
+	Json::Value v_new_order(Params* params_obj);
+	Json::Value v_cancel_order(Params* params_obj);
+	Json::Value v_cancel_all_orders(Params* params_obj);
+	Json::Value v_query_order(Params* params_obj);
+	Json::Value v_open_orders(Params* params_obj = nullptr);
+	Json::Value v_all_orders(Params* params_obj);
+	Json::Value v_account_info(Params* params_obj = nullptr);
+	Json::Value v_account_trades_list(Params* params_obj);
+
+	// ---- general methods
+
+	Json::Value oco_new_order(Params* params_obj);
+	Json::Value oco_cancel_order(Params* params_obj);
+	Json::Value oco_query_order(Params* params_obj = nullptr);
+	Json::Value oco_all_orders(Params* params_obj = nullptr);
+	Json::Value oco_open_orders(Params* params_obj = nullptr);
+
+
 	// crtp infrastructure start
 
 	bool v_init_ws_session();
@@ -468,8 +655,6 @@ private:
 
 	// crtp infrastructure end , todo: make this more organized ofc
 
-	Json::Value v_place_order(Params* params_obj);
-	Json::Value v_cancel_order(Params* params_obj);
 
 
 

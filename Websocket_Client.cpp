@@ -121,10 +121,11 @@ void WebsocketClient::_set_reconnect(const bool& reconnect)
 WebsocketClient::~WebsocketClient()
 {
     std::unordered_map<std::string, bool>::iterator stream_itr; // while status != 0: set 0 and delete thread pointer!
-
+	
     for (stream_itr = this->running_streams.begin(); stream_itr != this->running_streams.end(); stream_itr++)
     {
         (stream_itr->second) = 0; // set status to false to ensure closing streams
 
     }
+	std::cout << "ws des called\n";
 }

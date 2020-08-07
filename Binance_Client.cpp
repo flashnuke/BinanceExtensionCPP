@@ -86,11 +86,33 @@ Json::Value Client<T>::get_order_book_ticker(Params* params_obj) { return static
 
 //  ------------------------------ Start Client CRTP methods - Trade Endpoints
 
-template<typename T> // todo: update implementation 
-Json::Value Client<T>::place_order(Params* params_obj) { return static_cast<T*>(this)->v_place_order(params_obj); }
+template<typename T>
+Json::Value Client<T>::test_new_order(Params* params_obj) { return static_cast<T*>(this)->v_test_new_order(); }
 
-template<typename T> // todo: update implementation
+template<typename T>
+Json::Value Client<T>::new_order(Params* params_obj) { return static_cast<T*>(this)->v_new_order(params_obj); }
+
+template<typename T>
 Json::Value Client<T>::cancel_order(Params* params_obj) { return static_cast<T*>(this)->v_cancel_order(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::cancel_all_orders(Params* params_obj) { return static_cast<T*>(this)->v_cancel_all_orders(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::query_order(Params* params_obj) { return static_cast<T*>(this)->v_query_order(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::open_orders(Params* params_obj) { return static_cast<T*>(this)->v_open_orders(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::all_orders(Params* params_obj) { return static_cast<T*>(this)->v_all_orders(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::account_info(Params* params_obj) { return static_cast<T*>(this)->v_account_info(params_obj); }
+
+template<typename T>
+Json::Value Client<T>::account_trades_list(Params* params_obj) { return static_cast<T*>(this)->v_account_trades_list(params_obj); }
+
 
 //  ------------------------------ End Client CRTP methods - Trade Endpoints
 
@@ -213,10 +235,11 @@ std::string Client<T>::_generate_query(Params& params_obj, bool sign_query)
 	{
 		std::string signature = HMACsha256(query, this->_api_secret);
 		query += "&signature=" + signature;
-		query = "?" + query;
 		params_obj.delete_param("timestamp");
 	}
 	if (params_obj.flush_params) params_obj.clear_params();
+
+	query = "?" + query;
 
 	return query;
 }
@@ -229,7 +252,7 @@ bool Client<T>::exchange_status() // todo: is this abstract?
 }
 
 template <typename T>
-Json::Value Client<T>::place_order_test(Params* paramparams_objeter_vec)
+Json::Value Client<T>::place_order_test(Params* params_obj)
 {
 
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
@@ -250,10 +273,30 @@ Json::Value Client<T>::place_order_test(Params* paramparams_objeter_vec)
 
 //  ------------------------------ Start Client Wallet - User Wallet Endpoints
 
+// ------ Class methods
+
 template <typename T>
 Client<T>::Wallet::Wallet(Client<T>& client_obj)
-	: user_client{ client_obj }
-{}
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::Wallet::Wallet(const Client<T>& client_obj)
+	: user_client{ &client_obj } 
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::Wallet::~Wallet()
+{
+	user_client = nullptr;
+}
+
+// ------ Endpoint methods
+
 
 template <typename T>
 Json::Value Client<T>::Wallet::get_all_coins(Params* params_obj)
@@ -265,9 +308,9 @@ Json::Value Client<T>::Wallet::get_all_coins(Params* params_obj)
 		params_obj = unique_param_ptr.get();
 	}
 
-	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/capital/config/getall";
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/capital/config/getall";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 	return response;
 }; 
@@ -275,9 +318,9 @@ Json::Value Client<T>::Wallet::get_all_coins(Params* params_obj)
 template <typename T>
 Json::Value Client<T>::Wallet::daily_snapshot(Params* params_obj)
 {
-	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/accountSnapshot";
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/accountSnapshot";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 	return response;
 };
@@ -287,9 +330,9 @@ Json::Value Client<T>::Wallet::fast_withdraw_switch(bool state)
 {
 	Params temp_params;
 	std::string endpoint = state ? "/sapi/v1/account/enableFastWithdrawSwitch" : "/sapi/v1/account/disableFastWithdrawSwitch";
-	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
-	std::string query = user_client._generate_query(temp_params, 1);
-	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + endpoint;
+	std::string query = user_client->_generate_query(temp_params, 1);
+	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
 	return response;
 }; 
@@ -298,9 +341,9 @@ template <typename T>
 Json::Value Client<T>::Wallet::withdraw_balances(Params* params_obj, bool SAPI)
 {
 	std::string endpoint = SAPI ? "/sapi/v1/capital/withdraw/apply" : "/wapi/v3/withdraw.html";
-	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + endpoint;
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
 	return response;
 };
@@ -315,9 +358,9 @@ Json::Value Client<T>::Wallet::deposit_history(Params* params_obj, bool network)
 		params_obj = unique_param_ptr.get();
 	}
 	std::string endpoint = network ? "/sapi/v1/capital/deposit/hisrec" : "/wapi/v3/depositHistory.html";
-	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + endpoint;
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 	return response;
 }; 
@@ -332,9 +375,9 @@ Json::Value Client<T>::Wallet::withdraw_history(Params* params_obj, bool network
 		params_obj = unique_param_ptr.get();
 	}
 	std::string endpoint = network ? "/sapi/v1/capital/withdraw/history" : "/wapi/v3/withdrawHistory.html";
-	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + endpoint;
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 	return response;
 };
@@ -343,9 +386,9 @@ template <typename T>
 Json::Value Client<T>::Wallet::deposit_address(Params* params_obj, bool network)
 {
 	std::string endpoint = network ? "/sapi/v1/capital/deposit/address" : "/wapi/v3/depositAddress.html";
-	std::string full_path = user_client._BASE_REST_SPOT + endpoint;
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + endpoint;
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 	return response;
 }; 
@@ -353,9 +396,9 @@ Json::Value Client<T>::Wallet::deposit_address(Params* params_obj, bool network)
 template <typename T>
 Json::Value Client<T>::Wallet::account_status(Params* params_obj)
 {
-	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/accountStatus.html";
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + "/wapi/v3/accountStatus.html";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 	return response;
 };  
@@ -369,9 +412,9 @@ Json::Value Client<T>::Wallet::account_status_api(Params* params_obj)
 		unique_param_ptr = std::unique_ptr<Params>(new Params{});
 		params_obj = unique_param_ptr.get();
 	}
-	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/apiTradingStatus.html";
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + "/wapi/v3/apiTradingStatus.html";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 	return response;
 }; 
@@ -385,9 +428,9 @@ Json::Value Client<T>::Wallet::dust_log(Params* params_obj)
 		unique_param_ptr = std::unique_ptr<Params>(new Params{});
 		params_obj = unique_param_ptr.get();
 	}
-	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/userAssetDribbletLog.html";
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + "/wapi/v3/userAssetDribbletLog.html";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 	return response;
 };
@@ -395,9 +438,9 @@ Json::Value Client<T>::Wallet::dust_log(Params* params_obj)
 template <typename T>
 Json::Value Client<T>::Wallet::dust_transfer(Params* params_obj)
 {
-	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/asset/dust";
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/asset/dust";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
 	return response;
 };
@@ -411,9 +454,9 @@ Json::Value Client<T>::Wallet::asset_dividend_records(Params* params_obj)
 		unique_param_ptr = std::unique_ptr<Params>(new Params{});
 		params_obj = unique_param_ptr.get();
 	}
-	std::string full_path = user_client._BASE_REST_SPOT + "/sapi/v1/asset/assetDividend";
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_postreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/asset/assetDividend";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
 	return response;
 };  
@@ -427,9 +470,9 @@ Json::Value Client<T>::Wallet::asset_details(Params* params_obj)
 		unique_param_ptr = std::unique_ptr<Params>(new Params{});
 		params_obj = unique_param_ptr.get();
 	}
-	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/assetDetail.html";
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + "/wapi/v3/assetDetail.html";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 	return response;
 }; 
@@ -443,15 +486,260 @@ Json::Value Client<T>::Wallet::trading_fees(Params* params_obj)
 		unique_param_ptr = std::unique_ptr<Params>(new Params{});
 		params_obj = unique_param_ptr.get();
 	}
-	std::string full_path = user_client._BASE_REST_SPOT + "/wapi/v3/tradeFee.html";
-	std::string query = user_client._generate_query(*params_obj, 1);
-	Json::Value response = (user_client._rest_client)->_getreq(full_path + query);
+	std::string full_path = user_client->_BASE_REST_SPOT + "/wapi/v3/tradeFee.html";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 	return response;
 }; 
 
 //  ------------------------------ End Client Wallet - User Wallet Endpoints
 
+
+// ***************************************************************************
+
+
+//  ------------------------------ Start Client SubAccount - User Wallet Endpoints
+
+// ------ Class methods
+
+template <typename T>
+Client<T>::SubAccount::SubAccount(Client<T>& client_obj)
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::SubAccount::SubAccount(const Client<T>& client_obj)
+	: user_client{ &client_obj }
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::SubAccount::~SubAccount()
+{
+	user_client = nullptr;
+}
+
+// ------ Endpoint methods
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_all_subaccounts(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client->_BASE_REST_SPOT + "/wapi/v3/sub-account/list.html";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::transfer_master_history(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/wapi/v3/sub-account/transfer/history.html";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::transfer_master_to_subaccount(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/wapi/v3/sub-account/transfer.html";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_subaccount_balances(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/wapi/v3/sub-account/assets.html";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_subaccount_deposit_address(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/capital/deposit/subAddress";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_subaccount_deposit_history(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/capital/deposit/subHisrec";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_subaccount_future_margin_status(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/status";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::enable_subaccount_margin(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/margin/enable";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_subaccount_margin_status(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/margin/account";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_subaccount_margin_summary(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/margin/accountSummary";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::enable_subaccount_futures(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/futures/enable";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_subaccount_futures_status(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/futures/account";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_subaccount_futures_summary(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/futures/accountSummary";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_subaccount_futures_positionrisk(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/futures/positionRisk";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::transfer_to_subaccount_futures(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/futures/transfer";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::transfer_to_subaccount_margin(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/margin/transfer";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::transfer_subaccount_to_subaccount(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subToSub";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::transfer_subaccount_to_master(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subToMaster";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::transfer_subaccount_history(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subUserHistory";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+//  ------------------------------ End Client SubAccount - User Wallet Endpoints
 
 // =======================================================================================================
 
@@ -634,36 +922,226 @@ Json::Value SpotClient::v_get_order_book_ticker(Params* params_obj)
 //  ------------------------------ End SpotClient CRTP methods - Market Data Implementations
 
 
-
-
 //  ------------------------------ Start SpotClient CRTP methods - Trade Implementations
 
-Json::Value SpotClient::v_place_order(Params* params_obj)
+
+// -- Up to 'Client' Level
+
+Json::Value SpotClient::v_test_new_order(Params* params_obj)
 {
-
-	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	std::string query = Client::_generate_query(*params_obj, 1);
-
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order/test";
+	std::string query = this->_generate_query(*params_obj, 1);
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
 	return response;
+}
 
+Json::Value SpotClient::v_new_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	return response;
 }
 
 Json::Value SpotClient::v_cancel_order(Params* params_obj)
 {
-
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
 	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	std::string query = Client::_generate_query(*params_obj, 1);
-
+	std::string query = this->_generate_query(*params_obj, 1);
 	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
 
 	return response;
+}
 
+Json::Value SpotClient::v_cancel_all_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "api/v3/openOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+
+	return response;
+}
+
+Json::Value SpotClient::v_query_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value SpotClient::v_open_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/openOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value SpotClient::v_all_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/allOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value SpotClient::v_account_info(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/account";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value SpotClient::v_account_trades_list(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/myTrades";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
 }
 
 //  ------------------------------ End SpotClient CRTP methods - Trade Implementations
 
+//  ------------------------------ Start FuturesClientUSDT General methods - Trade Implementations 
+
+Json::Value SpotClient::oco_new_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order/oco";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	return response;
+}
+
+Json::Value SpotClient::oco_cancel_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/orderList";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+
+	return response;
+}
+
+Json::Value SpotClient::oco_query_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/orderList";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value SpotClient::oco_all_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/allOrderList";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value SpotClient::oco_open_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/openOrderList";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+//  ------------------------------ End FuturesClientUSDT General methods - Trade Implementations 
 
 //  ------------------------------ Start SpotClient CRTP methods - WS Streams 
 
@@ -739,7 +1217,7 @@ FuturesClient<CT>::FuturesClient(std::string key, std::string secret)
 	this->init_ws_session();
 }
 
-template <typename CT> // todo: is delete rest and ws client needed???
+template <typename CT> 
 FuturesClient<CT>::~FuturesClient()
 {}
 
@@ -912,31 +1390,90 @@ Json::Value FuturesClient<CT>::funding_rate_history(Params* params_obj) { return
 //  ------------------------------ End FuturesClient CRTP methods - Unique Endpoints
 
 
-//  ------------------------------ Start FuturesClient CRTP methods - Trade Implementations
+//  ------------------------------ Start FuturesClient CRTP methods - Trade Implementations 
 
-template <typename CT> // todo: crtp
-Json::Value FuturesClient<CT>::v_place_order(Params* params_obj)
-{
-	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
-	std::string query = Client::_generate_query(*params_obj, 1);
+// -- Up to 'Client' Level
 
-	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // return entire json?
+template<typename CT>
+Json::Value FuturesClient<CT>::v_test_new_order(Params* params_obj) { return static_cast<CT*>(this)->v__test_new_order(); }
 
-	return response;
-}
+template<typename CT>
+Json::Value FuturesClient<CT>::v_new_order(Params* params_obj) { return static_cast<CT*>(this)->v__new_order(params_obj); }
 
-template <typename CT> // todo: crtp
-Json::Value FuturesClient<CT>::v_cancel_order(Params* params_obj)
-{
+template<typename CT>
+Json::Value FuturesClient<CT>::v_cancel_order(Params* params_obj) { return static_cast<CT*>(this)->v__cancel_order(params_obj); }
 
-	std::string full_path = this->_BASE_REST_SPOT + "/api/v3/order";
-	std::string query = Client::_generate_query(*params_obj, 1);
+template<typename CT>
+Json::Value FuturesClient<CT>::v_cancel_all_orders(Params* params_obj) { return static_cast<CT*>(this)->v__cancel_all_orders(params_obj); }
 
-	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+template<typename CT>
+Json::Value FuturesClient<CT>::v_query_order(Params* params_obj) { return static_cast<CT*>(this)->v__query_order(params_obj); }
 
-	return response;
+template<typename CT>
+Json::Value FuturesClient<CT>::v_open_orders(Params* params_obj) { return static_cast<CT*>(this)->v__open_orders(params_obj); }
 
-}
+template<typename CT>
+Json::Value FuturesClient<CT>::v_all_orders(Params* params_obj) { return static_cast<CT*>(this)->v__all_orders(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_account_info(Params* params_obj) { return static_cast<CT*>(this)->v__account_info(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::v_account_trades_list(Params* params_obj) { return static_cast<CT*>(this)->v__account_trades_list(params_obj); }
+
+// -- Up to 'FuturesClient' (this) Level
+
+template<typename CT>
+Json::Value FuturesClient<CT>::futures_transfer(Params* params_obj) { return static_cast<CT*>(this)->v_futures_transfer(); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::futures_transfer_history(Params* params_obj) { return static_cast<CT*>(this)->v_futures_transfer_history(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::change_position_mode(Params* params_obj) { return static_cast<CT*>(this)->v_change_position_mode(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::get_position_mode(Params* params_obj) { return static_cast<CT*>(this)->v_get_position_mode(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::batch_orders(Params* params_obj) { return static_cast<CT*>(this)->v_batch_orders(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::cancel_batch_orders(Params* params_obj) { return static_cast<CT*>(this)->v_cancel_batch_orders(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::cancel_all_orders_timer(Params* params_obj) { return static_cast<CT*>(this)->v_cancel_all_orders_timer(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::query_open_order(Params* params_obj) { return static_cast<CT*>(this)->v_query_open_order(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::account_balances(Params* params_obj) { return static_cast<CT*>(this)->v_account_balances(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::change_leverage(Params* params_obj) { return static_cast<CT*>(this)->v_change_leverage(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::change_margin_type(Params* params_obj) { return static_cast<CT*>(this)->v_change_margin_type(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::change_position_margin(Params* params_obj) { return static_cast<CT*>(this)->v_change_position_margin(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::change_position_margin_history(Params* params_obj) { return static_cast<CT*>(this)->v_change_position_margin_history(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::position_info(Params* params_obj) { return static_cast<CT*>(this)->v_position_info(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::get_income_history(Params* params_obj) { return static_cast<CT*>(this)->v_get_income_history(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::get_leverage_bracket(Params* params_obj) { return static_cast<CT*>(this)->v_get_leverage_bracket(params_obj); }
+
+template<typename CT>
+Json::Value FuturesClient<CT>::pos_adl_quantile_est(Params* params_obj) { return static_cast<CT*>(this)->v_pos_adl_quantile_est(params_obj); }
+
 
 //  ------------------------------ End FuturesClient CRTP methods - Trade Implementations
 
@@ -1171,6 +1708,395 @@ Json::Value FuturesClientUSDT::v_funding_rate_history(Params* params_obj)
 
 //  ------------------------------ End FuturesClientUSDT CRTP methods - Unique Endpoints
 
+//  ------------------------------ Start FuturesClientUSDT CRTP methods - Trade Implementations 
+
+
+// -- Up to 'Client' Level
+
+Json::Value FuturesClientUSDT::v__test_new_order(Params* params_obj)
+{
+	throw("please use testnet!"); // todo: not implemented
+}
+
+Json::Value FuturesClientUSDT::v__new_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__cancel_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__cancel_all_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/allOpenOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+
+	return response;
+}
+
+
+Json::Value FuturesClientUSDT::v__query_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/order";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__open_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/openOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__all_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/allOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__account_info(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v2/account";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v__account_trades_list(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/userTrades";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+// -- Up to 'FuturesClient' (this) Level
+
+Json::Value FuturesClientUSDT::v_futures_transfer(Params* params_obj) // todo: eliminate this Duplicate!
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/sapi/v1/futures/transfer";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_futures_transfer_history(Params* params_obj) // todo: eliminate this Duplicate!
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/sapi/v1/futures/transfer";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_change_position_mode(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/positionSide/dual";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_get_position_mode(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/positionSide/dual";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_batch_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/batchOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_cancel_batch_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/batchOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_cancel_all_orders_timer(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/countdownCancelAll";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_query_open_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/openOrder";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_account_balances(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v2/balance";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_change_leverage(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/leverage";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_change_margin_type(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/marginType";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_change_position_margin(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/positionMargin";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_change_position_margin_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/positionMargin/history";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_position_info(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v2/positionRisk";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_get_income_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/income";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_get_leverage_bracket(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/leverageBracket";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/fapi/v1/adlQuantile";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+//  ------------------------------ End FuturesClientUSDT CRTP methods - Trade Implementations 
+
 
 // =======================================================================================================
 
@@ -1286,6 +2212,387 @@ Json::Value FuturesClientCoin::v__get_order_book_ticker(Params* params_obj)
 }
 
 //  ------------------------------ End FuturesClientCoin CRTP methods - Market Data Implementations
+
+//  ------------------------------ Start FuturesClientUSDT CRTP methods - Trade Implementations 
+
+
+// -- Up to 'Client' Level
+
+Json::Value FuturesClientCoin::v__test_new_order(Params* params_obj)
+{
+	throw("please use testnet!"); // todo: not implemented
+}
+
+Json::Value FuturesClientCoin::v__new_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/order";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__cancel_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/order";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__cancel_all_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/allOpenOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__query_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/order";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__open_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/openOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__all_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/allOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__account_info(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/account";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v__account_trades_list(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/userTrades";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+// -- Up to 'FuturesClient' (this) Level
+
+Json::Value FuturesClientCoin::v_futures_transfer(Params* params_obj) // todo: eliminate this Duplicate!
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/sapi/v1/futures/transfer";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_futures_transfer_history(Params* params_obj) // todo: eliminate this Duplicate!
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/sapi/v1/futures/transfer";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_change_position_mode(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/positionSide/dual";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+
+Json::Value FuturesClientCoin::v_get_position_mode(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/positionSide/dual";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_batch_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/batchOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_cancel_batch_orders(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/batchOrders";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_cancel_all_orders_timer(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/countdownCancelAll";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_query_open_order(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/openOrder";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_account_balances(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/balance";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_change_leverage(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/leverage";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_change_margin_type(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/marginType";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_change_position_margin(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/positionMargin";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_change_position_margin_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/positionMargin/history";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_position_info(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/positionRisk";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_get_income_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/income";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_get_leverage_bracket(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = this->_BASE_REST_FUTURES + "/dapi/v1/leverageBracket";
+	std::string query = this->_generate_query(*params_obj, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query); // should be spot?
+
+	return response;
+}
+
+Json::Value FuturesClientCoin::v_pos_adl_quantile_est(Params* params_obj)
+{
+	throw("no such endpoint :)"); // todo: no implementation
+}
+
+//  ------------------------------ End FuturesClientUSDT CRTP methods - Trade Implementations 
+
 
 
 //  ------------------------------ Start FuturesClientCoin CRTP methods - Unique Endpoints
