@@ -190,5 +190,5 @@ RestSession::RequestHandler::RequestHandler()
 RestSession::~RestSession()
 {
 	this->close();
-	std::cout << "des called\n";
+	std::cout << "rest des called\n";
 }
