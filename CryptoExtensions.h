@@ -4,6 +4,7 @@
 // todo: default param for all (nullptr). where sign is needed, use unique_ptr
 // todo: better handle error codes api
 // todo: Params move for set_param
+// todo: are params needed for ping and etc?
 
 
 // DOCs todos:
@@ -12,6 +13,7 @@
 // 3. v_ is for crtp
 // 4. custom requests, pass params into query
 // 5. I let passing empty or none params so the user can receive the error and see whats missing! better than runtime error
+// 6. all structs require auth (even margin requires header)
 
 // First make everything for spot and then for futures
 
@@ -309,6 +311,43 @@ public:
 
 	};
 
+	struct MarginAccount
+	{
+		Client<T>* user_client;
+		explicit MarginAccount(Client<T>& client);
+		explicit MarginAccount(const Client<T>& client);
+		~MarginAccount();
+
+		Json::Value margin_transfer(Params* params_obj);
+		Json::Value margin_borrow(Params* params_obj); 
+		Json::Value margin_repay(Params* params_obj); 
+		Json::Value margin_asset_query(Params* params_obj);
+		Json::Value margin_pair_query(Params* params_obj);
+		Json::Value margin_all_assets_query(); 
+		Json::Value margin_all_pairs_query(); 
+		Json::Value margin_price_index(Params* params_obj); 
+		Json::Value margin_new_order(Params* params_obj); 
+		Json::Value margin_cancel_order(Params* params_obj); 
+		Json::Value margin_transfer_history(Params* params_obj = nullptr); 
+		Json::Value margin_loan_record(Params* params_obj); 
+		Json::Value margin_repay_record(Params* params_obj); 
+		Json::Value margin_interest_history(Params* params_obj = nullptr);
+		Json::Value margin_liquidations_record(Params* params_obj = nullptr); 
+		Json::Value margin_account_info(Params* params_obj = nullptr); 
+		Json::Value margin_account_order(Params* params_obj); 
+		Json::Value margin_account_open_orders(Params* params_obj = nullptr); 
+		Json::Value margin_account_all_orders(Params* params_obj); 
+		Json::Value margin_account_trades_list(Params* params_obj); 
+		Json::Value margin_max_borrow(Params* params_obj); 
+		Json::Value margin_max_transfer(Params* params_obj); 
+		Json::Value margin_isolated_margin_create(Params* params_obj); 
+		Json::Value margin_isolated_margin_transfer(Params* params_obj); 
+		Json::Value margin_isolated_margin_transfer_history(Params* params_obj);
+		Json::Value margin_isolated_margin_account_info(Params* params_obj = nullptr); 
+		Json::Value margin_isolated_margin_symbol(Params* params_obj); 
+		Json::Value margin_isolated_margin_symbol_all(Params* params_obj = nullptr);
+
+	};
 
 	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
 	Json::Value custom_post_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
