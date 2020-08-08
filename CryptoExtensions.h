@@ -349,6 +349,29 @@ public:
 
 	};
 
+	struct Savings
+	{
+		Client<T>* user_client;
+		explicit Savings(Client<T>& client);
+		explicit Savings(const Client<T>& client);
+		~Savings();
+
+		Json::Value get_product_list_flexible(Params* params_obj = nullptr);
+		Json::Value get_product_daily_quota_purchase_flexible(Params* params_obj);
+		Json::Value purchase_product_flexible(Params* params_obj);
+		Json::Value get_product_daily_quota_redemption_flexible(Params* params_obj);
+		Json::Value redeem_product_flexible(Params* params_obj);
+		Json::Value get_product_position_flexible(Params* params_obj);
+		Json::Value get_product_list_fixed(Params* params_obj);
+		Json::Value purchase_product_fixed(Params* params_obj);
+		Json::Value get_product_position_fixed(Params* params_obj);
+		Json::Value lending_account(Params* params_obj = nullptr);
+		Json::Value get_purchase_record(Params* params_obj);
+		Json::Value get_redemption_record(Params* params_obj);
+		Json::Value get_interest_history(Params* params_obj);
+
+	};
+
 	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
 	Json::Value custom_post_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
 	Json::Value custom_put_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
