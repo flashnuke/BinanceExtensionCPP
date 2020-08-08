@@ -19,7 +19,7 @@ Client<T>::~Client()
 	delete _ws_client;
 };
 
-//  ------------------------------ End Client General methods - Infrastructure
+//  ------------------------------ End | Client General methods - Infrastructure
 
 //  ------------------------------ Start | Client CRTP methods - Infrastructure
 
@@ -44,7 +44,7 @@ void Client<T>::ws_auto_reconnect(const bool& reconnect) { static_cast<T*>(this)
 template<typename T>
 void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
 
-//  ------------------------------ End Client CRTP methods - Infrastructure
+//  ------------------------------ End | Client CRTP methods - Infrastructure
 
 //  ------------------------------ Start | Client CRTP methods - Market Data Endpoints 
 
@@ -84,7 +84,7 @@ Json::Value Client<T>::get_order_book_ticker(Params* params_obj) { return static
 //  ------------------------------ End | Client CRTP methods - Market Data Endpoints 
 
 
-//  ------------------------------ Start Client CRTP methods - Trade Endpoints
+//  ------------------------------ Start | Client CRTP methods - Trade Endpoints
 
 template<typename T>
 Json::Value Client<T>::test_new_order(Params* params_obj) { return static_cast<T*>(this)->v_test_new_order(); }
@@ -114,11 +114,10 @@ template<typename T>
 Json::Value Client<T>::account_trades_list(Params* params_obj) { return static_cast<T*>(this)->v_account_trades_list(params_obj); }
 
 
-//  ------------------------------ End Client CRTP methods - Trade Endpoints
+//  ------------------------------ End | Client CRTP methods - Trade Endpoints
 
 
-
-//  ------------------------------ Start Client General methods - Infrastructure
+//  ------------------------------ Start | Client General methods - Infrastructure
 
 template <typename T>
 bool Client<T>::init_rest_session()
@@ -284,13 +283,13 @@ Json::Value Client<T>::futures_transfer_history(Params* params_obj)
 }
 
 
-//  ------------------------------ End Client General methods - Infrastructure
+//  ------------------------------ End | Client General methods - Infrastructure
 
 
 // ***************************************************************************
 
 
-//  ------------------------------ Start Client Wallet - User Wallet Endpoints
+//  ------------------------------ Start | Client Wallet - User Wallet Endpoints
 
 // ------ Class methods
 
@@ -512,13 +511,13 @@ Json::Value Client<T>::Wallet::trading_fees(Params* params_obj)
 	return response;
 }; 
 
-//  ------------------------------ End Client Wallet - User Wallet Endpoints
+//  ------------------------------ End | Client Wallet - User Wallet Endpoints
 
 
 // ***************************************************************************
 
 
-//  ------------------------------ Start Client SubAccount - User SubAccount Endpoints
+//  ------------------------------ Start | Client SubAccount - User SubAccount Endpoints
 
 // ------ Class methods
 
@@ -758,11 +757,11 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_history(Params* params_ob
 	return response;
 };
 
-//  ------------------------------ End Client SubAccount - User SubAccount Endpoints
+//  ------------------------------ End | Client SubAccount - User SubAccount Endpoints
 
 // ***************************************************************************
 
-//  ------------------------------ Start Client MarginAccount - User MarginAccount Endpoints
+//  ------------------------------ Start | Client MarginAccount - User MarginAccount Endpoints
 
 template <typename T>
 Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
@@ -1114,11 +1113,11 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(Params* 
 	return response;
 };
 
-//  ------------------------------ End Client MarginAccount - User MarginAccount Endpoints
+//  ------------------------------ End | Client MarginAccount - User MarginAccount Endpoints
 
 // ***************************************************************************
 
-//  ------------------------------ Start Client Savings - User Savings Endpoints
+//  ------------------------------ Start | Client Savings - User Savings Endpoints
 
 template <typename T>
 Client<T>::Savings::Savings(Client<T>& client_obj)
@@ -1285,12 +1284,12 @@ Json::Value Client<T>::Savings::get_interest_history(Params* params_obj)
 	return response;
 };
 
-//  ------------------------------ End Client Savings - User Savings Endpoints
+//  ------------------------------ End | Client Savings - User Savings Endpoints
 
 
 // ***************************************************************************
 
-//  ------------------------------ Start Client Mining - User Mining Endpoints
+//  ------------------------------ Start | Client Mining - User Mining Endpoints
 
 template <typename T>
 Client<T>::Mining::Mining(Client<T>& client_obj)
@@ -1385,13 +1384,13 @@ Json::Value Client<T>::Mining::account_list(Params* params_obj)
 };
 
 
-//  ------------------------------ End Client Mining - User Mining Endpoints
+//  ------------------------------ End | Client Mining - User Mining Endpoints
 
 
 // =======================================================================================================
 
 
-//  ------------------------------ Start SpotClient General methods - Infrastructure
+//  ------------------------------ Start | SpotClient General methods - Infrastructure
 
 SpotClient::SpotClient() : Client()
 {
@@ -1410,9 +1409,9 @@ SpotClient::SpotClient(std::string key, std::string secret)
 SpotClient::~SpotClient() // todo: is delete restand ws client needed ? ? ?
 {};
 
-//  ------------------------------ End SpotClient General methods - Infrastructure
+//  ------------------------------ End | SpotClient General methods - Infrastructure
 
-//  ------------------------------ Start SpotClient CRTP methods - Client infrastructure
+//  ------------------------------ Start | SpotClient CRTP methods - Client infrastructure
 
 bool SpotClient::v_init_ws_session()
 {
@@ -1470,9 +1469,9 @@ void SpotClient::v_ws_auto_reconnect(const bool& reconnect)
 	this->_ws_client->_set_reconnect(reconnect);
 }
 
-//  ------------------------------ End SpotClient CRTP methods - Client infrastructure
+//  ------------------------------ End | SpotClient CRTP methods - Client infrastructure
 
-//  ------------------------------ Start SpotClient CRTP methods - Market Data Implementations
+//  ------------------------------ Start | SpotClient CRTP methods - Market Data Implementations
 
 bool SpotClient::v_ping_client()
 {
@@ -1566,10 +1565,10 @@ Json::Value SpotClient::v_get_order_book_ticker(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End SpotClient CRTP methods - Market Data Implementations
+//  ------------------------------ End | SpotClient CRTP methods - Market Data Implementations
 
 
-//  ------------------------------ Start SpotClient CRTP methods - Trade Implementations
+//  ------------------------------ Start | SpotClient CRTP methods - Trade Implementations
 
 
 // -- Up to 'Client' Level
@@ -1709,9 +1708,9 @@ Json::Value SpotClient::v_account_trades_list(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End SpotClient CRTP methods - Trade Implementations
+//  ------------------------------ End | SpotClient CRTP methods - Trade Implementations
 
-//  ------------------------------ Start SpotClient General methods - Trade Implementations 
+//  ------------------------------ Start | SpotClient General methods - Trade Implementations 
 
 Json::Value SpotClient::oco_new_order(Params* params_obj)
 {
@@ -1788,9 +1787,9 @@ Json::Value SpotClient::oco_open_orders(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End SpotClient General methods - Trade Implementations 
+//  ------------------------------ End | SpotClient General methods - Trade Implementations 
 
-//  ------------------------------ Start SpotClient CRTP methods - WS Streams 
+//  ------------------------------ Start | SpotClient CRTP methods - WS Streams 
 
 template <class FT>
 unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& functor)
@@ -1840,13 +1839,13 @@ unsigned int SpotClient::userStream(std::string& buffer, FT& functor)
 	}
 }
 
-//  ------------------------------ End SpotClient CRTP methods - WS Streams 
+//  ------------------------------ End | SpotClient CRTP methods - WS Streams 
 
 
 // =======================================================================================================
 
 
-//  ------------------------------ Start FuturesClient General methods - Infrastructure
+//  ------------------------------ Start | FuturesClient General methods - Infrastructure
 
 template <typename CT>
 FuturesClient<CT>::FuturesClient()
@@ -1880,10 +1879,10 @@ bool FuturesClient<CT>::get_testnet_mode()
 	return this->_testnet_mode;
 }
 
-//  ------------------------------ End FuturesClient General methods - Infrastructure
+//  ------------------------------ End | FuturesClient General methods - Infrastructure
 
 
-//  ------------------------------ Start FuturesClient CRTP methods - Client infrastructure
+//  ------------------------------ Start | FuturesClient CRTP methods - Client infrastructure
 
 template <typename CT>
 bool FuturesClient<CT>::v_init_ws_session()
@@ -1984,9 +1983,9 @@ std::vector<std::string> FuturesClient<CT>::v_get_open_streams()
 	return this->_ws_client->open_streams();
 }
 
-//  ------------------------------ End FuturesClient CRTP methods - Client infrastructure
+//  ------------------------------ End | FuturesClient CRTP methods - Client infrastructure
 
-//  ------------------------------ Start FuturesClient CRTP methods - Market Data Implementations
+//  ------------------------------ Start | FuturesClient CRTP methods - Market Data Implementations
 
 template<typename CT>
 unsigned long long FuturesClient<CT>::v_exchange_time() { return static_cast<CT*>(this)->v__exchange_time(); }
@@ -2021,10 +2020,10 @@ Json::Value FuturesClient<CT>::v_get_ticker(Params* params_obj) { return static_
 template<typename CT>
 Json::Value FuturesClient<CT>::v_get_order_book_ticker(Params* params_obj) { return static_cast<CT*>(this)->v__get_order_book_ticker(params_obj); }
 
-//  ------------------------------ End FuturesClient CRTP methods - Market Data Implementations
+//  ------------------------------ End | FuturesClient CRTP methods - Market Data Implementations
 
 
-//  ------------------------------ Start FuturesClient CRTP methods - Unique Endpoints
+//  ------------------------------ Start | FuturesClient CRTP methods - Unique Endpoints
 
 template<typename CT>
 Json::Value FuturesClient<CT>::mark_price(Params* params_obj) { return static_cast<CT*>(this)->v_mark_price(params_obj); }
@@ -2047,10 +2046,10 @@ Json::Value FuturesClient<CT>::mark_klines(Params* params_obj) { return static_c
 template<typename CT>
 Json::Value FuturesClient<CT>::funding_rate_history(Params* params_obj) { return static_cast<CT*>(this)->v_funding_rate_history(params_obj); }
 
-//  ------------------------------ End FuturesClient CRTP methods - Unique Endpoints
+//  ------------------------------ End | FuturesClient CRTP methods - Unique Endpoints
 
 
-//  ------------------------------ Start FuturesClient CRTP methods - Trade Implementations 
+//  ------------------------------ Start | FuturesClient CRTP methods - Trade Implementations 
 
 // -- Up to 'Client' Level
 
@@ -2129,10 +2128,10 @@ template<typename CT>
 Json::Value FuturesClient<CT>::pos_adl_quantile_est(Params* params_obj) { return static_cast<CT*>(this)->v_pos_adl_quantile_est(params_obj); }
 
 
-//  ------------------------------ End FuturesClient CRTP methods - Trade Implementations
+//  ------------------------------ End | FuturesClient CRTP methods - Trade Implementations
 
 
-//  ------------------------------ Start FuturesClient CRTP methods - WS Streams 
+//  ------------------------------ Start | FuturesClient CRTP methods - WS Streams 
 
 // todo: make UserStream abstract and add here
 template <typename CT> // todo: crtp
@@ -2141,10 +2140,10 @@ unsigned int FuturesClient<CT>::aggTrade(std::string symbol)
 	return 0;
 }
 
-//  ------------------------------ End FuturesClient CRTP methods - WS Streams 
+//  ------------------------------ End | FuturesClient CRTP methods - WS Streams 
 
 
-//  ------------------------------ Start FuturesClient General methods - Markets Stats
+//  ------------------------------ Start | FuturesClient General methods - Markets Stats
 
 template <typename CT>
 Json::Value FuturesClient<CT>::open_interest_stats(Params* params_obj)
@@ -2197,13 +2196,13 @@ Json::Value FuturesClient<CT>::basis_data(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End FuturesClient General methods - Markets Stats
+//  ------------------------------ End | FuturesClient General methods - Markets Stats
 
 
 // =======================================================================================================
 
 
-//  ------------------------------ Start FuturesClientUSDT General methods - Infrastructure
+//  ------------------------------ Start | FuturesClientUSDT General methods - Infrastructure
 
 FuturesClientUSDT::FuturesClientUSDT()
 	: FuturesClient()
@@ -2216,7 +2215,7 @@ FuturesClientUSDT::FuturesClientUSDT(std::string key, std::string secret)
 FuturesClientUSDT::~FuturesClientUSDT()
 {}
 
-//  ------------------------------ Start FuturesClientUSDT CRTP methods - Market Data Implementations
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - Market Data Implementations
 
 inline bool FuturesClientUSDT::v__ping_client()
 {
@@ -2322,10 +2321,10 @@ Json::Value FuturesClientUSDT::v__get_order_book_ticker(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End FuturesClientUSDT CRTP methods - Market Data Implementations
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - Market Data Implementations
 
 
-//  ------------------------------ Start FuturesClientUSDT CRTP methods - Unique Endpoints
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - Unique Endpoints
 
 Json::Value FuturesClientUSDT::v_mark_price(Params* params_obj)
 {
@@ -2380,9 +2379,9 @@ Json::Value FuturesClientUSDT::v_funding_rate_history(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End FuturesClientUSDT CRTP methods - Unique Endpoints
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - Unique Endpoints
 
-//  ------------------------------ Start FuturesClientUSDT CRTP methods - Trade Implementations 
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - Trade Implementations 
 
 
 // -- Up to 'Client' Level
@@ -2669,13 +2668,13 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(Params* params_obj)
 
 	return response;
 }
-//  ------------------------------ End FuturesClientUSDT CRTP methods - Trade Implementations 
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - Trade Implementations 
 
 
 // =======================================================================================================
 
 
-//  ------------------------------ Start FuturesClientCoin General methods - Infrastructure
+//  ------------------------------ Start | FuturesClientCoin General methods - Infrastructure
 
 FuturesClientCoin::FuturesClientCoin()
 	: FuturesClient()
@@ -2688,9 +2687,9 @@ FuturesClientCoin::FuturesClientCoin(std::string key, std::string secret)
 FuturesClientCoin::~FuturesClientCoin()
 {}
 
-//  ------------------------------ End FuturesClientCoin General methods - Infrastructure
+//  ------------------------------ End | FuturesClientCoin General methods - Infrastructure
 
-//  ------------------------------ Start FuturesClientCoin CRTP methods - Market Data Implementations
+//  ------------------------------ Start | FuturesClientCoin CRTP methods - Market Data Implementations
 
 inline bool FuturesClientCoin::v__ping_client()
 {
@@ -2796,9 +2795,9 @@ Json::Value FuturesClientCoin::v__get_order_book_ticker(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End FuturesClientCoin CRTP methods - Market Data Implementations
+//  ------------------------------ End | FuturesClientCoin CRTP methods - Market Data Implementations
 
-//  ------------------------------ Start FuturesClientUSDT CRTP methods - Trade Implementations 
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - Trade Implementations 
 
 
 // -- Up to 'Client' Level
@@ -3087,11 +3086,10 @@ Json::Value FuturesClientCoin::v_pos_adl_quantile_est(Params* params_obj)
 	throw("no such endpoint :)"); // todo: no implementation
 }
 
-//  ------------------------------ End FuturesClientUSDT CRTP methods - Trade Implementations 
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - Trade Implementations 
 
 
-
-//  ------------------------------ Start FuturesClientCoin CRTP methods - Unique Endpoints
+//  ------------------------------ Start | FuturesClientCoin CRTP methods - Unique Endpoints
 
 Json::Value FuturesClientCoin::v_mark_price(Params* params_obj)
 {
@@ -3155,13 +3153,13 @@ Json::Value FuturesClientCoin::v_funding_rate_history(Params* params_obj)
 	throw("non-existing endpoint");
 }
 
-//  ------------------------------ End FuturesClientCoin CRTP methods - Unique Endpoints
+//  ------------------------------ End | FuturesClientCoin CRTP methods - Unique Endpoints
 
 
 // =======================================================================================================
 
 
-//  ------------------------------ Start Params methods
+//  ------------------------------ Start | Params methods
 
 Params::Params()
 	: default_recv{ 0 }, default_recv_amt{ 0 }, flush_params{ 0 }
@@ -3274,4 +3272,4 @@ bool Params::empty()
 	return this->param_map.empty();
 }
 
-//  ------------------------------ End Params methods
+//  ------------------------------ End | Params methods
