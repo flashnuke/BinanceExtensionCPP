@@ -5,6 +5,7 @@
 // todo: better handle error codes api
 // todo: Params move for set_param
 // todo: are params needed for ping and etc?
+// todo: add all 'Futures' under FuturesClient global
 
 
 // DOCs todos:
@@ -347,6 +348,45 @@ public:
 		Json::Value margin_isolated_margin_symbol(Params* params_obj); 
 		Json::Value margin_isolated_margin_symbol_all(Params* params_obj = nullptr);
 
+	};
+
+	struct Savings
+	{
+		Client<T>* user_client;
+		explicit Savings(Client<T>& client);
+		explicit Savings(const Client<T>& client);
+		~Savings();
+
+		Json::Value get_product_list_flexible(Params* params_obj = nullptr);
+		Json::Value get_product_daily_quota_purchase_flexible(Params* params_obj);
+		Json::Value purchase_product_flexible(Params* params_obj);
+		Json::Value get_product_daily_quota_redemption_flexible(Params* params_obj);
+		Json::Value redeem_product_flexible(Params* params_obj);
+		Json::Value get_product_position_flexible(Params* params_obj);
+		Json::Value get_product_list_fixed(Params* params_obj);
+		Json::Value purchase_product_fixed(Params* params_obj);
+		Json::Value get_product_position_fixed(Params* params_obj);
+		Json::Value lending_account(Params* params_obj = nullptr);
+		Json::Value get_purchase_record(Params* params_obj);
+		Json::Value get_redemption_record(Params* params_obj);
+		Json::Value get_interest_history(Params* params_obj);
+
+	};
+
+	struct Mining
+	{
+		Client<T>* user_client;
+		explicit Mining(Client<T>& client);
+		explicit Mining(const Client<T>& client);
+		~Mining();
+
+		Json::Value algo_list();
+		Json::Value coin_list();
+		Json::Value get_miner_list_detail(Params* params_obj);
+		Json::Value get_miner_list(Params* params_obj);
+		Json::Value revenue_list(Params* params_obj);
+		Json::Value statistic_list(Params* params_obj);
+		Json::Value account_list(Params* params_obj);
 	};
 
 	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);

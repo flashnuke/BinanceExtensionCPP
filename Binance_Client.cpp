@@ -518,7 +518,7 @@ Json::Value Client<T>::Wallet::trading_fees(Params* params_obj)
 // ***************************************************************************
 
 
-//  ------------------------------ Start Client SubAccount - User Wallet Endpoints
+//  ------------------------------ Start Client SubAccount - User SubAccount Endpoints
 
 // ------ Class methods
 
@@ -758,10 +758,11 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_history(Params* params_ob
 	return response;
 };
 
-//  ------------------------------ End Client SubAccount - User Wallet Endpoints
+//  ------------------------------ End Client SubAccount - User SubAccount Endpoints
 
 // ***************************************************************************
-//  ------------------------------ Start Client MarginAccount - User Wallet Endpoints
+
+//  ------------------------------ Start Client MarginAccount - User MarginAccount Endpoints
 
 template <typename T>
 Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
@@ -1113,7 +1114,279 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(Params* 
 	return response;
 };
 
-//  ------------------------------ End Client MarginAccount - User Wallet Endpoints
+//  ------------------------------ End Client MarginAccount - User MarginAccount Endpoints
+
+// ***************************************************************************
+
+//  ------------------------------ Start Client Savings - User Savings Endpoints
+
+template <typename T>
+Client<T>::Savings::Savings(Client<T>& client_obj)
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::Savings::Savings(const Client<T>& client_obj)
+	: user_client{ &client_obj }
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::Savings::~Savings()
+{
+	user_client = nullptr;
+}
+
+// ------ Endpoint methods
+
+
+template <typename T>
+Json::Value Client<T>::Savings::get_product_list_flexible(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/daily/product/list";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::get_product_daily_quota_purchase_flexible(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/daily/userLeftQuota";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::purchase_product_flexible(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/daily/purchase";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::get_product_daily_quota_redemption_flexible(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/daily/userRedemptionQuota";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::redeem_product_flexible(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/daily/redeem";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::get_product_position_flexible(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/daily/token/position";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::get_product_list_fixed(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/project/list";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::purchase_product_fixed(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/customizedFixed/purchase";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::get_product_position_fixed(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/project/position/list";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::lending_account(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/union/account";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::get_purchase_record(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/union/purchaseRecord";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::get_redemption_record(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/union/redemptionRecord";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Savings::get_interest_history(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/lending/union/interestHistory";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+//  ------------------------------ End Client Savings - User Savings Endpoints
+
+
+// ***************************************************************************
+
+//  ------------------------------ Start Client Mining - User Mining Endpoints
+
+template <typename T>
+Client<T>::Mining::Mining(Client<T>& client_obj)
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::Mining::Mining(const Client<T>& client_obj)
+	: user_client{ &client_obj }
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::Mining::~Mining()
+{
+	user_client = nullptr;
+}
+
+// ------ Endpoint methods
+
+
+template <typename T>
+Json::Value Client<T>::Mining::algo_list()
+{
+
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/mining/pub/algoList";
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Mining::coin_list()
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/mining/pub/coinList";
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Mining::get_miner_list_detail(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/mining/worker/detail";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Mining::get_miner_list(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/mining/worker/list";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Mining::revenue_list(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/mining/payment/list";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Mining::statistic_list(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/mining/statistics/user/status";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+template <typename T>
+Json::Value Client<T>::Mining::account_list(Params* params_obj)
+{
+	std::string full_path = user_client->_BASE_REST_SPOT + "/sapi/v1/mining/statistics/user/list";
+	std::string query = user_client->_generate_query(*params_obj, 1);
+	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+	return response;
+};
+
+
+//  ------------------------------ End Client Mining - User Mining Endpoints
+
 
 // =======================================================================================================
 
@@ -1438,7 +1711,7 @@ Json::Value SpotClient::v_account_trades_list(Params* params_obj)
 
 //  ------------------------------ End SpotClient CRTP methods - Trade Implementations
 
-//  ------------------------------ Start FuturesClientUSDT General methods - Trade Implementations 
+//  ------------------------------ Start SpotClient General methods - Trade Implementations 
 
 Json::Value SpotClient::oco_new_order(Params* params_obj)
 {
@@ -1515,7 +1788,7 @@ Json::Value SpotClient::oco_open_orders(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End FuturesClientUSDT General methods - Trade Implementations 
+//  ------------------------------ End SpotClient General methods - Trade Implementations 
 
 //  ------------------------------ Start SpotClient CRTP methods - WS Streams 
 
