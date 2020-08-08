@@ -5,6 +5,7 @@
 // todo: better handle error codes api
 // todo: Params move for set_param
 // todo: are params needed for ping and etc?
+// todo: add all 'Futures' under FuturesClient global
 
 
 // DOCs todos:
@@ -370,6 +371,22 @@ public:
 		Json::Value get_redemption_record(Params* params_obj);
 		Json::Value get_interest_history(Params* params_obj);
 
+	};
+
+	struct Mining
+	{
+		Client<T>* user_client;
+		explicit Mining(Client<T>& client);
+		explicit Mining(const Client<T>& client);
+		~Mining();
+
+		Json::Value algo_list();
+		Json::Value coin_list();
+		Json::Value get_miner_list_detail(Params* params_obj);
+		Json::Value get_miner_list(Params* params_obj);
+		Json::Value revenue_list(Params* params_obj);
+		Json::Value statistic_list(Params* params_obj);
+		Json::Value account_list(Params* params_obj);
 	};
 
 	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, Params* params_obj, bool signature = 0);
