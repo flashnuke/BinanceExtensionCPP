@@ -1,10 +1,9 @@
 // todo: futures and client source files in different files?
 // todo: return empty json with "status = 1" if no cb passed.
 // todo: idea - pass stream of name to functor?
-// todo: param object for all methods?
-// todo: one by one check for default args
 // todo: default param for all (nullptr). where sign is needed, use unique_ptr
-// todo important: testnet bool for every futures method! or just define a member attribute as bool
+// todo: better handle error codes api
+// todo: Params move for set_param
 
 
 // DOCs todos:
@@ -39,7 +38,6 @@
 #include <thread>
 #include <mutex>
 #include <vector>
-
 
 
 
@@ -148,12 +146,16 @@ struct Params
 	Params& operator=(Params& params_obj);
 	Params& operator=(const Params& params_obj);
 
+	Params& operator=(Params&& params_obj);
+
 	std::unordered_map<std::string, std::string> param_map;
 	bool default_recv;
 	unsigned int default_recv_amt;
 
 	template <typename PT>
-	void set_param(std::string key, PT value);
+	void set_param(std::string key, const PT& value);
+	template <typename PT>
+	void set_param(std::string key, PT&& value);
 
 	bool delete_param(std::string key);
 
@@ -187,8 +189,10 @@ public:
 	std::string _generate_query(Params& params_obj, bool sign_query = 0);
 
 	const std::string _BASE_REST_FUTURES{ "https://fapi.binance.com" };
+	const std::string _BASE_REST_FUTURES_TESTNET{ "https://testnet.binancefuture.com" };
 	const std::string _BASE_REST_SPOT{ "https://api.binance.com" };
 	const std::string _WS_BASE_FUTURES{"fstream.binance.com"};
+	const std::string _WS_BASE_FUTURES_TESTNET{ "stream.binancefuture.com" };
 	const std::string _WS_BASE_SPOT{ "stream.binance.com" };
 	const std::string _WS_PORT{ "9443" };
 
@@ -243,14 +247,16 @@ public:
 
 	// Global requests (wallet, account etc)
 
-	bool exchange_status(); // todo: (define) (Returns bool 1 up 0 down) (use spot base)
-	Json::Value place_order_test(Params* params_obj);
+	bool exchange_status();
+
+	Json::Value futures_transfer(Params* params_obj);
+	Json::Value futures_transfer_history(Params* params_obj);
 
 	struct Wallet 
 	{
 		Client<T>* user_client;
-		explicit Wallet(Client<T>& client); // todo: if public, exception
-		explicit Wallet(const Client<T>& client); // todo: if public, exception
+		explicit Wallet(Client<T>& client);
+		explicit Wallet(const Client<T>& client); 
 		~Wallet();
 
 		Json::Value get_all_coins(Params* params_obj = nullptr); 
@@ -272,8 +278,8 @@ public:
 	struct SubAccount // for corporate accounts
 	{
 		Client<T>* user_client;
-		explicit SubAccount(Client<T>& client); // todo: if public, exception
-		explicit SubAccount(const Client<T>& client); // todo: if public, exception
+		explicit SubAccount(Client<T>& client);
+		explicit SubAccount(const Client<T>& client);
 		~SubAccount();
 
 		Json::Value get_all_subaccounts(Params* params_obj = nullptr); 
@@ -312,8 +318,8 @@ public:
 	template <typename FT>
 	unsigned int custom_stream(std::string stream_query, std::string buffer, FT functor);
 
-	RestSession* _rest_client = nullptr; // move init
-	WebsocketClient* _ws_client = nullptr; // move init, leave decl
+	RestSession* _rest_client = nullptr; // todo: move init
+	WebsocketClient* _ws_client = nullptr; // todo: move init, leave decl
 
 	~Client();
 
@@ -335,12 +341,14 @@ private:
 
 public:
 	friend Client<FuturesClient<CT>>;
+	bool _testnet_mode;
 
 	FuturesClient();
 	FuturesClient(std::string key, std::string secret);
 
-	// consider: are these crtp?? for USDT and Margined
-	// starting with v__ means it has Spot version as well
+	inline void set_testnet_mode(bool status);
+	inline bool get_testnet_mode();
+
 
 	// ------------------- crtp for all (spot + coin/usdt)
 
@@ -374,8 +382,6 @@ public:
 
 	// -- unique to future endpoints
 
-	Json::Value futures_transfer(Params* params_obj);
-	Json::Value futures_transfer_history(Params* params_obj);
 	Json::Value change_position_mode(Params* params_obj);
 	Json::Value get_position_mode(Params* params_obj = nullptr);
 	Json::Value batch_orders(Params* params_obj);
@@ -493,8 +499,6 @@ public:
 
 	// -- unique to future endpoints
 
-	Json::Value v_futures_transfer(Params* params_obj);
-	Json::Value v_futures_transfer_history(Params* params_obj);
 	Json::Value v_change_position_mode(Params* params_obj);
 	Json::Value v_get_position_mode(Params* params_obj = nullptr);
 	Json::Value v_batch_orders(Params* params_obj);
@@ -573,8 +577,6 @@ public:
 
 	// -- unique to future endpoints
 
-	Json::Value v_futures_transfer(Params* params_obj);
-	Json::Value v_futures_transfer_history(Params* params_obj);
 	Json::Value v_change_position_mode(Params* params_obj);
 	Json::Value v_get_position_mode(Params* params_obj = nullptr);
 	Json::Value v_batch_orders(Params* params_obj);
@@ -654,9 +656,6 @@ private:
 	inline void v_set_refresh_key_interval(const bool val);
 
 	// crtp infrastructure end , todo: make this more organized ofc
-
-
-
 
 
 
