@@ -116,8 +116,62 @@ Json::Value Client<T>::account_trades_list(Params* params_obj) { return static_c
 
 //  ------------------------------ End | Client CRTP methods - Trade Endpoints
 
+//  ------------------------------ Start | Client CRTP methods - WS Streams
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_aggTrade(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_aggTrade(symbol, buffer, functor); }
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_Trade(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_Trade(symbol, buffer, functor); } // todo: only for spot
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_kline(std::string symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<T*>(this)->v_stream_kline(symbol, buffer, functor, interval); } // todo: only for spot
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_ind_mini(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_ind_mini(symbol, buffer, functor); }
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_all_mini(buffer, functor); }
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_ind(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_ind(symbol, buffer, functor); }
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_all(buffer, functor); }
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_ind_book(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_ind_book(symbol, buffer, functor); }
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_all_book(buffer, functor); }
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_depth_partial(std::string symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval) { return static_cast<T*>(this)->v_stream_depth_partial(symbol, buffer, functor, levels, interval); } // todo: different intervals for different fronts
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_depth_diff(std::string symbol, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<T*>(this)->v_stream_depth_diff(symbol, buffer, functor, interval); }
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_userStream(buffer, functor); } // todo: for margin, spot, etc...
+
+
+//  ------------------------------ End | Client CRTP methods - WS Streams
+
 
 //  ------------------------------ Start | Client General methods - Infrastructure
+
 
 template <typename T>
 bool Client<T>::init_rest_session()
@@ -248,38 +302,6 @@ bool Client<T>::exchange_status() // todo: is this abstract?
 {
 	std::string full_path = this->_BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
 	return this->_rest_client->_getreq(full_path)["response"]["status"].asBool();
-}
-
-template <typename T>
-Json::Value Client<T>::futures_transfer(Params* params_obj)
-{
-	std::unique_ptr<Params>unique_param_ptr;
-	if (!params_obj)
-	{
-		unique_param_ptr = std::unique_ptr<Params>(new Params{});
-		params_obj = unique_param_ptr.get();
-	}
-	std::string query = this->_generate_query(*params_obj, 1);
-	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/transfer" + query);
-	Json::Value response = (this->_rest_client)->_postreq(full_path);
-
-	return response;
-}
-
-template <typename T>
-Json::Value Client<T>::futures_transfer_history(Params* params_obj)
-{
-	std::unique_ptr<Params>unique_param_ptr;
-	if (!params_obj)
-	{
-		unique_param_ptr = std::unique_ptr<Params>(new Params{});
-		params_obj = unique_param_ptr.get();
-	}
-	std::string query = this->_generate_query(*params_obj, 1);
-	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/transfer" + query);
-	Json::Value response = (this->_rest_client)->_getreq(full_path);
-
-	return response;
 }
 
 
@@ -512,6 +534,204 @@ Json::Value Client<T>::Wallet::trading_fees(Params* params_obj)
 }; 
 
 //  ------------------------------ End | Client Wallet - User Wallet Endpoints
+
+// ***************************************************************************
+
+
+//  ------------------------------ Start | Client FuturesWallet - User FuturesWallet Endpoints
+
+// ------ Class methods
+
+template <typename T>
+Client<T>::FuturesWallet::FuturesWallet(Client<T>& client_obj)
+	: user_client{ &client_obj } 
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::FuturesWallet::FuturesWallet(const Client<T>& client_obj)
+	: user_client{ &client_obj }
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::FuturesWallet::~FuturesWallet()
+{
+	user_client = nullptr;
+}
+
+// ------ Endpoint methods
+
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::futures_transfer(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/transfer" + query);
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::futures_transfer_history(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/transfer" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_borrow(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/borrow" + query);
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_borrow_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/borrow/history" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_repay(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/repay" + query);
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_repay_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/repay/history" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_wallet(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/wallet" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_info(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/configs" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/calcAdjustLevel" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/calcMaxAdjustAmount" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_adjust(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/adjustCollateral" + query);
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_adjust_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/adjustCollateral/history" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_liquidation_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/liquidationHistory" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+//  ------------------------------ End | Client FuturesWallet - User FuturesWallet Endpoints
 
 
 // ***************************************************************************
@@ -1791,8 +2011,10 @@ Json::Value SpotClient::oco_open_orders(Params* params_obj)
 
 //  ------------------------------ Start | SpotClient CRTP methods - WS Streams 
 
+// WS Streams
+
 template <class FT>
-unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& functor)
+unsigned int SpotClient::v_stream_aggTrade(std::string symbol, std::string& buffer, FT& functor)
 {
 	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
 	std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
@@ -1809,7 +2031,178 @@ unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& f
 }
 
 template <class FT>
-unsigned int SpotClient::userStream(std::string& buffer, FT& functor)
+unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "/ws/" + symbol + '@' + "trade";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int v_stream_kline(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "/ws/" + symbol + '@' + "kline_" + interval;
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int v_stream_ticker_ind_mini(std::string symbol, std::string& buffer, FT& functor)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int v_stream_ticker_all_mini(std::string& buffer, FT& functor)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "/ws/" + "!miniTicker" + '@' + "arr";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int v_stream_ticker_ind(std::string symbol, std::string& buffer, FT& functor)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "/ws/" + symbol + '@' + "ticker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int v_stream_ticker_all(std::string& buffer, FT& functor)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "/ws/" + "!ticker" + '@' + "arr";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int v_stream_ticker_ind_book(std::string symbol, std::string& buffer, FT& functor)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "/ws/" + symbol + '@' + "bookTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int v_stream_ticker_all_book(std::string& buffer, FT& functor)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "/ws/" + "!bookTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int v_stream_depth_partial(std::string symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + std::to_string(levels) + "@" + std::to_string(interval);
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int v_stream_depth_diff(std::string symbol, std::string& buffer, FT& functor, unsigned int interval)
+{
+	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
+	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval);
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+
+template <class FT>
+unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor)
 {
 	RestSession* keep_alive_session = new RestSession{};
 	try
