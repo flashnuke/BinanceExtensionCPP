@@ -5,7 +5,15 @@
 // todo: better handle error codes api
 // todo: Params move for set_param
 // todo: are params needed for ping and etc?
-// todo: add all 'Futures' under FuturesClient global
+// todo: add all 'Futures' under FuturesClient global. Note: base is spot
+// todo: add constexpr for methods path. if you can, find a way to do for all
+// todo: listenkey for spot margin isolated margin...
+// todo: streams for testnet as well!
+// todo: delete old aggTrade and userstream
+// todo: v_ for futures, v__ for lower, regardless of exists or not
+// todo: leave default params only in client level
+// todo: "ms" in streams
+// todo: testnet for streams
 
 
 // DOCs todos:
@@ -51,8 +59,8 @@ namespace ssl = boost::asio::ssl;
 using tcp = boost::asio::ip::tcp;
 
 unsigned long long local_timestamp();
-inline auto binary_to_hex_digit(unsigned a) -> char;
-auto binary_to_hex(unsigned char const* binary, unsigned binary_len)->std::string;
+inline char binary_to_hex_digit(unsigned a);
+std::string binary_to_hex(unsigned char const* binary, unsigned binary_len);
 std::string HMACsha256(std::string const& message, std::string const& key);
 
 
@@ -229,6 +237,44 @@ public:
 	Json::Value account_info(Params* params_obj = nullptr);
 	Json::Value account_trades_list(Params* params_obj);
 
+	// WS Streams
+
+	template <class FT>
+	unsigned int stream_aggTrade(std::string symbol, std::string& buffer, FT& functor);
+
+	template <class FT>
+	unsigned int stream_Trade(std::string symbol, std::string& buffer, FT& functor); // todo: only for spot
+
+	template <class FT>
+	unsigned int stream_kline(std::string symbol, std::string& buffer, FT& functor, std::string interval = "1h");
+
+	template <class FT>
+	unsigned int stream_ticker_ind_mini(std::string symbol, std::string& buffer, FT& functor);
+
+	template <class FT>
+	unsigned int stream_ticker_all_mini(std::string& buffer, FT& functor);
+
+	template <class FT>
+	unsigned int stream_ticker_ind(std::string symbol, std::string& buffer, FT& functor);
+
+	template <class FT>
+	unsigned int stream_ticker_all(std::string& buffer, FT& functor);
+
+	template <class FT>
+	unsigned int stream_ticker_ind_book(std::string symbol, std::string& buffer, FT& functor);
+
+	template <class FT>
+	unsigned int stream_ticker_all_book(std::string& buffer, FT& functor);
+
+	template <class FT>
+	unsigned int stream_depth_partial(std::string symbol, std::string& buffer, FT& functor, unsigned int levels = 5, unsigned int interval = 1000); // todo: different intervals for different fronts
+
+	template <class FT>
+	unsigned int stream_depth_diff(std::string symbol, std::string& buffer, FT& functor, unsigned int interval = 1000);
+
+	template <class FT>
+	unsigned int stream_userStream(std::string& buffer, FT& functor); // todo: for margin, spot, etc...
+
 
 
 	// Library methods
@@ -252,9 +298,6 @@ public:
 
 	bool exchange_status();
 
-	Json::Value futures_transfer(Params* params_obj);
-	Json::Value futures_transfer_history(Params* params_obj);
-
 	struct Wallet 
 	{
 		Client<T>* user_client;
@@ -277,6 +320,29 @@ public:
 		Json::Value asset_details(Params* params_obj = nullptr); 
 		Json::Value trading_fees(Params* params_obj = nullptr); 
 	}; 
+
+	struct FuturesWallet
+	{
+		Client<T>* user_client;
+		explicit FuturesWallet(Client<T>& client);
+		explicit FuturesWallet(const Client<T>& client);
+		~FuturesWallet();
+
+		Json::Value futures_transfer(Params* params_obj);
+		Json::Value futures_transfer_history(Params* params_obj); 
+		Json::Value collateral_borrow(Params* params_obj);
+		Json::Value collateral_borrow_history(Params* params_obj = nullptr);
+		Json::Value collateral_repay(Params* params_obj);
+		Json::Value collateral_repay_history(Params* params_obj = nullptr);
+		Json::Value collateral_wallet(Params* params_obj = nullptr);
+		Json::Value collateral_info(Params* params_obj = nullptr);
+		Json::Value collateral_adjust_calc_rate(Params* params_obj);
+		Json::Value collateral_adjust_get_max(Params* params_obj);
+		Json::Value collateral_adjust(Params* params_obj);
+		Json::Value collateral_adjust_history(Params* params_obj = nullptr);
+		Json::Value collateral_liquidation_history(Params* params_obj = nullptr);
+
+	};
 
 	struct SubAccount // for corporate accounts
 	{
@@ -481,6 +547,8 @@ public:
 
 	Json::Value pos_adl_quantile_est(Params* params_obj = nullptr); // todo: define, default param
 
+	// global for 'futures' methods. note: base path is spot
+
 
 
 	// -------------------  inter-future crtp ONLY
@@ -495,13 +563,52 @@ public:
 
 
 	// note that the following four might be only for coin margined market data
-	Json::Value continues_klines(Params* params_obj); // todo: define, crtp?
-	Json::Value index_klines(Params* params_obj); // todo: define, crtp?
-	Json::Value mark_klines(Params* params_obj); // todo: define, crtp?
+	Json::Value continues_klines(Params* params_obj); 
+	Json::Value index_klines(Params* params_obj); 
+	Json::Value mark_klines(Params* params_obj); 
 
 	// note that the following four might be only for coin margined market data
 
-	Json::Value funding_rate_history(Params* params_obj); // todo: define, crtp?
+	Json::Value funding_rate_history(Params* params_obj); 
+
+	// WS Streams
+
+// -- Global that are going deeper to USDT and COIN
+
+	template <class FT>
+	unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor);
+
+
+	// -- going deeper...
+
+	// todo: define global for both
+
+	template <class FT>
+	unsigned int stream_markprice(std::string symbol, std::string& buffer, FT& functor, unsigned int interval = 1000);
+
+	template <class FT>
+	unsigned int stream_liquidation_orders(std::string symbol, std::string& buffer, FT& functor);
+
+	template <class FT>
+	unsigned int stream_liquidation_orders_all(std::string& buffer, FT& functor);
+
+	template <class FT>
+	unsigned int v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
+
+	template <class FT>
+	unsigned int v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only Coin
+
+	template <class FT>
+	unsigned int v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only coin
+
+	template <class FT>
+	unsigned int v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+
+	template <class FT>
+	unsigned int v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+
+	template <class FT>
+	unsigned int v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
 
 
 	// end CRTP
@@ -514,10 +621,6 @@ public:
 	Json::Value taker_long_short_ratio(Params* params_obj);
 	Json::Value basis_data(Params* params_obj);
 
-
-	unsigned int aggTrade(std::string symbol);
-	template <class FT>
-	unsigned int userStream(std::string& buffer, FT& functor);
 
 	~FuturesClient();
 };
@@ -564,9 +667,8 @@ public:
 
 	// trading endpoints
 
-// -- mutual with spot
+	// -- mutual with spot
 
-	Json::Value v__test_new_order(Params* params_obj);
 	Json::Value v__new_order(Params* params_obj);
 	Json::Value v__cancel_order(Params* params_obj);
 	Json::Value v__cancel_all_orders(Params* params_obj);
@@ -597,6 +699,35 @@ public:
 	// -- unique to USDT endpoint
 
 	Json::Value v_pos_adl_quantile_est(Params* params_obj = nullptr); // todo: define, default param
+
+
+	// WS Streams
+
+	// -- Global that are going deeper to USDT and COIN
+
+
+
+	// -- going deeper...
+
+
+	template <class FT>
+	unsigned int v__stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
+
+	template <class FT>
+	unsigned int v__stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
+
+	template <class FT>
+	unsigned int v__stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
+
+	template <class FT>
+	unsigned int v__stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
+
+	template <class FT>
+	unsigned int v__stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval); // only coin
+
+	template <class FT>
+	unsigned int v__stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval); // only coin
+
 
 	~FuturesClientUSDT();
 };
@@ -644,7 +775,6 @@ public:
 
 // -- mutual with spot
 
-	Json::Value v__test_new_order(Params* params_obj);
 	Json::Value v__new_order(Params* params_obj);
 	Json::Value v__cancel_order(Params* params_obj);
 	Json::Value v__cancel_all_orders(Params* params_obj);
@@ -675,6 +805,29 @@ public:
 	// -- unique to USDT endpoint
 
 	Json::Value v_pos_adl_quantile_est(Params* params_obj = nullptr);
+
+	// WS Streams
+
+
+	// -- going deeper...
+
+	template <class FT>
+	unsigned int v__stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
+
+	template <class FT>
+	unsigned int v__stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
+
+	template <class FT>
+	unsigned int v__stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
+
+	template <class FT>
+	unsigned int v__stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
+
+	template <class FT>
+	unsigned int v__stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval); // only coin
+
+	template <class FT>
+	unsigned int v__stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval); // only coin
 
 	~FuturesClientCoin();
 };
@@ -723,6 +876,11 @@ private:
 	Json::Value oco_all_orders(Params* params_obj = nullptr);
 	Json::Value oco_open_orders(Params* params_obj = nullptr);
 
+	// WS Streams
+
+	template <class FT>
+	unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor); // todo: only spot
+
 
 	// crtp infrastructure start
 
@@ -744,8 +902,7 @@ public:
 	SpotClient();
 	SpotClient(std::string key, std::string secret);
 
-	template <class FT>
-	unsigned int aggTrade(std::string symbol, std::string& buffer, FT& functor);
+
 	template <class FT>
 	unsigned int userStream(std::string& buffer, FT& functor);
 

@@ -19,7 +19,7 @@ Client<T>::~Client()
 	delete _ws_client;
 };
 
-//  ------------------------------ End Client General methods - Infrastructure
+//  ------------------------------ End | Client General methods - Infrastructure
 
 //  ------------------------------ Start | Client CRTP methods - Infrastructure
 
@@ -44,7 +44,7 @@ void Client<T>::ws_auto_reconnect(const bool& reconnect) { static_cast<T*>(this)
 template<typename T>
 void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
 
-//  ------------------------------ End Client CRTP methods - Infrastructure
+//  ------------------------------ End | Client CRTP methods - Infrastructure
 
 //  ------------------------------ Start | Client CRTP methods - Market Data Endpoints 
 
@@ -84,7 +84,7 @@ Json::Value Client<T>::get_order_book_ticker(Params* params_obj) { return static
 //  ------------------------------ End | Client CRTP methods - Market Data Endpoints 
 
 
-//  ------------------------------ Start Client CRTP methods - Trade Endpoints
+//  ------------------------------ Start | Client CRTP methods - Trade Endpoints
 
 template<typename T>
 Json::Value Client<T>::test_new_order(Params* params_obj) { return static_cast<T*>(this)->v_test_new_order(); }
@@ -114,11 +114,226 @@ template<typename T>
 Json::Value Client<T>::account_trades_list(Params* params_obj) { return static_cast<T*>(this)->v_account_trades_list(params_obj); }
 
 
-//  ------------------------------ End Client CRTP methods - Trade Endpoints
+//  ------------------------------ End | Client CRTP methods - Trade Endpoints
+
+//  ------------------------------ Start | Client global + CRTP methods - WS Streams
 
 
+template<typename T>
+template <class FT>
+unsigned int  Client<T>::stream_Trade(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_Trade(symbol, buffer, functor); }
 
-//  ------------------------------ Start Client General methods - Infrastructure
+
+template<typename T>
+template <class FT>
+unsigned int  Client<T>::stream_aggTrade(std::string symbol, std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_kline(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "kline_" + interval;
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_ind_mini(std::string symbol, std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/!miniTicker@arr";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_ind(std::string symbol, std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/" + symbol + "@" + "ticker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/!ticker@arr";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_ind_book(std::string symbol, std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/" + symbol + "@" + "bookTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/!bookTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_depth_partial(std::string symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_depth_diff(std::string symbol, std::string& buffer, FT& functor, unsigned int interval)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+
+template<typename T>
+template <class FT>
+unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor)
+{
+	RestSession* keep_alive_session = new RestSession{};
+	try
+	{
+		this->set_headers(keep_alive_session);
+		std::string full_stream_name = "/ws/" + this->_get_listen_key();
+
+		std::string renew_key_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
+
+		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
+
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cout << "already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
+	}
+	catch (...)
+	{
+		delete keep_alive_session;
+		throw("bad_stream");
+	}
+}
+
+
+//  ------------------------------ End | Client Global + CRTP methods - WS Streams
+
+
+//  ------------------------------ Start | Client General methods - Infrastructure
+
 
 template <typename T>
 bool Client<T>::init_rest_session()
@@ -251,46 +466,14 @@ bool Client<T>::exchange_status() // todo: is this abstract?
 	return this->_rest_client->_getreq(full_path)["response"]["status"].asBool();
 }
 
-template <typename T>
-Json::Value Client<T>::futures_transfer(Params* params_obj)
-{
-	std::unique_ptr<Params>unique_param_ptr;
-	if (!params_obj)
-	{
-		unique_param_ptr = std::unique_ptr<Params>(new Params{});
-		params_obj = unique_param_ptr.get();
-	}
-	std::string query = this->_generate_query(*params_obj, 1);
-	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/transfer" + query);
-	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
-	return response;
-}
-
-template <typename T>
-Json::Value Client<T>::futures_transfer_history(Params* params_obj)
-{
-	std::unique_ptr<Params>unique_param_ptr;
-	if (!params_obj)
-	{
-		unique_param_ptr = std::unique_ptr<Params>(new Params{});
-		params_obj = unique_param_ptr.get();
-	}
-	std::string query = this->_generate_query(*params_obj, 1);
-	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/transfer" + query);
-	Json::Value response = (this->_rest_client)->_getreq(full_path);
-
-	return response;
-}
-
-
-//  ------------------------------ End Client General methods - Infrastructure
+//  ------------------------------ End | Client General methods - Infrastructure
 
 
 // ***************************************************************************
 
 
-//  ------------------------------ Start Client Wallet - User Wallet Endpoints
+//  ------------------------------ Start | Client Wallet - User Wallet Endpoints
 
 // ------ Class methods
 
@@ -512,13 +695,211 @@ Json::Value Client<T>::Wallet::trading_fees(Params* params_obj)
 	return response;
 }; 
 
-//  ------------------------------ End Client Wallet - User Wallet Endpoints
+//  ------------------------------ End | Client Wallet - User Wallet Endpoints
+
+// ***************************************************************************
+
+
+//  ------------------------------ Start | Client FuturesWallet - User FuturesWallet Endpoints
+
+// ------ Class methods
+
+template <typename T>
+Client<T>::FuturesWallet::FuturesWallet(Client<T>& client_obj)
+	: user_client{ &client_obj } 
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::FuturesWallet::FuturesWallet(const Client<T>& client_obj)
+	: user_client{ &client_obj }
+{
+	if (user_client->_public_client) throw("public client");
+}
+
+template <typename T>
+Client<T>::FuturesWallet::~FuturesWallet()
+{
+	user_client = nullptr;
+}
+
+// ------ Endpoint methods
+
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::futures_transfer(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/transfer" + query);
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::futures_transfer_history(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/transfer" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_borrow(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/borrow" + query);
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_borrow_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/borrow/history" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_repay(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/repay" + query);
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_repay_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/repay/history" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_wallet(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/wallet" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_info(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/configs" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/calcAdjustLevel" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/calcMaxAdjustAmount" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_adjust(Params* params_obj)
+{
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/adjustCollateral" + query);
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_adjust_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/adjustCollateral/history" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_liquidation_history(Params* params_obj)
+{
+	std::unique_ptr<Params>unique_param_ptr;
+	if (!params_obj)
+	{
+		unique_param_ptr = std::unique_ptr<Params>(new Params{});
+		params_obj = unique_param_ptr.get();
+	}
+	std::string query = this->_generate_query(*params_obj, 1);
+	std::string full_path = this->_BASE_REST_SPOT + ("/sapi/v1/futures/loan/liquidationHistory" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+//  ------------------------------ End | Client FuturesWallet - User FuturesWallet Endpoints
 
 
 // ***************************************************************************
 
 
-//  ------------------------------ Start Client SubAccount - User SubAccount Endpoints
+//  ------------------------------ Start | Client SubAccount - User SubAccount Endpoints
 
 // ------ Class methods
 
@@ -758,11 +1139,11 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_history(Params* params_ob
 	return response;
 };
 
-//  ------------------------------ End Client SubAccount - User SubAccount Endpoints
+//  ------------------------------ End | Client SubAccount - User SubAccount Endpoints
 
 // ***************************************************************************
 
-//  ------------------------------ Start Client MarginAccount - User MarginAccount Endpoints
+//  ------------------------------ Start | Client MarginAccount - User MarginAccount Endpoints
 
 template <typename T>
 Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
@@ -1114,11 +1495,11 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(Params* 
 	return response;
 };
 
-//  ------------------------------ End Client MarginAccount - User MarginAccount Endpoints
+//  ------------------------------ End | Client MarginAccount - User MarginAccount Endpoints
 
 // ***************************************************************************
 
-//  ------------------------------ Start Client Savings - User Savings Endpoints
+//  ------------------------------ Start | Client Savings - User Savings Endpoints
 
 template <typename T>
 Client<T>::Savings::Savings(Client<T>& client_obj)
@@ -1285,12 +1666,12 @@ Json::Value Client<T>::Savings::get_interest_history(Params* params_obj)
 	return response;
 };
 
-//  ------------------------------ End Client Savings - User Savings Endpoints
+//  ------------------------------ End | Client Savings - User Savings Endpoints
 
 
 // ***************************************************************************
 
-//  ------------------------------ Start Client Mining - User Mining Endpoints
+//  ------------------------------ Start | Client Mining - User Mining Endpoints
 
 template <typename T>
 Client<T>::Mining::Mining(Client<T>& client_obj)
@@ -1385,13 +1766,13 @@ Json::Value Client<T>::Mining::account_list(Params* params_obj)
 };
 
 
-//  ------------------------------ End Client Mining - User Mining Endpoints
+//  ------------------------------ End | Client Mining - User Mining Endpoints
 
 
 // =======================================================================================================
 
 
-//  ------------------------------ Start SpotClient General methods - Infrastructure
+//  ------------------------------ Start | SpotClient General methods - Infrastructure
 
 SpotClient::SpotClient() : Client()
 {
@@ -1410,9 +1791,9 @@ SpotClient::SpotClient(std::string key, std::string secret)
 SpotClient::~SpotClient() // todo: is delete restand ws client needed ? ? ?
 {};
 
-//  ------------------------------ End SpotClient General methods - Infrastructure
+//  ------------------------------ End | SpotClient General methods - Infrastructure
 
-//  ------------------------------ Start SpotClient CRTP methods - Client infrastructure
+//  ------------------------------ Start | SpotClient CRTP methods - Client infrastructure
 
 bool SpotClient::v_init_ws_session()
 {
@@ -1470,9 +1851,9 @@ void SpotClient::v_ws_auto_reconnect(const bool& reconnect)
 	this->_ws_client->_set_reconnect(reconnect);
 }
 
-//  ------------------------------ End SpotClient CRTP methods - Client infrastructure
+//  ------------------------------ End | SpotClient CRTP methods - Client infrastructure
 
-//  ------------------------------ Start SpotClient CRTP methods - Market Data Implementations
+//  ------------------------------ Start | SpotClient CRTP methods - Market Data Implementations
 
 bool SpotClient::v_ping_client()
 {
@@ -1566,10 +1947,10 @@ Json::Value SpotClient::v_get_order_book_ticker(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End SpotClient CRTP methods - Market Data Implementations
+//  ------------------------------ End | SpotClient CRTP methods - Market Data Implementations
 
 
-//  ------------------------------ Start SpotClient CRTP methods - Trade Implementations
+//  ------------------------------ Start | SpotClient CRTP methods - Trade Implementations
 
 
 // -- Up to 'Client' Level
@@ -1709,9 +2090,9 @@ Json::Value SpotClient::v_account_trades_list(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End SpotClient CRTP methods - Trade Implementations
+//  ------------------------------ End | SpotClient CRTP methods - Trade Implementations
 
-//  ------------------------------ Start SpotClient General methods - Trade Implementations 
+//  ------------------------------ Start | SpotClient General methods - Trade Implementations 
 
 Json::Value SpotClient::oco_new_order(Params* params_obj)
 {
@@ -1788,15 +2169,15 @@ Json::Value SpotClient::oco_open_orders(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End SpotClient General methods - Trade Implementations 
+//  ------------------------------ End | SpotClient General methods - Trade Implementations 
 
-//  ------------------------------ Start SpotClient CRTP methods - WS Streams 
+
+//  ------------------------------ Start | SpotClient General methods - WS Streams
 
 template <class FT>
-unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& functor)
+unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
+	std::string full_stream_name = "/ws/" + symbol + '@' + "trade";
 	if (this->_ws_client->is_open(full_stream_name))
 	{
 		std::cout << "already exists";
@@ -1809,44 +2190,13 @@ unsigned int SpotClient::aggTrade(std::string symbol, std::string& buffer, FT& f
 	}
 }
 
-template <class FT>
-unsigned int SpotClient::userStream(std::string& buffer, FT& functor)
-{
-	RestSession* keep_alive_session = new RestSession{};
-	try
-	{
-		this->set_headers(keep_alive_session);
-		std::string full_stream_name = "/ws/" + this->_get_listen_key();
-
-		std::string renew_key_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
-
-		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
-
-		if (this->_ws_client->is_open(full_stream_name))
-		{
-			std::cout << "already exists";
-			return 0;
-		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
-	}
-	catch (...)
-	{
-		delete keep_alive_session;
-		throw("bad_stream");
-	}
-}
-
-//  ------------------------------ End SpotClient CRTP methods - WS Streams 
+//  ------------------------------ End | SpotClient General methods - WS Streams
 
 
 // =======================================================================================================
 
 
-//  ------------------------------ Start FuturesClient General methods - Infrastructure
+//  ------------------------------ Start | FuturesClient General methods - Infrastructure
 
 template <typename CT>
 FuturesClient<CT>::FuturesClient()
@@ -1880,10 +2230,10 @@ bool FuturesClient<CT>::get_testnet_mode()
 	return this->_testnet_mode;
 }
 
-//  ------------------------------ End FuturesClient General methods - Infrastructure
+//  ------------------------------ End | FuturesClient General methods - Infrastructure
 
 
-//  ------------------------------ Start FuturesClient CRTP methods - Client infrastructure
+//  ------------------------------ Start | FuturesClient CRTP methods - Client infrastructure
 
 template <typename CT>
 bool FuturesClient<CT>::v_init_ws_session()
@@ -1913,38 +2263,6 @@ std::string FuturesClient<CT>::v__get_listen_key()
 	return response["response"]["listenKey"].asString();
 }
 
-template <typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::userStream(std::string& buffer, FT& functor)
-{
-	RestSession* keep_alive_session = new RestSession{ this->_api_key, this->_api_secret };
-
-	try
-	{
-		this->set_headers(keep_alive_session);
-
-		std::string renew_key_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey";
-
-		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
-
-		std::string full_stream_name = "/ws/" + this->_get_listen_key();
-		if (this->_ws_client->is_open(full_stream_name))
-		{
-			std::cout << "already exists";
-			return 0;
-		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
-	}
-	catch (...)
-	{
-		delete keep_alive_session;
-		throw("bad_ws_stream");
-	}
-}
 
 template <typename CT>
 void FuturesClient<CT>::v_close_stream(const std::string& symbol, const std::string& stream_name)
@@ -1984,9 +2302,9 @@ std::vector<std::string> FuturesClient<CT>::v_get_open_streams()
 	return this->_ws_client->open_streams();
 }
 
-//  ------------------------------ End FuturesClient CRTP methods - Client infrastructure
+//  ------------------------------ End | FuturesClient CRTP methods - Client infrastructure
 
-//  ------------------------------ Start FuturesClient CRTP methods - Market Data Implementations
+//  ------------------------------ Start | FuturesClient CRTP methods - Market Data Implementations
 
 template<typename CT>
 unsigned long long FuturesClient<CT>::v_exchange_time() { return static_cast<CT*>(this)->v__exchange_time(); }
@@ -2021,10 +2339,10 @@ Json::Value FuturesClient<CT>::v_get_ticker(Params* params_obj) { return static_
 template<typename CT>
 Json::Value FuturesClient<CT>::v_get_order_book_ticker(Params* params_obj) { return static_cast<CT*>(this)->v__get_order_book_ticker(params_obj); }
 
-//  ------------------------------ End FuturesClient CRTP methods - Market Data Implementations
+//  ------------------------------ End | FuturesClient CRTP methods - Market Data Implementations
 
 
-//  ------------------------------ Start FuturesClient CRTP methods - Unique Endpoints
+//  ------------------------------ Start | FuturesClient CRTP methods - Unique Endpoints
 
 template<typename CT>
 Json::Value FuturesClient<CT>::mark_price(Params* params_obj) { return static_cast<CT*>(this)->v_mark_price(params_obj); }
@@ -2047,10 +2365,10 @@ Json::Value FuturesClient<CT>::mark_klines(Params* params_obj) { return static_c
 template<typename CT>
 Json::Value FuturesClient<CT>::funding_rate_history(Params* params_obj) { return static_cast<CT*>(this)->v_funding_rate_history(params_obj); }
 
-//  ------------------------------ End FuturesClient CRTP methods - Unique Endpoints
+//  ------------------------------ End | FuturesClient CRTP methods - Unique Endpoints
 
 
-//  ------------------------------ Start FuturesClient CRTP methods - Trade Implementations 
+//  ------------------------------ Start | FuturesClient CRTP methods - Trade Implementations 
 
 // -- Up to 'Client' Level
 
@@ -2129,22 +2447,101 @@ template<typename CT>
 Json::Value FuturesClient<CT>::pos_adl_quantile_est(Params* params_obj) { return static_cast<CT*>(this)->v_pos_adl_quantile_est(params_obj); }
 
 
-//  ------------------------------ End FuturesClient CRTP methods - Trade Implementations
+//  ------------------------------ End | FuturesClient CRTP methods - Trade Implementations
 
 
-//  ------------------------------ Start FuturesClient CRTP methods - WS Streams 
+//  ------------------------------ Start | FuturesClient Global + CRTP methods - WS Streams 
 
-// todo: make UserStream abstract and add here
-template <typename CT> // todo: crtp
-unsigned int FuturesClient<CT>::aggTrade(std::string symbol)
+
+template <typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
-	return 0;
+	throw("does not exist for futures");
 }
 
-//  ------------------------------ End FuturesClient CRTP methods - WS Streams 
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor) { return static_cast<FT*>(this)->v__markprice_all(pair, buffer, functor); }  // only USDT
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<FT*>(this)->v__indexprice(pair, buffer, functor, interval); } // only Coin
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<FT*>(this)->v__markprice_by_pair(pair, buffer, functor, interval); } // only coin
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval) { return static_cast<FT*>(this)->v__kline_contract(pair_and_type, buffer, functor, interval); } // only coin
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval) { return static_cast<FT*>(this)->v__kline_index(pair, buffer, functor, interval); } // only coin
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<FT*>(this)->v__kline_markprice(symbol, buffer, functor, interval); } // only coin
 
 
-//  ------------------------------ Start FuturesClient General methods - Markets Stats
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::stream_markprice(std::string symbol, std::string& buffer, FT& functor, unsigned int interval)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "markPrice" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+																																																							   
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::stream_liquidation_orders(std::string symbol, std::string& buffer, FT& functor) 
+{
+	std::string full_stream_name = "/ws/" + symbol + "@" + "forceOrder";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/!forceOrder@arr";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+
+//  ------------------------------ End | FuturesClient Global + CRTP methods - WS Streams 
+
+
+//  ------------------------------ Start | FuturesClient General methods - Markets Stats
 
 template <typename CT>
 Json::Value FuturesClient<CT>::open_interest_stats(Params* params_obj)
@@ -2197,13 +2594,13 @@ Json::Value FuturesClient<CT>::basis_data(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End FuturesClient General methods - Markets Stats
+//  ------------------------------ End | FuturesClient General methods - Markets Stats
 
 
 // =======================================================================================================
 
 
-//  ------------------------------ Start FuturesClientUSDT General methods - Infrastructure
+//  ------------------------------ Start | FuturesClientUSDT General methods - Infrastructure
 
 FuturesClientUSDT::FuturesClientUSDT()
 	: FuturesClient()
@@ -2216,7 +2613,7 @@ FuturesClientUSDT::FuturesClientUSDT(std::string key, std::string secret)
 FuturesClientUSDT::~FuturesClientUSDT()
 {}
 
-//  ------------------------------ Start FuturesClientUSDT CRTP methods - Market Data Implementations
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - Market Data Implementations
 
 inline bool FuturesClientUSDT::v__ping_client()
 {
@@ -2322,10 +2719,10 @@ Json::Value FuturesClientUSDT::v__get_order_book_ticker(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End FuturesClientUSDT CRTP methods - Market Data Implementations
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - Market Data Implementations
 
 
-//  ------------------------------ Start FuturesClientUSDT CRTP methods - Unique Endpoints
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - Unique Endpoints
 
 Json::Value FuturesClientUSDT::v_mark_price(Params* params_obj)
 {
@@ -2380,9 +2777,9 @@ Json::Value FuturesClientUSDT::v_funding_rate_history(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End FuturesClientUSDT CRTP methods - Unique Endpoints
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - Unique Endpoints
 
-//  ------------------------------ Start FuturesClientUSDT CRTP methods - Trade Implementations 
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - Trade Implementations 
 
 
 // -- Up to 'Client' Level
@@ -2669,13 +3066,66 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(Params* params_obj)
 
 	return response;
 }
-//  ------------------------------ End FuturesClientUSDT CRTP methods - Trade Implementations 
+
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - Trade Implementations 
+
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
+
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_markprice_all(std::string symbol, std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval)
+{
+	throw("non-existing for usdt");
+}
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
+{
+	throw("non-existing for usdt");
+}
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval)
+{
+	throw("non-existing for usdt");
+}
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval)
+{
+	throw("non-existing for usdt");
+}
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+{
+	throw("non-existing for usdt");
+}
+
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - WS Streams
 
 
 // =======================================================================================================
 
 
-//  ------------------------------ Start FuturesClientCoin General methods - Infrastructure
+//  ------------------------------ Start | FuturesClientCoin General methods - Infrastructure
 
 FuturesClientCoin::FuturesClientCoin()
 	: FuturesClient()
@@ -2688,9 +3138,9 @@ FuturesClientCoin::FuturesClientCoin(std::string key, std::string secret)
 FuturesClientCoin::~FuturesClientCoin()
 {}
 
-//  ------------------------------ End FuturesClientCoin General methods - Infrastructure
+//  ------------------------------ End | FuturesClientCoin General methods - Infrastructure
 
-//  ------------------------------ Start FuturesClientCoin CRTP methods - Market Data Implementations
+//  ------------------------------ Start | FuturesClientCoin CRTP methods - Market Data Implementations
 
 inline bool FuturesClientCoin::v__ping_client()
 {
@@ -2796,9 +3246,9 @@ Json::Value FuturesClientCoin::v__get_order_book_ticker(Params* params_obj)
 	return response;
 }
 
-//  ------------------------------ End FuturesClientCoin CRTP methods - Market Data Implementations
+//  ------------------------------ End | FuturesClientCoin CRTP methods - Market Data Implementations
 
-//  ------------------------------ Start FuturesClientUSDT CRTP methods - Trade Implementations 
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - Trade Implementations 
 
 
 // -- Up to 'Client' Level
@@ -3087,11 +3537,102 @@ Json::Value FuturesClientCoin::v_pos_adl_quantile_est(Params* params_obj)
 	throw("no such endpoint :)"); // todo: no implementation
 }
 
-//  ------------------------------ End FuturesClientUSDT CRTP methods - Trade Implementations 
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - Trade Implementations 
+
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
 
 
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_markprice_all(std::string symbol, std::string& buffer, FT& functor) // here
+{
+	throw("non-existing for coin");
+}
 
-//  ------------------------------ Start FuturesClientCoin CRTP methods - Unique Endpoints
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval)
+{
+	std::string full_stream_name = "/ws/" + pair + "@" + "indexPrice" + "@" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
+{
+	std::string full_stream_name = "/ws/" + pair + "@" + "markPrice" + "@" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval)
+{
+	std::string full_stream_name = "/ws/" + pair_and_type + "@" + "continuousKline_" + (interval);
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval)
+{
+	std::string full_stream_name = "/ws/" + pair + "@" + "indexPriceKline_" + (interval);
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+{
+	std::string full_stream_name = "/ws/" + symbol + "@" + "markPriceKline_" + (interval);
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - WS Streams
+
+
+//  ------------------------------ Start | FuturesClientCoin CRTP methods - Unique Endpoints
 
 Json::Value FuturesClientCoin::v_mark_price(Params* params_obj)
 {
@@ -3155,13 +3696,21 @@ Json::Value FuturesClientCoin::v_funding_rate_history(Params* params_obj)
 	throw("non-existing endpoint");
 }
 
-//  ------------------------------ End FuturesClientCoin CRTP methods - Unique Endpoints
+//  ------------------------------ End | FuturesClientCoin CRTP methods - Unique Endpoints
+
+//  ------------------------------ Start | FuturesClientCoin CRTP methods - WS Streams
+
+// -- Global (up to Client level)
+// todo: if testnet
+
+
+//  ------------------------------ End | FuturesClientCoin CRTP methods - WS Streams
 
 
 // =======================================================================================================
 
 
-//  ------------------------------ Start Params methods
+//  ------------------------------ Start | Params methods
 
 Params::Params()
 	: default_recv{ 0 }, default_recv_amt{ 0 }, flush_params{ 0 }
@@ -3274,4 +3823,4 @@ bool Params::empty()
 	return this->param_map.empty();
 }
 
-//  ------------------------------ End Params methods
+//  ------------------------------ End | Params methods
