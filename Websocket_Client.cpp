@@ -3,8 +3,8 @@
 
 
 
-WebsocketClient::WebsocketClient(std::string host, std::string port)
-    : _host{ host }, _port{ port }, _reconnect_on_error{ 0 }, refresh_listenkey_interval{ 3300 }
+WebsocketClient::WebsocketClient(std::string host, unsigned int port)
+    : _host{ host }, _port{ std::to_string(port) }, _reconnect_on_error{ 0 }, refresh_listenkey_interval{ 3300 }
 {}
 
 
@@ -26,9 +26,9 @@ std::vector<std::string> WebsocketClient::open_streams()
 	return results;
 };
 
-bool WebsocketClient::is_open(const std::string& full_stream_name)
+bool WebsocketClient::is_open(const std::string& full_stream_name) const
 {
-	std::unordered_map<std::string, bool>::iterator itr;
+	std::unordered_map<std::string, bool>::const_iterator itr;
 
 	for (itr = this->running_streams.begin(); itr != this->running_streams.end(); itr++)
 	{
@@ -116,6 +116,11 @@ void WebsocketClient::_set_reconnect(const bool& reconnect)
 	this->_reconnect_on_error = reconnect;
 }
 
+void WebsocketClient::set_host_port(const std::string& new_host, const unsigned int& new_port)
+{
+	this->_host = new_host;
+	this->_port = std::to_string(new_port);
+}
 
 WebsocketClient::~WebsocketClient()
 {
