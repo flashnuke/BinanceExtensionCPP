@@ -116,58 +116,220 @@ Json::Value Client<T>::account_trades_list(Params* params_obj) { return static_c
 
 //  ------------------------------ End | Client CRTP methods - Trade Endpoints
 
-//  ------------------------------ Start | Client CRTP methods - WS Streams
+//  ------------------------------ Start | Client global + CRTP methods - WS Streams
+
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_aggTrade(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_aggTrade(symbol, buffer, functor); }
+unsigned int  Client<T>::stream_Trade(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_Trade(symbol, buffer, functor); }
+
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_Trade(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_Trade(symbol, buffer, functor); } // todo: only for spot
+unsigned int  Client<T>::stream_aggTrade(std::string symbol, std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_kline(std::string symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<T*>(this)->v_stream_kline(symbol, buffer, functor, interval); } // todo: only for spot
+unsigned int Client<T>::stream_kline(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "kline_" + interval;
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_ticker_ind_mini(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_ind_mini(symbol, buffer, functor); }
+unsigned int Client<T>::stream_ticker_ind_mini(std::string symbol, std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_all_mini(buffer, functor); }
+unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/!miniTicker@arr";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_ticker_ind(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_ind(symbol, buffer, functor); }
+unsigned int Client<T>::stream_ticker_ind(std::string symbol, std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/" + symbol + "@" + "ticker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_all(buffer, functor); }
+unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/!ticker@arr";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_ticker_ind_book(std::string symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_ind_book(symbol, buffer, functor); }
+unsigned int Client<T>::stream_ticker_ind_book(std::string symbol, std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/" + symbol + "@" + "bookTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_ticker_all_book(buffer, functor); }
+unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/!bookTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_depth_partial(std::string symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval) { return static_cast<T*>(this)->v_stream_depth_partial(symbol, buffer, functor, levels, interval); } // todo: different intervals for different fronts
+unsigned int Client<T>::stream_depth_partial(std::string symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_depth_diff(std::string symbol, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<T*>(this)->v_stream_depth_diff(symbol, buffer, functor, interval); }
+unsigned int Client<T>::stream_depth_diff(std::string symbol, std::string& buffer, FT& functor, unsigned int interval)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_userStream(buffer, functor); } // todo: for margin, spot, etc...
+unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor)
+{
+	RestSession* keep_alive_session = new RestSession{};
+	try
+	{
+		this->set_headers(keep_alive_session);
+		std::string full_stream_name = "/ws/" + this->_get_listen_key();
+
+		std::string renew_key_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
+
+		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
+
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cout << "already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
+	}
+	catch (...)
+	{
+		delete keep_alive_session;
+		throw("bad_stream");
+	}
+}
 
 
-//  ------------------------------ End | Client CRTP methods - WS Streams
+//  ------------------------------ End | Client Global + CRTP methods - WS Streams
 
 
 //  ------------------------------ Start | Client General methods - Infrastructure
@@ -2009,31 +2171,12 @@ Json::Value SpotClient::oco_open_orders(Params* params_obj)
 
 //  ------------------------------ End | SpotClient General methods - Trade Implementations 
 
-//  ------------------------------ Start | SpotClient CRTP methods - WS Streams 
 
-// WS Streams
-
-template <class FT>
-unsigned int SpotClient::v_stream_aggTrade(std::string symbol, std::string& buffer, FT& functor)
-{
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
-	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-}
+//  ------------------------------ Start | SpotClient General methods - WS Streams
 
 template <class FT>
-unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
+unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
 	std::string full_stream_name = "/ws/" + symbol + '@' + "trade";
 	if (this->_ws_client->is_open(full_stream_name))
 	{
@@ -2047,192 +2190,7 @@ unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor
 	}
 }
 
-template <class FT>
-unsigned int v_stream_kline(std::string symbol, std::string& buffer, FT& functor, std::string interval)
-{
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + symbol + '@' + "kline_" + interval;
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
-	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-}
-
-template <class FT>
-unsigned int v_stream_ticker_ind_mini(std::string symbol, std::string& buffer, FT& functor)
-{
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
-	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-}
-
-template <class FT>
-unsigned int v_stream_ticker_all_mini(std::string& buffer, FT& functor)
-{
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + "!miniTicker" + '@' + "arr";
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
-	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-}
-
-template <class FT>
-unsigned int v_stream_ticker_ind(std::string symbol, std::string& buffer, FT& functor)
-{
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + symbol + '@' + "ticker";
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
-	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-}
-
-template <class FT>
-unsigned int v_stream_ticker_all(std::string& buffer, FT& functor)
-{
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + "!ticker" + '@' + "arr";
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
-	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-}
-
-template <class FT>
-unsigned int v_stream_ticker_ind_book(std::string symbol, std::string& buffer, FT& functor)
-{
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + symbol + '@' + "bookTicker";
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
-	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-}
-
-template <class FT>
-unsigned int v_stream_ticker_all_book(std::string& buffer, FT& functor)
-{
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + "!bookTicker";
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
-	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-}
-
-template <class FT>
-unsigned int v_stream_depth_partial(std::string symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
-{
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + std::to_string(levels) + "@" + std::to_string(interval);
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
-	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-}
-
-template <class FT>
-unsigned int v_stream_depth_diff(std::string symbol, std::string& buffer, FT& functor, unsigned int interval)
-{
-	// note: symbol must be lowercase. don't add due to reduced performance (reconnect faster during bad times)
-	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval);
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
-	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-}
-
-
-template <class FT>
-unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor)
-{
-	RestSession* keep_alive_session = new RestSession{};
-	try
-	{
-		this->set_headers(keep_alive_session);
-		std::string full_stream_name = "/ws/" + this->_get_listen_key();
-
-		std::string renew_key_path = this->_BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
-
-		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
-
-		if (this->_ws_client->is_open(full_stream_name))
-		{
-			std::cout << "already exists";
-			return 0;
-		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
-	}
-	catch (...)
-	{
-		delete keep_alive_session;
-		throw("bad_stream");
-	}
-}
-
-//  ------------------------------ End | SpotClient CRTP methods - WS Streams 
+//  ------------------------------ End | SpotClient General methods - WS Streams
 
 
 // =======================================================================================================
@@ -2305,38 +2263,6 @@ std::string FuturesClient<CT>::v__get_listen_key()
 	return response["response"]["listenKey"].asString();
 }
 
-template <typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::userStream(std::string& buffer, FT& functor)
-{
-	RestSession* keep_alive_session = new RestSession{ this->_api_key, this->_api_secret };
-
-	try
-	{
-		this->set_headers(keep_alive_session);
-
-		std::string renew_key_path = this->_BASE_REST_FUTURES + "/fapi/v1/listenKey";
-
-		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
-
-		std::string full_stream_name = "/ws/" + this->_get_listen_key();
-		if (this->_ws_client->is_open(full_stream_name))
-		{
-			std::cout << "already exists";
-			return 0;
-		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
-	}
-	catch (...)
-	{
-		delete keep_alive_session;
-		throw("bad_ws_stream");
-	}
-}
 
 template <typename CT>
 void FuturesClient<CT>::v_close_stream(const std::string& symbol, const std::string& stream_name)
@@ -2524,16 +2450,95 @@ Json::Value FuturesClient<CT>::pos_adl_quantile_est(Params* params_obj) { return
 //  ------------------------------ End | FuturesClient CRTP methods - Trade Implementations
 
 
-//  ------------------------------ Start | FuturesClient CRTP methods - WS Streams 
+//  ------------------------------ Start | FuturesClient Global + CRTP methods - WS Streams 
 
-// todo: make UserStream abstract and add here
-template <typename CT> // todo: crtp
-unsigned int FuturesClient<CT>::aggTrade(std::string symbol)
+
+template <typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
-	return 0;
+	throw("does not exist for futures");
 }
 
-//  ------------------------------ End | FuturesClient CRTP methods - WS Streams 
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor) { return static_cast<FT*>(this)->v__markprice_all(pair, buffer, functor); }  // only USDT
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<FT*>(this)->v__indexprice(pair, buffer, functor, interval); } // only Coin
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<FT*>(this)->v__markprice_by_pair(pair, buffer, functor, interval); } // only coin
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval) { return static_cast<FT*>(this)->v__kline_contract(pair_and_type, buffer, functor, interval); } // only coin
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval) { return static_cast<FT*>(this)->v__kline_index(pair, buffer, functor, interval); } // only coin
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<FT*>(this)->v__kline_markprice(symbol, buffer, functor, interval); } // only coin
+
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::stream_markprice(std::string symbol, std::string& buffer, FT& functor, unsigned int interval)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "markPrice" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+																																																							   
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::stream_liquidation_orders(std::string symbol, std::string& buffer, FT& functor) 
+{
+	std::string full_stream_name = "/ws/" + symbol + "@" + "forceOrder";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/!forceOrder@arr";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+
+//  ------------------------------ End | FuturesClient Global + CRTP methods - WS Streams 
 
 
 //  ------------------------------ Start | FuturesClient General methods - Markets Stats
@@ -3061,7 +3066,60 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(Params* params_obj)
 
 	return response;
 }
+
 //  ------------------------------ End | FuturesClientUSDT CRTP methods - Trade Implementations 
+
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
+
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_markprice_all(std::string symbol, std::string& buffer, FT& functor)
+{
+	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval)
+{
+	throw("non-existing for usdt");
+}
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
+{
+	throw("non-existing for usdt");
+}
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval)
+{
+	throw("non-existing for usdt");
+}
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval)
+{
+	throw("non-existing for usdt");
+}
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+{
+	throw("non-existing for usdt");
+}
+
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - WS Streams
 
 
 // =======================================================================================================
@@ -3481,6 +3539,98 @@ Json::Value FuturesClientCoin::v_pos_adl_quantile_est(Params* params_obj)
 
 //  ------------------------------ End | FuturesClientUSDT CRTP methods - Trade Implementations 
 
+//  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
+
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_markprice_all(std::string symbol, std::string& buffer, FT& functor) // here
+{
+	throw("non-existing for coin");
+}
+
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval)
+{
+	std::string full_stream_name = "/ws/" + pair + "@" + "indexPrice" + "@" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
+{
+	std::string full_stream_name = "/ws/" + pair + "@" + "markPrice" + "@" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval)
+{
+	std::string full_stream_name = "/ws/" + pair_and_type + "@" + "continuousKline_" + (interval);
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval)
+{
+	std::string full_stream_name = "/ws/" + pair + "@" + "indexPriceKline_" + (interval);
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+{
+	std::string full_stream_name = "/ws/" + symbol + "@" + "markPriceKline_" + (interval);
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+}
+
+//  ------------------------------ End | FuturesClientUSDT CRTP methods - WS Streams
+
 
 //  ------------------------------ Start | FuturesClientCoin CRTP methods - Unique Endpoints
 
@@ -3547,6 +3697,14 @@ Json::Value FuturesClientCoin::v_funding_rate_history(Params* params_obj)
 }
 
 //  ------------------------------ End | FuturesClientCoin CRTP methods - Unique Endpoints
+
+//  ------------------------------ Start | FuturesClientCoin CRTP methods - WS Streams
+
+// -- Global (up to Client level)
+// todo: if testnet
+
+
+//  ------------------------------ End | FuturesClientCoin CRTP methods - WS Streams
 
 
 // =======================================================================================================
