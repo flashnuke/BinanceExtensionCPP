@@ -6,7 +6,7 @@
 // todo: Params move for set_param
 // todo: are params needed for ping and etc?
 // todo: add all 'Futures' under FuturesClient global. Note: base is spot
-// todo: add constexpr for methods path. if you can, find a way to do for all
+// todo: add constexpr for methods path. if you can, find a way to do for all (make constant parameters and refs?)
 // todo: listenkey for spot margin isolated margin...
 // todo: streams for testnet as well!
 // todo: delete old aggTrade and userstream
@@ -14,6 +14,7 @@
 // todo: leave default params only in client level
 // todo: "ms" in streams
 // todo: testnet for streams
+// todo: declare testnet_enable method as friend so you can change ws _host
 
 
 // DOCs todos:
@@ -23,6 +24,7 @@
 // 4. custom requests, pass params into query
 // 5. I let passing empty or none params so the user can receive the error and see whats missing! better than runtime error
 // 6. all structs require auth (even margin requires header)
+// 7. no default arguments for ws streams when using threads. Must specify...
 
 // First make everything for spot and then for futures
 
@@ -202,10 +204,14 @@ public:
 	const std::string _BASE_REST_FUTURES{ "https://fapi.binance.com" };
 	const std::string _BASE_REST_FUTURES_TESTNET{ "https://testnet.binancefuture.com" };
 	const std::string _BASE_REST_SPOT{ "https://api.binance.com" };
-	const std::string _WS_BASE_FUTURES{"fstream.binance.com"};
-	const std::string _WS_BASE_FUTURES_TESTNET{ "stream.binancefuture.com" };
+	const std::string _WS_BASE_FUTURES_USDT{"fstream.binance.com"};
+	const std::string _WS_BASE_FUTURES_USDT_USDTTESTNET{ "stream.binancefuture.com" };
+	const std::string _WS_BASE_FUTURES_COIN{ "dstream.binance.com" };
+	const std::string _WS_BASE_FUTURES_COIN_USDTTESTNET{ "dstream.binancefuture.com" };
 	const std::string _WS_BASE_SPOT{ "stream.binance.com" };
-	const std::string _WS_PORT{ "9443" };
+	const std::string _WS_PORT_SPOT{ "9443" };
+	const std::string _WS_PORT_FUTURES{ "443" };
+
 
 
 	// ----------------------CRTP methods
@@ -267,10 +273,10 @@ public:
 	unsigned int stream_ticker_all_book(std::string& buffer, FT& functor);
 
 	template <class FT>
-	unsigned int stream_depth_partial(std::string symbol, std::string& buffer, FT& functor, unsigned int levels = 5, unsigned int interval = 1000); // todo: different intervals for different fronts
+	unsigned int stream_depth_partial(std::string symbol, std::string& buffer, FT& functor, unsigned int levels = 5, unsigned int interval = 100); // todo: different intervals for different fronts
 
 	template <class FT>
-	unsigned int stream_depth_diff(std::string symbol, std::string& buffer, FT& functor, unsigned int interval = 1000);
+	unsigned int stream_depth_diff(std::string symbol, std::string& buffer, FT& functor, unsigned int interval = 100);
 
 	template <class FT>
 	unsigned int stream_userStream(std::string& buffer, FT& functor); // todo: for margin, spot, etc...
@@ -633,6 +639,8 @@ public:
 
 	FuturesClientUSDT();
 	FuturesClientUSDT(std::string key, std::string secret);
+	bool v__init_ws_session();
+
 
 	// up to Client level
 
@@ -740,6 +748,7 @@ public:
 
 	FuturesClientCoin();
 	FuturesClientCoin(std::string key, std::string secret);
+	bool v__init_ws_session();
 
 	// up to Client level
 

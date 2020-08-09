@@ -59,7 +59,6 @@ void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::str
 	ssl::context ctx{ ssl::context::tlsv12_client };
 	tcp::resolver resolver{ ioc };
 	websocket::stream<beast::ssl_stream<tcp::socket>> ws{ ioc, ctx }; // todo: init here in map pair for subscribe/unsubscribe
-
 	const boost::asio::ip::basic_resolver_results<boost::asio::ip::tcp> ex_client = resolver.resolve(this->_host, this->_port);
 	auto ep = net::connect(get_lowest_layer(ws), ex_client);
 	std::string full_host = this->_host + ':' + std::to_string(ep.port());

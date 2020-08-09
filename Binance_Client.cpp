@@ -265,7 +265,7 @@ template<typename T>
 template <class FT>
 unsigned int Client<T>::stream_depth_partial(std::string symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
 {
-	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
+	std::string full_stream_name = "/ws/" + symbol + "@" + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
 	if (this->_ws_client->is_open(full_stream_name))
 	{
 		std::cout << "already exists";
@@ -1800,7 +1800,7 @@ bool SpotClient::v_init_ws_session()
 	try
 	{
 		if (this->_ws_client) delete this->_ws_client;
-		this->_ws_client = new WebsocketClient{ this->_WS_BASE_SPOT, this->_WS_PORT };
+		this->_ws_client = new WebsocketClient{ this->_WS_BASE_SPOT, this->_WS_PORT_SPOT };
 		return 1;
 	}
 	catch (...)
@@ -2236,19 +2236,8 @@ bool FuturesClient<CT>::get_testnet_mode()
 //  ------------------------------ Start | FuturesClient CRTP methods - Client infrastructure
 
 template <typename CT>
-bool FuturesClient<CT>::v_init_ws_session()
-{
-	try
-	{
-		if (this->_ws_client) delete this->_ws_client;
-		this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES, this->_WS_PORT };
-		return 1;
-	}
-	catch (...)
-	{
-		throw("bad_init_ws");
-	}
-}
+bool FuturesClient<CT>::v_init_ws_session() { return static_cast<CT*>(this)->v__init_ws_session(); }
+
 
 template <typename CT>
 std::string FuturesClient<CT>::v__get_listen_key()
@@ -2463,27 +2452,27 @@ unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& 
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor) { return static_cast<FT*>(this)->v__markprice_all(pair, buffer, functor); }  // only USDT
+unsigned int FuturesClient<CT>::v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor) { return static_cast<CT*>(this)->v__stream_markprice_all(pair, buffer, functor); }  // only USDT
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<FT*>(this)->v__indexprice(pair, buffer, functor, interval); } // only Coin
+unsigned int FuturesClient<CT>::v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v__stream_indexprice(pair, buffer, functor, interval); } // only Coin
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<FT*>(this)->v__markprice_by_pair(pair, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v__stream_markprice_by_pair(pair, buffer, functor, interval); } // only coin
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval) { return static_cast<FT*>(this)->v__kline_contract(pair_and_type, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v__stream_kline_contract(pair_and_type, buffer, functor, interval); } // only coin
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval) { return static_cast<FT*>(this)->v__kline_index(pair, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v__stream_kline_index(pair, buffer, functor, interval); } // only coin
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<FT*>(this)->v__kline_markprice(symbol, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v__stream_kline_markprice(symbol, buffer, functor, interval); } // only coin
 
 
 template<typename CT>
@@ -2612,6 +2601,20 @@ FuturesClientUSDT::FuturesClientUSDT(std::string key, std::string secret)
 
 FuturesClientUSDT::~FuturesClientUSDT()
 {}
+
+bool FuturesClientUSDT::v__init_ws_session()
+{
+	try
+	{
+		if (this->_ws_client) delete this->_ws_client;
+		this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES_USDT, this->_WS_PORT_FUTURES };
+		return 1;
+	}
+	catch (...)
+	{
+		throw("bad_init_ws");
+	}
+}
 
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - Market Data Implementations
 
@@ -3137,6 +3140,20 @@ FuturesClientCoin::FuturesClientCoin(std::string key, std::string secret)
 
 FuturesClientCoin::~FuturesClientCoin()
 {}
+
+bool FuturesClientCoin::v__init_ws_session()
+{
+	try
+	{
+		if (this->_ws_client) delete this->_ws_client;
+		this->_ws_client = new WebsocketClient{ this->_WS_BASE_FUTURES_COIN, this->_WS_PORT_FUTURES };
+		return 1;
+	}
+	catch (...)
+	{
+		throw("bad_init_ws");
+	}
+}
 
 //  ------------------------------ End | FuturesClientCoin General methods - Infrastructure
 
