@@ -1,12 +1,7 @@
-// todo: futures and client source files in different files?
-// todo: return empty json with "status = 1" if no cb passed.
 // todo: idea - pass stream of name to functor?
 // todo: better handle error codes api
-// todo: are params needed for ping and etc?
-// todo: add constexpr for methods path. if you can, find a way to do for all (make constant parameters and refs?)
-// todo: listenkey for spot margin isolated margin...
-// todo: v_ for futures, v__ for lower, regardless of exists or not
-// todo: leave default params only in client level
+// todo: marginaccount construct from futures impossible?
+// todo: pass client to _ws and use the ping_listen_key for that
 
 
 // DOCs todos:
@@ -262,12 +257,14 @@ public:
 	template <class FT>
 	unsigned int stream_userStream(std::string& buffer, FT& functor); // todo: for margin, spot, etc...
 
+	std::string get_listen_key();
+	std::string ping_listen_key(const std::string& listen_key = "");
+	std::string revoke_listen_key(const std::string& listen_key = "");
 
 
 	// Library methods
 
 	bool init_ws_session();
-	std::string _get_listen_key();
 	void close_stream(const std::string& symbol, const std::string& stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
@@ -401,6 +398,12 @@ public:
 		Json::Value margin_isolated_margin_symbol(const Params* params_ptr);
 		Json::Value margin_isolated_margin_symbol_all(const Params* params_ptr = nullptr);
 
+		template <class FT>
+		unsigned int margin_stream_userStream(std::string& buffer, FT& functor, const bool& isolated_margin_type = 0);
+		std::string margin_get_listen_key(const bool& isolated_margin_type = 0);
+		std::string margin_ping_listen_key(const std::string& listen_key, const bool& isolated_margin_type = 0);
+		std::string margin_revoke_listen_key(const std::string& listen_key, const bool& isolated_margin_type = 0);
+
 	};
 
 	struct Savings
@@ -463,7 +466,6 @@ class FuturesClient : public Client<FuturesClient<CT>>
 {
 private:
 	inline bool v_init_ws_session();
-	inline std::string v__get_listen_key();
 	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
 	inline bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
 	inline std::vector<std::string> v_get_open_streams();
@@ -507,9 +509,9 @@ public:
 	Json::Value v_cancel_order(const Params* params_ptr);
 	Json::Value v_cancel_all_orders(const Params* params_ptr);
 	Json::Value v_query_order(const Params* params_ptr);
-	Json::Value v_open_orders(const Params* params_ptr = nullptr);
+	Json::Value v_open_orders(const Params* params_ptr);
 	Json::Value v_all_orders(const Params* params_ptr);
-	Json::Value v_account_info(const Params* params_ptr = nullptr);
+	Json::Value v_account_info(const Params* params_ptr);
 	Json::Value v_account_trades_list(const Params* params_ptr);
 
 	// -- unique to future endpoints
@@ -580,22 +582,30 @@ public:
 	unsigned int stream_liquidation_orders_all(std::string& buffer, FT& functor);
 
 	template <class FT>
-	unsigned int v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
+	unsigned int stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
 
 	template <class FT>
-	unsigned int v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only Coin
+	unsigned int stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only Coin
 
 	template <class FT>
-	unsigned int v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only coin
+	unsigned int stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only coin
 
 	template <class FT>
-	unsigned int v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+	unsigned int stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
 
 	template <class FT>
-	unsigned int v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+	unsigned int stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
 
 	template <class FT>
-	unsigned int v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+	unsigned int stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+
+	template <class FT>
+	unsigned int v_stream_userStream(std::string& buffer, FT& functor);
+
+	std::string v_get_listen_key(); 
+	std::string v_ping_listen_key(const std::string& listen_key); 
+	std::string v_revoke_listen_key(const std::string& listen_key); 
+
 
 
 	// end CRTP
@@ -640,7 +650,7 @@ public:
 
 	// market Data
 
-	Json::Value v_mark_price(const Params* params_ptr = nullptr);
+	Json::Value v_mark_price(const Params* params_ptr);
 	Json::Value v_public_liquidation_orders(const Params* params_ptr);
 	Json::Value v_open_interest(const Params* params_ptr);
 
@@ -663,32 +673,32 @@ public:
 	Json::Value v__cancel_order(const Params* params_ptr);
 	Json::Value v__cancel_all_orders(const Params* params_ptr);
 	Json::Value v__query_order(const Params* params_ptr);
-	Json::Value v__open_orders(const Params* params_ptr = nullptr);
+	Json::Value v__open_orders(const Params* params_ptr);
 	Json::Value v__all_orders(const Params* params_ptr);
-	Json::Value v__account_info(const Params* params_ptr = nullptr);
+	Json::Value v__account_info(const Params* params_ptr);
 	Json::Value v__account_trades_list(const Params* params_ptr);
 
 	// -- unique to future endpoints
 
 	Json::Value v_change_position_mode(const Params* params_ptr);
-	Json::Value v_get_position_mode(const Params* params_ptr = nullptr);
+	Json::Value v_get_position_mode(const Params* params_ptr);
 	Json::Value v_batch_orders(const Params* params_ptr);
 	Json::Value v_cancel_batch_orders(const Params* params_ptr);
 	Json::Value v_cancel_all_orders_timer(const Params* params_ptr);
 	Json::Value v_query_open_order(const Params* params_ptr);
-	Json::Value v_account_balances(const Params* params_ptr = nullptr);
+	Json::Value v_account_balances(const Params* params_ptr);
 	Json::Value v_change_leverage(const Params* params_ptr);
 	Json::Value v_change_margin_type(const Params* params_ptr);
 	Json::Value v_change_position_margin(const Params* params_ptr);
 	Json::Value v_change_position_margin_history(const Params* params_ptr);
-	Json::Value v_position_info(const Params* params_ptr = nullptr);
+	Json::Value v_position_info(const Params* params_ptr);
 	Json::Value v_get_income_history(const Params* params_ptr);
-	Json::Value v_get_leverage_bracket(const Params* params_ptr = nullptr);
+	Json::Value v_get_leverage_bracket(const Params* params_ptr);
 
 
 	// -- unique to USDT endpoint
 
-	Json::Value v_pos_adl_quantile_est(const Params* params_ptr = nullptr); // todo: define, default param
+	Json::Value v_pos_adl_quantile_est(const Params* params_ptr); 
 
 
 	// WS Streams
@@ -701,22 +711,29 @@ public:
 
 
 	template <class FT>
-	unsigned int v__stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
+	unsigned int v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
 
 	template <class FT>
-	unsigned int v__stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
+	unsigned int v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
 
 	template <class FT>
-	unsigned int v__stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
+	unsigned int v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
 
 	template <class FT>
-	unsigned int v__stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
 
 	template <class FT>
-	unsigned int v__stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval); // only coin
 
 	template <class FT>
-	unsigned int v__stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval); // only coin
+
+	template <class FT>
+	unsigned int v__stream_userStream(std::string& buffer, FT& functor);
+
+	std::string v__get_listen_key();
+	std::string v__ping_listen_key(); 
+	std::string v__revoke_listen_key();
 
 
 	~FuturesClientUSDT();
@@ -772,32 +789,32 @@ public:
 	Json::Value v__cancel_order(const Params* params_ptr);
 	Json::Value v__cancel_all_orders(const Params* params_ptr);
 	Json::Value v__query_order(const Params* params_ptr);
-	Json::Value v__open_orders(const Params* params_ptr = nullptr);
+	Json::Value v__open_orders(const Params* params_ptr);
 	Json::Value v__all_orders(const Params* params_ptr);
-	Json::Value v__account_info(const Params* params_ptr = nullptr);
+	Json::Value v__account_info(const Params* params_ptr);
 	Json::Value v__account_trades_list(const Params* params_ptr);
 
 	// -- unique to future endpoints
 
 	Json::Value v_change_position_mode(const Params* params_ptr);
-	Json::Value v_get_position_mode(const Params* params_ptr = nullptr);
+	Json::Value v_get_position_mode(const Params* params_ptr);
 	Json::Value v_batch_orders(const Params* params_ptr);
 	Json::Value v_cancel_batch_orders(const Params* params_ptr);
 	Json::Value v_cancel_all_orders_timer(const Params* params_ptr);
 	Json::Value v_query_open_order(const Params* params_ptr);
-	Json::Value v_account_balances(const Params* params_ptr = nullptr);
+	Json::Value v_account_balances(const Params* params_ptr);
 	Json::Value v_change_leverage(const Params* params_ptr);
 	Json::Value v_change_margin_type(const Params* params_ptr);
 	Json::Value v_change_position_margin(const Params* params_ptr);
 	Json::Value v_change_position_margin_history(const Params* params_ptr);
-	Json::Value v_position_info(const Params* params_ptr = nullptr);
+	Json::Value v_position_info(const Params* params_ptr);
 	Json::Value v_get_income_history(const Params* params_ptr);
-	Json::Value v_get_leverage_bracket(const Params* params_ptr = nullptr);
+	Json::Value v_get_leverage_bracket(const Params* params_ptr);
 
 
 	// -- unique to USDT endpoint
 
-	Json::Value v_pos_adl_quantile_est(const Params* params_ptr = nullptr);
+	Json::Value v_pos_adl_quantile_est(const Params* params_ptr);
 
 	// WS Streams
 
@@ -805,22 +822,29 @@ public:
 	// -- going deeper...
 
 	template <class FT>
-	unsigned int v__stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
+	unsigned int v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
 
 	template <class FT>
-	unsigned int v__stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
+	unsigned int v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
 
 	template <class FT>
-	unsigned int v__stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
+	unsigned int v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
 
 	template <class FT>
-	unsigned int v__stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
 
 	template <class FT>
-	unsigned int v__stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval); // only coin
 
 	template <class FT>
-	unsigned int v__stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval); // only coin
+
+	template <class FT>
+	unsigned int v__stream_userStream(std::string& buffer, FT& functor); 
+
+	std::string v__get_listen_key();
+	std::string v__ping_listen_key();
+	std::string v__revoke_listen_key();
 
 	~FuturesClientCoin();
 };
@@ -856,9 +880,9 @@ private:
 	Json::Value v_cancel_order(const Params* params_ptr);
 	Json::Value v_cancel_all_orders(const Params* params_ptr);
 	Json::Value v_query_order(const Params* params_ptr);
-	Json::Value v_open_orders(const Params* params_ptr = nullptr);
+	Json::Value v_open_orders(const Params* params_ptr);
 	Json::Value v_all_orders(const Params* params_ptr);
-	Json::Value v_account_info(const Params* params_ptr = nullptr);
+	Json::Value v_account_info(const Params* params_ptr);
 	Json::Value v_account_trades_list(const Params* params_ptr);
 
 	// ---- general methods
@@ -878,7 +902,13 @@ private:
 	// crtp infrastructure start
 
 	bool v_init_ws_session();
-	std::string v__get_listen_key();
+
+	template <class FT>
+	unsigned int v_stream_userStream(std::string& buffer, FT& functor);
+	std::string v_get_listen_key();
+	std::string v_ping_listen_key(const std::string& listen_key);
+	std::string v_revoke_listen_key(const std::string& listen_key);
+
 	void v_close_stream(const std::string& symbol, const std::string& stream_name);
 	bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> v_get_open_streams();
