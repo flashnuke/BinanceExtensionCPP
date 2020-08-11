@@ -4,7 +4,7 @@
 
 
 WebsocketClient::WebsocketClient(std::string host, unsigned int port)
-    : _host{ host }, _port{ std::to_string(port) }, _reconnect_on_error{ 0 }, refresh_listenkey_interval{ 3300 }
+    : _host{ host }, _port{ std::to_string(port) }, _reconnect_on_error{ 0 }, refresh_listenkey_interval{ 1800 }
 {}
 
 

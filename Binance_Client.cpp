@@ -4,7 +4,8 @@
 
 //  ------------------------------ Start Client General methods - Infrastructure
 
-std::string _BASE_REST_FUTURES{ "https://fapi.binance.com" };
+std::string _BASE_REST_FUTURES_USDT{ "https://fapi.binance.com" };
+std::string _BASE_REST_FUTURES_COIN{ "https://dapi.binance.com" };
 std::string _BASE_REST_FUTURES_TESTNET{ "https://testnet.binancefuture.com" };
 std::string _BASE_REST_SPOT{ "https://api.binance.com" };
 std::string _WS_BASE_FUTURES_USDT{ "fstream.binance.com" };
@@ -38,7 +39,13 @@ template<typename T>
 bool Client<T>::init_ws_session() { return static_cast<T*>(this)->v_init_ws_session(); }
 
 template<typename T>
-std::string Client<T>::_get_listen_key() { return static_cast<T*>(this)->v__get_listen_key(); }
+std::string Client<T>::get_listen_key() { return static_cast<T*>(this)->v_get_listen_key(); }
+
+template<typename T>
+std::string Client<T>::ping_listen_key(const std::string& listen_key) { return static_cast<T*>(this)->v_ping_listen_key(listen_key); }
+
+template<typename T>
+std::string Client<T>::revoke_listen_key(const std::string& listen_key) { return static_cast<T*>(this)->v_revoke_listen_key(listen_key); }
 
 template<typename T>
 void Client<T>::close_stream(const std::string& symbol, const std::string& stream_name) { static_cast<T*>(this)->v_close_stream(symbol, stream_name); }
@@ -309,35 +316,7 @@ unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string
 
 template<typename T>
 template <class FT>
-unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor)
-{
-	RestSession* keep_alive_session = new RestSession{};
-	try
-	{
-		this->set_headers(keep_alive_session);
-		std::string full_stream_name = "/ws/" + this->_get_listen_key();
-
-		std::string renew_key_path = _BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
-
-		std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
-
-		if (this->_ws_client->is_open(full_stream_name))
-		{
-			std::cout << "already exists";
-			return 0;
-		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
-	}
-	catch (...)
-	{
-		delete keep_alive_session;
-		throw("bad_stream");
-	}
-}
+unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_userStream(buffer, functor); }
 
 
 //  ------------------------------ End | Client Global + CRTP methods - WS Streams
@@ -598,7 +577,7 @@ Json::Value Client<T>::Wallet::deposit_address(const Params* params_ptr, const b
 template <typename T>
 Json::Value Client<T>::Wallet::account_status(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT +"/wapi/v3/accountStatus.html";
+	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/accountStatus.html";
 	std::string query = user_client->_generate_query(params_ptr, 1);
 	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
@@ -1356,6 +1335,64 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Pa
 	return response;
 };
 
+template <typename T>
+template <class FT>
+unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buffer, FT& functor, const bool& isolated_margin_type)
+{
+	std::unique_ptr<RestSession> temp_session{ new RestSession{} };
+	RestSession* keep_alive_session = temp_session.get();
+
+	this->set_headers(keep_alive_session);
+	std::string full_stream_name = "/ws/" + this->margin_get_listen_key(isolated_margin_type);
+	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+
+	std::string renew_key_path = _BASE_REST_SPOT + endpoint + "?" + "listenKey=" + full_stream_name;
+
+	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
+
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+
+}
+
+template <typename T>
+std::string Client<T>::MarginAccount::margin_get_listen_key(const bool& isolated_margin_type)
+{
+	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+	std::string full_path = _BASE_REST_SPOT + endpoint;
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+template <typename T>
+std::string Client<T>::MarginAccount::margin_ping_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
+{
+	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+	std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
+	Json::Value response = (this->_rest_client)->_putreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+template <typename T>
+std::string Client<T>::MarginAccount::margin_revoke_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
+{
+	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+	std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
 //  ------------------------------ End | Client MarginAccount - User MarginAccount Endpoints
 
 // ***************************************************************************
@@ -1658,10 +1695,54 @@ bool SpotClient::v_init_ws_session()
 	}
 }
 
-std::string SpotClient::v__get_listen_key()
+template <class FT>
+unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor)
+{
+	std::unique_ptr<RestSession> temp_session{ new RestSession{} };
+	RestSession* keep_alive_session = temp_session.get();
+
+	this->set_headers(keep_alive_session);
+	std::string full_stream_name = "/ws/" + this->get_listen_key();
+
+	std::string renew_key_path = _BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
+
+	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
+
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+
+}
+
+std::string SpotClient::v_get_listen_key()
 {
 	// no signature is needed here
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/userDataStream";
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+std::string SpotClient::v_ping_listen_key(const std::string& listen_key)
+{
+	// no signature is needed here
+	std::string full_path = _BASE_REST_SPOT + "/api/v3/userDataStream" + "?listenKey=" + listen_key;
+	Json::Value response = (this->_rest_client)->_putreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+std::string SpotClient::v_revoke_listen_key(const std::string& listen_key)
+{
+	// no signature is needed here
+	std::string full_path = _BASE_REST_SPOT + "/api/v3/userDataStream" + "?listenKey=" + listen_key;
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
 	return response["response"]["listenKey"].asString();
@@ -2005,20 +2086,6 @@ void FuturesClient<CT>::set_testnet_mode(bool status) { return static_cast<CT*>(
 
 
 template <typename CT>
-std::string FuturesClient<CT>::v__get_listen_key()
-{
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
-	full_path += "/fapi/v1/listenKey";
-	Params temp_params;
-	std::string query = Client::_generate_query(temp_params, 1);
-
-	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
-
-	return response["response"]["listenKey"].asString();
-}
-
-
-template <typename CT>
 void FuturesClient<CT>::v_close_stream(const std::string& symbol, const std::string& stream_name)
 {
 	try
@@ -2218,27 +2285,27 @@ unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& 
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor) { return static_cast<CT*>(this)->v__stream_markprice_all(pair, buffer, functor); }  // only USDT
+unsigned int FuturesClient<CT>::stream_markprice_all(std::string pair, std::string& buffer, FT& functor) { return static_cast<CT*>(this)->v_stream_markprice_all(pair, buffer, functor); }  // only USDT
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v__stream_indexprice(pair, buffer, functor, interval); } // only Coin
+unsigned int FuturesClient<CT>::stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v_stream_indexprice(pair, buffer, functor, interval); } // only Coin
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v__stream_markprice_by_pair(pair, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v_stream_markprice_by_pair(pair, buffer, functor, interval); } // only coin
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v__stream_kline_contract(pair_and_type, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_contract(pair_and_type, buffer, functor, interval); } // only coin
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v__stream_kline_index(pair, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_index(pair, buffer, functor, interval); } // only coin
 
 template<typename CT>
 template <class FT>
-unsigned int FuturesClient<CT>::v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v__stream_kline_markprice(symbol, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_markprice(symbol, buffer, functor, interval); } // only coin
 
 
 template<typename CT>
@@ -2292,6 +2359,18 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffe
 	}
 }
 
+template<typename CT>
+template <class FT>
+unsigned int FuturesClient<CT>::v_stream_userStream(std::string& buffer, FT& functor) { return static_cast<CT*>(this)->v__stream_userStream(buffer, functor); }
+
+template <typename CT>
+std::string FuturesClient<CT>::v_get_listen_key() { return static_cast<CT*>(this)->v__get_listen_key(); }
+
+template <typename CT>
+std::string FuturesClient<CT>::v_ping_listen_key(const std::string& listen_key) { return static_cast<CT*>(this)->v__ping_listen_key(); }
+
+template <typename CT>
+std::string FuturesClient<CT>::v_revoke_listen_key(const std::string& listen_key) { return static_cast<CT*>(this)->v__revoke_listen_key(); }
 
 //  ------------------------------ End | FuturesClient Global + CRTP methods - WS Streams 
 
@@ -2302,7 +2381,7 @@ template <typename CT>
 Json::Value FuturesClient<CT>::open_interest_stats(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/futures/data/openInterestHist" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2313,7 +2392,7 @@ Json::Value FuturesClient<CT>::top_long_short_ratio(const Params* params_ptr, bo
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
 	std::string endpoint = accounts ? "/futures/data/topLongShortAccountRatio" : "/futures/data/topLongShortPositionRatio";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += (endpoint + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2323,7 +2402,7 @@ template <typename CT>
 Json::Value FuturesClient<CT>::global_long_short_ratio(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/futures/data/globalLongShortAccountRatio" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2333,7 +2412,7 @@ template <typename CT>
 Json::Value FuturesClient<CT>::taker_long_short_ratio(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/futures/data/takerlongshortRatio" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2343,7 +2422,7 @@ template <typename CT>
 Json::Value FuturesClient<CT>::basis_data(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/futures/data/basis" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2395,7 +2474,7 @@ inline bool FuturesClientUSDT::v__ping_client()
 {
 	try
 	{
-		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 		full_path += "/fapi/v1/ping";
 		Json::Value ping_response = (this->_rest_client)->_getreq(full_path)["response"];
 		return (ping_response != Json::nullValue);
@@ -2408,7 +2487,7 @@ inline bool FuturesClientUSDT::v__ping_client()
 
 inline unsigned long long FuturesClientUSDT::v__exchange_time()
 {
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/fapi/v1/time";
 	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
 
@@ -2417,7 +2496,7 @@ inline unsigned long long FuturesClientUSDT::v__exchange_time()
 
 Json::Value FuturesClientUSDT::v__exchange_info()
 {
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/fapi/v1/exchangeInfo";
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2426,7 +2505,7 @@ Json::Value FuturesClientUSDT::v__exchange_info()
 Json::Value FuturesClientUSDT::v__order_book(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/depth" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2435,7 +2514,7 @@ Json::Value FuturesClientUSDT::v__order_book(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__public_trades_recent(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/trades" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2444,7 +2523,7 @@ Json::Value FuturesClientUSDT::v__public_trades_recent(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__public_trades_historical(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/historicalTrades" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2453,7 +2532,7 @@ Json::Value FuturesClientUSDT::v__public_trades_historical(const Params* params_
 Json::Value FuturesClientUSDT::v__public_trades_agg(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/aggTrades" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2462,7 +2541,7 @@ Json::Value FuturesClientUSDT::v__public_trades_agg(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/klines" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2471,7 +2550,7 @@ Json::Value FuturesClientUSDT::v__klines(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__daily_ticker_stats(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/ticker/24hr" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2480,7 +2559,7 @@ Json::Value FuturesClientUSDT::v__daily_ticker_stats(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__get_ticker(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/ticker/price" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2489,7 +2568,7 @@ Json::Value FuturesClientUSDT::v__get_ticker(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__get_order_book_ticker(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/ticker/bookTicker" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2503,7 +2582,7 @@ Json::Value FuturesClientUSDT::v__get_order_book_ticker(const Params* params_ptr
 Json::Value FuturesClientUSDT::v_mark_price(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : ""; // todo: copy this format for everything?
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/premiumIndex" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2512,7 +2591,7 @@ Json::Value FuturesClientUSDT::v_mark_price(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_public_liquidation_orders(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/allForceOrders" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2520,7 +2599,7 @@ Json::Value FuturesClientUSDT::v_public_liquidation_orders(const Params* params_
 Json::Value FuturesClientUSDT::v_open_interest(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/openInterest" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2547,7 +2626,7 @@ Json::Value FuturesClientUSDT::v_mark_klines(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_funding_rate_history(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/fundingRate" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2564,7 +2643,7 @@ Json::Value FuturesClientUSDT::v_funding_rate_history(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__new_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/order" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
@@ -2574,7 +2653,7 @@ Json::Value FuturesClientUSDT::v__new_order(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__cancel_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/fapi/v1/order";
 	Json::Value response = (this->_rest_client)->_deletereq(full_path);
 
@@ -2584,7 +2663,7 @@ Json::Value FuturesClientUSDT::v__cancel_order(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__cancel_all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/fapi/v1/allOpenOrders";
 	Json::Value response = (this->_rest_client)->_deletereq(full_path);
 
@@ -2595,7 +2674,7 @@ Json::Value FuturesClientUSDT::v__cancel_all_orders(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__query_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/order" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -2606,7 +2685,7 @@ Json::Value FuturesClientUSDT::v__open_orders(const Params* params_ptr)
 {
 
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/openOrders" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -2616,7 +2695,7 @@ Json::Value FuturesClientUSDT::v__open_orders(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/allOrders" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -2626,7 +2705,7 @@ Json::Value FuturesClientUSDT::v__all_orders(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__account_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v2/account" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -2636,7 +2715,7 @@ Json::Value FuturesClientUSDT::v__account_info(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v__account_trades_list(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/userTrades" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -2649,7 +2728,7 @@ Json::Value FuturesClientUSDT::v__account_trades_list(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_change_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/positionSide/dual" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path); // should be spot?
 
@@ -2659,7 +2738,7 @@ Json::Value FuturesClientUSDT::v_change_position_mode(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_get_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/positionSide/dual" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path); // should be spot?
 
@@ -2669,7 +2748,7 @@ Json::Value FuturesClientUSDT::v_get_position_mode(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/batchOrders" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path); // should be spot?
 
@@ -2679,7 +2758,7 @@ Json::Value FuturesClientUSDT::v_batch_orders(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_cancel_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/batchOrders" + query);
 	Json::Value response = (this->_rest_client)->_deletereq(full_path); // should be spot?
 
@@ -2689,7 +2768,7 @@ Json::Value FuturesClientUSDT::v_cancel_batch_orders(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_cancel_all_orders_timer(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/countdownCancelAll" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path); // should be spot?
 
@@ -2699,7 +2778,7 @@ Json::Value FuturesClientUSDT::v_cancel_all_orders_timer(const Params* params_pt
 Json::Value FuturesClientUSDT::v_query_open_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/openOrder" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path); // should be spot?
 
@@ -2710,7 +2789,7 @@ Json::Value FuturesClientUSDT::v_account_balances(const Params* params_ptr)
 {
 
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v2/balance" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path); // should be spot?
 
@@ -2720,7 +2799,7 @@ Json::Value FuturesClientUSDT::v_account_balances(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_change_leverage(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/leverage" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path); // should be spot?
 
@@ -2730,7 +2809,7 @@ Json::Value FuturesClientUSDT::v_change_leverage(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_change_margin_type(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/marginType" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path); // should be spot?
 
@@ -2740,7 +2819,7 @@ Json::Value FuturesClientUSDT::v_change_margin_type(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_change_position_margin(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/positionMargin" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path); // should be spot?
 
@@ -2750,7 +2829,7 @@ Json::Value FuturesClientUSDT::v_change_position_margin(const Params* params_ptr
 Json::Value FuturesClientUSDT::v_change_position_margin_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/positionMargin/history" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path); // should be spot?
 
@@ -2760,7 +2839,7 @@ Json::Value FuturesClientUSDT::v_change_position_margin_history(const Params* pa
 Json::Value FuturesClientUSDT::v_position_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v2/positionRisk" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -2770,7 +2849,7 @@ Json::Value FuturesClientUSDT::v_position_info(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_get_income_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/income" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -2780,7 +2859,7 @@ Json::Value FuturesClientUSDT::v_get_income_history(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_get_leverage_bracket(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/leverageBracket" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -2790,7 +2869,7 @@ Json::Value FuturesClientUSDT::v_get_leverage_bracket(const Params* params_ptr)
 Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/adlQuantile" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -2803,7 +2882,7 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 
 
 template <class FT>
-unsigned int FuturesClientUSDT::v__stream_markprice_all(std::string symbol, std::string& buffer, FT& functor)
+unsigned int FuturesClientUSDT::v_stream_markprice_all(std::string symbol, std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
 	if (this->_ws_client->is_open(full_stream_name))
@@ -2820,33 +2899,89 @@ unsigned int FuturesClientUSDT::v__stream_markprice_all(std::string symbol, std:
 
 
 template <class FT>
-unsigned int FuturesClientUSDT::v__stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval)
+unsigned int FuturesClientUSDT::v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval)
 {
 	throw("non-existing for usdt");
 }
 
 template <class FT>
-unsigned int FuturesClientUSDT::v__stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
+unsigned int FuturesClientUSDT::v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
 	throw("non-existing for usdt");
 }
 
 template <class FT>
-unsigned int FuturesClientUSDT::v__stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval)
+unsigned int FuturesClientUSDT::v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval)
 {
 	throw("non-existing for usdt");
 }
 
 template <class FT>
-unsigned int FuturesClientUSDT::v__stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval)
+unsigned int FuturesClientUSDT::v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval)
 {
 	throw("non-existing for usdt");
 }
 
 template <class FT>
-unsigned int FuturesClientUSDT::v__stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+unsigned int FuturesClientUSDT::v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval)
 {
 	throw("non-existing for usdt");
+}
+
+template <class FT>
+unsigned int FuturesClientUSDT::v__stream_userStream(std::string& buffer, FT& functor)
+{
+	std::unique_ptr<RestSession> temp_session{ new RestSession{} };
+	RestSession* keep_alive_session = temp_session.get();
+	this->set_headers(keep_alive_session);
+	std::string full_stream_name = "/ws/" + this->get_listen_key();
+	std::string renew_key_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	renew_key_path += "/fapi/v1/listenKey";
+
+	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
+
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+
+}
+
+std::string FuturesClientUSDT::v__get_listen_key()
+{
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += "/fapi/v1/listenKey";
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+std::string FuturesClientUSDT::v__ping_listen_key()
+{
+	// no signature is needed here
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += "/fapi/v1/listenKey";
+
+	Json::Value response = (this->_rest_client)->_putreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+std::string FuturesClientUSDT::v__revoke_listen_key()
+{
+	// no signature is needed here
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += "/fapi/v1/listenKey";
+
+	Json::Value response = (this->_rest_client)->_deletereq(full_path);
+
+	return response["response"]["listenKey"].asString();
 }
 
 //  ------------------------------ End | FuturesClientUSDT CRTP methods - WS Streams
@@ -2897,7 +3032,7 @@ inline bool FuturesClientCoin::v__ping_client()
 {
 	try
 	{
-		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 		full_path += "/dapi/v1/ping";
 		Json::Value ping_response = (this->_rest_client)->_getreq(full_path)["response"];
 		return (ping_response != Json::nullValue);
@@ -2910,7 +3045,7 @@ inline bool FuturesClientCoin::v__ping_client()
 
 inline unsigned long long FuturesClientCoin::v__exchange_time()
 {
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/dapi/v1/time";
 	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
 
@@ -2919,7 +3054,7 @@ inline unsigned long long FuturesClientCoin::v__exchange_time()
 
 Json::Value FuturesClientCoin::v__exchange_info()
 {
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/dapi/v1/exchangeInfo";
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2928,7 +3063,7 @@ Json::Value FuturesClientCoin::v__exchange_info()
 Json::Value FuturesClientCoin::v__order_book(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/depth" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2937,7 +3072,7 @@ Json::Value FuturesClientCoin::v__order_book(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__public_trades_recent(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/trades" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2946,7 +3081,7 @@ Json::Value FuturesClientCoin::v__public_trades_recent(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__public_trades_historical(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/historicalTrades" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2955,7 +3090,7 @@ Json::Value FuturesClientCoin::v__public_trades_historical(const Params* params_
 Json::Value FuturesClientCoin::v__public_trades_agg(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/aggTrades" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2964,7 +3099,7 @@ Json::Value FuturesClientCoin::v__public_trades_agg(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__klines(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/klines" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2973,7 +3108,7 @@ Json::Value FuturesClientCoin::v__klines(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__daily_ticker_stats(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/ticker/24hr" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2982,7 +3117,7 @@ Json::Value FuturesClientCoin::v__daily_ticker_stats(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__get_ticker(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/ticker/price" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -2991,7 +3126,7 @@ Json::Value FuturesClientCoin::v__get_ticker(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__get_order_book_ticker(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/ticker/bookTicker" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -3008,7 +3143,7 @@ Json::Value FuturesClientCoin::v__get_order_book_ticker(const Params* params_ptr
 Json::Value FuturesClientCoin::v__new_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/order" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
@@ -3018,7 +3153,7 @@ Json::Value FuturesClientCoin::v__new_order(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__cancel_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/order" + query);
 	Json::Value response = (this->_rest_client)->_deletereq(full_path);
 
@@ -3028,7 +3163,7 @@ Json::Value FuturesClientCoin::v__cancel_order(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__cancel_all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/allOpenOrders" + query);
 	Json::Value response = (this->_rest_client)->_deletereq(full_path);
 
@@ -3038,7 +3173,7 @@ Json::Value FuturesClientCoin::v__cancel_all_orders(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__query_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/order" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3048,7 +3183,7 @@ Json::Value FuturesClientCoin::v__query_order(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__open_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/openOrders" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3058,7 +3193,7 @@ Json::Value FuturesClientCoin::v__open_orders(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/allOrders" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3068,7 +3203,7 @@ Json::Value FuturesClientCoin::v__all_orders(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__account_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/account" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3078,7 +3213,7 @@ Json::Value FuturesClientCoin::v__account_info(const Params* params_ptr)
 Json::Value FuturesClientCoin::v__account_trades_list(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/userTrades" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3091,7 +3226,7 @@ Json::Value FuturesClientCoin::v__account_trades_list(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_change_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/positionSide/dual" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
@@ -3102,7 +3237,7 @@ Json::Value FuturesClientCoin::v_change_position_mode(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_get_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/positionSide/dual" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3112,7 +3247,7 @@ Json::Value FuturesClientCoin::v_get_position_mode(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/batchOrders" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
@@ -3122,7 +3257,7 @@ Json::Value FuturesClientCoin::v_batch_orders(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_cancel_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/batchOrders" + query);
 	Json::Value response = (this->_rest_client)->_deletereq(full_path);
 
@@ -3132,7 +3267,7 @@ Json::Value FuturesClientCoin::v_cancel_batch_orders(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_cancel_all_orders_timer(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/countdownCancelAll" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
@@ -3142,7 +3277,7 @@ Json::Value FuturesClientCoin::v_cancel_all_orders_timer(const Params* params_pt
 Json::Value FuturesClientCoin::v_query_open_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/openOrder" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3152,7 +3287,7 @@ Json::Value FuturesClientCoin::v_query_open_order(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_account_balances(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/balance" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3162,7 +3297,7 @@ Json::Value FuturesClientCoin::v_account_balances(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_change_leverage(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/leverage" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
@@ -3172,7 +3307,7 @@ Json::Value FuturesClientCoin::v_change_leverage(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_change_margin_type(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/marginType" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
@@ -3182,7 +3317,7 @@ Json::Value FuturesClientCoin::v_change_margin_type(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_change_position_margin(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/positionMargin" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
@@ -3192,7 +3327,7 @@ Json::Value FuturesClientCoin::v_change_position_margin(const Params* params_ptr
 Json::Value FuturesClientCoin::v_change_position_margin_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/positionMargin/history" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3202,7 +3337,7 @@ Json::Value FuturesClientCoin::v_change_position_margin_history(const Params* pa
 Json::Value FuturesClientCoin::v_position_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/positionRisk" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3212,7 +3347,7 @@ Json::Value FuturesClientCoin::v_position_info(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_get_income_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/income" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3222,7 +3357,7 @@ Json::Value FuturesClientCoin::v_get_income_history(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_get_leverage_bracket(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/leverageBracket" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
@@ -3240,14 +3375,14 @@ Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 
 
 template <class FT>
-unsigned int FuturesClientCoin::v__stream_markprice_all(std::string symbol, std::string& buffer, FT& functor) // here
+unsigned int FuturesClientCoin::v_stream_markprice_all(std::string symbol, std::string& buffer, FT& functor) // here
 {
 	throw("non-existing for coin");
 }
 
 
 template <class FT>
-unsigned int FuturesClientCoin::v__stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval)
+unsigned int FuturesClientCoin::v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval)
 {
 	std::string full_stream_name = "/ws/" + pair + "@" + "indexPrice" + "@" + std::to_string(interval) + "ms";
 	if (this->_ws_client->is_open(full_stream_name))
@@ -3263,7 +3398,7 @@ unsigned int FuturesClientCoin::v__stream_indexprice(std::string pair, std::stri
 }
 
 template <class FT>
-unsigned int FuturesClientCoin::v__stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
+unsigned int FuturesClientCoin::v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
 	std::string full_stream_name = "/ws/" + pair + "@" + "markPrice" + "@" + std::to_string(interval) + "ms";
 	if (this->_ws_client->is_open(full_stream_name))
@@ -3279,7 +3414,7 @@ unsigned int FuturesClientCoin::v__stream_markprice_by_pair(std::string& pair, s
 }
 
 template <class FT>
-unsigned int FuturesClientCoin::v__stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval)
+unsigned int FuturesClientCoin::v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval)
 {
 	std::string full_stream_name = "/ws/" + pair_and_type + "@" + "continuousKline_" + (interval);
 	if (this->_ws_client->is_open(full_stream_name))
@@ -3295,7 +3430,7 @@ unsigned int FuturesClientCoin::v__stream_kline_contract(std::string pair_and_ty
 }
 
 template <class FT>
-unsigned int FuturesClientCoin::v__stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval)
+unsigned int FuturesClientCoin::v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval)
 {
 	std::string full_stream_name = "/ws/" + pair + "@" + "indexPriceKline_" + (interval);
 	if (this->_ws_client->is_open(full_stream_name))
@@ -3311,7 +3446,7 @@ unsigned int FuturesClientCoin::v__stream_kline_index(std::string pair, std::str
 }
 
 template <class FT>
-unsigned int FuturesClientCoin::v__stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+unsigned int FuturesClientCoin::v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval)
 {
 	std::string full_stream_name = "/ws/" + symbol + "@" + "markPriceKline_" + (interval);
 	if (this->_ws_client->is_open(full_stream_name))
@@ -3326,7 +3461,64 @@ unsigned int FuturesClientCoin::v__stream_kline_markprice(std::string symbol, st
 	}
 }
 
-//  ------------------------------ End | FuturesClientUSDT CRTP methods - WS Streams
+template <class FT>
+unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& functor)
+{
+	std::unique_ptr<RestSession> temp_session{ new RestSession{} };
+	RestSession* keep_alive_session = temp_session.get();
+
+	this->set_headers(keep_alive_session);
+	std::string full_stream_name = "/ws/" + this->get_listen_key();
+	std::string renew_key_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	renew_key_path += "/dapi/v1/listenKey";
+
+	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
+
+	if (this->_ws_client->is_open(full_stream_name))
+	{
+		std::cout << "already exists";
+		return 0;
+	}
+	else
+	{
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+		return this->_ws_client->running_streams[full_stream_name];
+	}
+
+}
+
+std::string FuturesClientCoin::v__get_listen_key()
+{
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += "/dapi/v1/listenKey";
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+std::string FuturesClientCoin::v__ping_listen_key()
+{
+	// no signature is needed here
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += "/dapi/v1/listenKey";
+
+	Json::Value response = (this->_rest_client)->_putreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+std::string FuturesClientCoin::v__revoke_listen_key()
+{
+	// no signature is needed here
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += "/dapi/v1/listenKey";
+
+	Json::Value response = (this->_rest_client)->_deletereq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+//  ------------------------------ End | FuturesClientCoin CRTP methods - WS Streams
 
 
 //  ------------------------------ Start | FuturesClientCoin CRTP methods - Unique Endpoints
@@ -3334,7 +3526,7 @@ unsigned int FuturesClientCoin::v__stream_kline_markprice(std::string symbol, st
 Json::Value FuturesClientCoin::v_mark_price(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/premiumIndex" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -3343,7 +3535,7 @@ Json::Value FuturesClientCoin::v_mark_price(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_public_liquidation_orders(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/allForceOrders" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -3351,7 +3543,7 @@ Json::Value FuturesClientCoin::v_public_liquidation_orders(const Params* params_
 Json::Value FuturesClientCoin::v_open_interest(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/openInterest" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -3363,7 +3555,7 @@ Json::Value FuturesClientCoin::v_open_interest(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_continues_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/continuousKlines" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -3371,7 +3563,7 @@ Json::Value FuturesClientCoin::v_continues_klines(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_index_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/indexPriceKlines" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
@@ -3379,7 +3571,7 @@ Json::Value FuturesClientCoin::v_index_klines(const Params* params_ptr)
 Json::Value FuturesClientCoin::v_mark_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES : _BASE_REST_FUTURES_TESTNET;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/markPriceKlines" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
