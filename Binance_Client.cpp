@@ -598,7 +598,7 @@ Json::Value Client<T>::Wallet::deposit_address(const Params* params_ptr, const b
 template <typename T>
 Json::Value Client<T>::Wallet::account_status(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/accountStatus.html";
+	std::string full_path = _BASE_REST_SPOT +"/wapi/v3/accountStatus.html";
 	std::string query = user_client->_generate_query(params_ptr, 1);
 	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
