@@ -4,25 +4,33 @@
 
 //  ------------------------------ Start Client General methods - Infrastructure
 
-std::string _BASE_REST_FUTURES_USDT{ "https://fapi.binance.com" };
-std::string _BASE_REST_FUTURES_COIN{ "https://dapi.binance.com" };
-std::string _BASE_REST_FUTURES_TESTNET{ "https://testnet.binancefuture.com" };
-std::string _BASE_REST_SPOT{ "https://api.binance.com" };
-std::string _WS_BASE_FUTURES_USDT{ "fstream.binance.com" };
-std::string _WS_BASE_FUTURES_USDT_TESTNET{ "stream.binancefuture.com" };
-std::string _WS_BASE_FUTURES_COIN{ "dstream.binance.com" };
-std::string _WS_BASE_FUTURES_COIN_TESTNET{ "dstream.binancefuture.com" };
-std::string _WS_BASE_SPOT{ "stream.binance.com" };
-unsigned int _WS_PORT_SPOT{ 9443 };
-unsigned int _WS_PORT_FUTURES{ 443 };
+const std::string _BASE_REST_FUTURES_USDT{ "https://fapi.binance.com" };
+const std::string _BASE_REST_FUTURES_COIN{ "https://dapi.binance.com" };
+const std::string _BASE_REST_FUTURES_TESTNET{ "https://testnet.binancefuture.com" };
+const std::string _BASE_REST_SPOT{ "https://api.binance.com" };
+const std::string _WS_BASE_FUTURES_USDT{ "fstream.binance.com" };
+const std::string _WS_BASE_FUTURES_USDT_TESTNET{ "stream.binancefuture.com" };
+const std::string _WS_BASE_FUTURES_COIN{ "dstream.binance.com" };
+const std::string _WS_BASE_FUTURES_COIN_TESTNET{ "dstream.binancefuture.com" };
+const std::string _WS_BASE_SPOT{ "stream.binance.com" };
+const unsigned int _WS_PORT_SPOT{ 9443 };
+const unsigned int _WS_PORT_FUTURES{ 443 };
 
 template<typename T>
-Client<T>::Client() : _public_client{ 1 }
-{};
+Client<T>::Client(T& exchange_client) : _public_client{ 1 }, refresh_listenkey_interval{ 1800 }
+{
+	this->init_rest_session(); // important to init rest first - ws is dependant on it
+	this->_ws_client = new WebsocketClient<T>{ exchange_client, "", 0 };
+	this->init_ws_session();
+};
 
 template<typename T>
-Client<T>::Client(std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }
-{};
+Client<T>::Client(T& exchange_client, std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, refresh_listenkey_interval{ 1800 }
+{
+	this->init_rest_session();
+	this->_ws_client = new WebsocketClient<T>{exchange_client, "", 0 }; 
+	this->init_ws_session();
+};
 
 template <typename T>
 Client<T>::~Client()
@@ -42,10 +50,10 @@ template<typename T>
 std::string Client<T>::get_listen_key() { return static_cast<T*>(this)->v_get_listen_key(); }
 
 template<typename T>
-std::string Client<T>::ping_listen_key(const std::string& listen_key) { return static_cast<T*>(this)->v_ping_listen_key(listen_key); }
+Json::Value Client<T>::ping_listen_key(const std::string& listen_key) { return static_cast<T*>(this)->v_ping_listen_key(listen_key); }
 
 template<typename T>
-std::string Client<T>::revoke_listen_key(const std::string& listen_key) { return static_cast<T*>(this)->v_revoke_listen_key(listen_key); }
+Json::Value Client<T>::revoke_listen_key(const std::string& listen_key) { return static_cast<T*>(this)->v_revoke_listen_key(listen_key); }
 
 template<typename T>
 void Client<T>::close_stream(const std::string& symbol, const std::string& stream_name) { static_cast<T*>(this)->v_close_stream(symbol, stream_name); }
@@ -56,11 +64,6 @@ bool Client<T>::is_stream_open(const std::string& symbol, const std::string& str
 template<typename T>
 std::vector<std::string> Client<T>::get_open_streams() { return static_cast<T*>(this)->v_get_open_streams(); }
 
-template<typename T>
-void Client<T>::ws_auto_reconnect(const bool& reconnect) { static_cast<T*>(this)->v_ws_auto_reconnect(reconnect); }
-
-template<typename T>
-void Client<T>::set_refresh_key_interval(const bool val) { static_cast<T*>(this)->v_set_refresh_key_interval(val); }
 
 //  ------------------------------ End | Client CRTP methods - Infrastructure
 
@@ -138,12 +141,12 @@ Json::Value Client<T>::account_trades_list(const Params* params_ptr) { return st
 
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int  Client<T>::stream_Trade(const std::string& symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_Trade(symbol, buffer, functor); }
 
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int  Client<T>::stream_aggTrade(const std::string& symbol, std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
@@ -161,7 +164,7 @@ unsigned int  Client<T>::stream_aggTrade(const std::string& symbol, std::string&
 
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int Client<T>::stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
 	std::string full_stream_name = "/ws/" + symbol + '@' + "kline_" + interval;
@@ -178,7 +181,7 @@ unsigned int Client<T>::stream_kline(const std::string& symbol, std::string& buf
 }
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int Client<T>::stream_ticker_ind_mini(const std::string& symbol, std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
@@ -195,7 +198,7 @@ unsigned int Client<T>::stream_ticker_ind_mini(const std::string& symbol, std::s
 }
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/!miniTicker@arr";
@@ -212,7 +215,7 @@ unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
 }
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int Client<T>::stream_ticker_ind(const std::string& symbol, std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/" + symbol + "@" + "ticker";
@@ -229,7 +232,7 @@ unsigned int Client<T>::stream_ticker_ind(const std::string& symbol, std::string
 }
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/!ticker@arr";
@@ -246,7 +249,7 @@ unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
 }
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int Client<T>::stream_ticker_ind_book(const std::string& symbol, std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/" + symbol + "@" + "bookTicker";
@@ -263,7 +266,7 @@ unsigned int Client<T>::stream_ticker_ind_book(const std::string& symbol, std::s
 }
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/!bookTicker";
@@ -280,7 +283,7 @@ unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
 }
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int Client<T>::stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
 {
 	std::string full_stream_name = "/ws/" + symbol + "@" + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
@@ -297,7 +300,7 @@ unsigned int Client<T>::stream_depth_partial(const std::string& symbol, std::str
 }
 
 template<typename T>
-template <class FT>
+template <typename FT>
 unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval)
 {
 	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
@@ -315,8 +318,8 @@ unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string
 
 
 template<typename T>
-template <class FT>
-unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_userStream(buffer, functor); }
+template <typename FT>
+unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key) { return static_cast<T*>(this)->v_stream_userStream(buffer, functor, ping_listen_key); }
 
 
 //  ------------------------------ End | Client Global + CRTP methods - WS Streams
@@ -324,6 +327,23 @@ unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor) { re
 
 //  ------------------------------ Start | Client General methods - Infrastructure
 
+template <typename T>
+void Client<T>::set_refresh_key_interval(const unsigned int val)
+{
+	this->refresh_listenkey_interval = val;
+}
+
+template <typename T>
+void Client<T>::set_max_reconnect_count(const unsigned int val)
+{
+	this->_ws_client->_max_reconnect_count = val;
+}
+
+template<typename T>
+void Client<T>::ws_auto_reconnect(const bool reconnect)
+{
+	this->_ws_client->_set_reconnect(reconnect);
+}
 
 template <typename T>
 bool Client<T>::init_rest_session()
@@ -1336,19 +1356,11 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Pa
 };
 
 template <typename T>
-template <class FT>
-unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buffer, FT& functor, const bool& isolated_margin_type)
+template <typename FT>
+unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key, const bool& isolated_margin_type)
 {
-	std::unique_ptr<RestSession> temp_session{ new RestSession{} };
-	RestSession* keep_alive_session = temp_session.get();
-
-	this->set_headers(keep_alive_session);
 	std::string full_stream_name = "/ws/" + this->margin_get_listen_key(isolated_margin_type);
 	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
-
-	std::string renew_key_path = _BASE_REST_SPOT + endpoint + "?" + "listenKey=" + full_stream_name;
-
-	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
 
 	if (this->_ws_client->is_open(full_stream_name))
 	{
@@ -1357,7 +1369,7 @@ unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buf
 	}
 	else
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, ping_listen_key);
 		return this->_ws_client->running_streams[full_stream_name];
 	}
 
@@ -1374,23 +1386,23 @@ std::string Client<T>::MarginAccount::margin_get_listen_key(const bool& isolated
 }
 
 template <typename T>
-std::string Client<T>::MarginAccount::margin_ping_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
+Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
 {
 	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
 	std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
-	Json::Value response = (this->_rest_client)->_putreq(full_path);
+	Json::Value response = listen_key.empty() ? (this->_rest_client)->_putreq(full_path) : (this->_rest_client)->_postreq(full_path);
 
-	return response["response"]["listenKey"].asString();
+	return response;
 }
 
 template <typename T>
-std::string Client<T>::MarginAccount::margin_revoke_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
+Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
 {
 	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
 	std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
-	return response["response"]["listenKey"].asString();
+	return response;
 }
 
 //  ------------------------------ End | Client MarginAccount - User MarginAccount Endpoints
@@ -1660,18 +1672,12 @@ Json::Value Client<T>::Mining::account_list(const Params* params_ptr)
 
 //  ------------------------------ Start | SpotClient General methods - Infrastructure
 
-SpotClient::SpotClient() : Client()
-{
-	this->init_ws_session();
-	this->init_rest_session();
-};
+SpotClient::SpotClient() : Client(*this)
+{};
 
 SpotClient::SpotClient(std::string key, std::string secret)
-	: Client(key, secret)
-{
-	this->init_rest_session();
-	this->init_ws_session();
-}
+	: Client(*this, key, secret)
+{}
 
 
 SpotClient::~SpotClient() // todo: is delete restand ws client needed ? ? ?
@@ -1685,8 +1691,8 @@ bool SpotClient::v_init_ws_session()
 {
 	try
 	{
-		if (this->_ws_client) delete this->_ws_client;
-		this->_ws_client = new WebsocketClient{ _WS_BASE_SPOT, _WS_PORT_SPOT };
+		this->_ws_client->set_host_port(_WS_BASE_SPOT, _WS_PORT_SPOT);
+
 		return 1;
 	}
 	catch (...)
@@ -1695,18 +1701,10 @@ bool SpotClient::v_init_ws_session()
 	}
 }
 
-template <class FT>
-unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor)
+template <typename FT>
+unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
-	std::unique_ptr<RestSession> temp_session{ new RestSession{} };
-	RestSession* keep_alive_session = temp_session.get();
-
-	this->set_headers(keep_alive_session);
 	std::string full_stream_name = "/ws/" + this->get_listen_key();
-
-	std::string renew_key_path = _BASE_REST_SPOT + "/api/v3/userDataStream" + "?" + "listenKey=" + full_stream_name;
-
-	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
 
 	if (this->_ws_client->is_open(full_stream_name))
 	{
@@ -1715,7 +1713,7 @@ unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor)
 	}
 	else
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, ping_listen_key);
 		return this->_ws_client->running_streams[full_stream_name];
 	}
 
@@ -1723,29 +1721,26 @@ unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor)
 
 std::string SpotClient::v_get_listen_key()
 {
-	// no signature is needed here
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/userDataStream";
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
 	return response["response"]["listenKey"].asString();
 }
 
-std::string SpotClient::v_ping_listen_key(const std::string& listen_key)
+Json::Value SpotClient::v_ping_listen_key(const std::string& listen_key)
 {
-	// no signature is needed here
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/userDataStream" + "?listenKey=" + listen_key;
-	Json::Value response = (this->_rest_client)->_putreq(full_path);
+	Json::Value response = listen_key.empty() ? (this->_rest_client)->_putreq(full_path) : (this->_rest_client)->_postreq(full_path);
 
-	return response["response"]["listenKey"].asString();
+	return response;
 }
 
-std::string SpotClient::v_revoke_listen_key(const std::string& listen_key)
+Json::Value SpotClient::v_revoke_listen_key(const std::string& listen_key)
 {
-	// no signature is needed here
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/userDataStream" + "?listenKey=" + listen_key;
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
-	return response["response"]["listenKey"].asString();
+	return response;
 }
 
 
@@ -1761,10 +1756,6 @@ void SpotClient::v_close_stream(const std::string& symbol, const std::string& st
 	}
 }
 
-void SpotClient::v_set_refresh_key_interval(const bool& val)
-{
-	this->_ws_client->refresh_listenkey_interval = val;
-}
 
 bool SpotClient::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
 {
@@ -1777,10 +1768,6 @@ std::vector<std::string> SpotClient::v_get_open_streams()
 	return this->_ws_client->open_streams();
 }
 
-void SpotClient::v_ws_auto_reconnect(const bool& reconnect)
-{
-	this->_ws_client->_set_reconnect(reconnect);
-}
 
 //  ------------------------------ End | SpotClient CRTP methods - Client infrastructure
 
@@ -2021,7 +2008,7 @@ Json::Value SpotClient::oco_open_orders(const Params* params_ptr)
 
 //  ------------------------------ Start | SpotClient General methods - WS Streams
 
-template <class FT>
+template <typename FT>
 unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/" + symbol + '@' + "trade";
@@ -2046,20 +2033,15 @@ unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer,
 //  ------------------------------ Start | FuturesClient General methods - Infrastructure
 
 template <typename CT>
-FuturesClient<CT>::FuturesClient()
-	: Client<FuturesClient<CT>>(), _testnet_mode{ 0 }
-{
-	this->init_ws_session();
-	this->init_rest_session();
-};
+FuturesClient<CT>::FuturesClient(CT& exchange_client)
+	: Client<FuturesClient<CT>>(*this), _testnet_mode{ 0 }
+{};
+
 
 template <typename CT>
-FuturesClient<CT>::FuturesClient(std::string key, std::string secret)
-	: Client<FuturesClient<CT>>(key, secret), _testnet_mode{ 0 }
-{
-	this->init_rest_session();
-	this->init_ws_session();
-}
+FuturesClient<CT>::FuturesClient(CT& exchange_client, std::string key, std::string secret)
+	: Client<FuturesClient<CT>>(*this, key, secret), _testnet_mode{ 0 }
+{}
 
 template <typename CT>
 FuturesClient<CT>::~FuturesClient()
@@ -2082,7 +2064,7 @@ template <typename CT>
 bool FuturesClient<CT>::v_init_ws_session() { return static_cast<CT*>(this)->v__init_ws_session(); }
 
 template <typename CT>
-void FuturesClient<CT>::set_testnet_mode(bool status) { return static_cast<CT*>(this)->v_set_testnet_mode(status); }
+void FuturesClient<CT>::set_testnet_mode(const bool& status) { return static_cast<CT*>(this)->v_set_testnet_mode(status); }
 
 
 template <typename CT>
@@ -2099,23 +2081,12 @@ void FuturesClient<CT>::v_close_stream(const std::string& symbol, const std::str
 }
 
 template <typename CT>
-void FuturesClient<CT>::v_set_refresh_key_interval(const bool val)
-{
-	this->_ws_client->refresh_listenkey_interval = val;
-}
-
-template <typename CT>
 bool FuturesClient<CT>::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
 {
 	std::string full_stream_name = symbol + '@' + stream_name;
 	return this->_ws_client->is_open(full_stream_name);
 }
 
-template <typename CT>
-void FuturesClient<CT>::v_ws_auto_reconnect(const bool& reconnect)
-{
-	this->_ws_client->_set_reconnect(reconnect);
-}
 
 template <typename CT>
 std::vector<std::string> FuturesClient<CT>::v_get_open_streams()
@@ -2276,7 +2247,7 @@ Json::Value FuturesClient<CT>::pos_adl_quantile_est(const Params* params_ptr) { 
 
 
 template <typename CT>
-template <class FT>
+template <typename FT>
 unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
 	throw("does not exist for futures");
@@ -2284,33 +2255,33 @@ unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& 
 
 
 template<typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::stream_markprice_all(std::string pair, std::string& buffer, FT& functor) { return static_cast<CT*>(this)->v_stream_markprice_all(pair, buffer, functor); }  // only USDT
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor) { return static_cast<CT*>(this)->v_stream_markprice_all(pair, buffer, functor); }  // only USDT
 
 template<typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v_stream_indexprice(pair, buffer, functor, interval); } // only Coin
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v_stream_indexprice(pair, buffer, functor, interval); } // only Coin
 
 template<typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v_stream_markprice_by_pair(pair, buffer, functor, interval); } // only coin
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v_stream_markprice_by_pair(pair, buffer, functor, interval); } // only coin
 
 template<typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_contract(pair_and_type, buffer, functor, interval); } // only coin
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_contract(pair_and_type, buffer, functor, interval); } // only coin
 
 template<typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_index(pair, buffer, functor, interval); } // only coin
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_index(pair, buffer, functor, interval); } // only coin
 
 template<typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_markprice(symbol, buffer, functor, interval); } // only coin
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_markprice(symbol, buffer, functor, interval); } // only coin
 
 
 template<typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::stream_markprice(std::string symbol, std::string& buffer, FT& functor, unsigned int interval)
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_markprice(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval)
 {
 	std::string full_stream_name = "/ws/" + symbol + '@' + "markPrice" + std::to_string(interval) + "ms";
 	if (this->_ws_client->is_open(full_stream_name))
@@ -2326,8 +2297,8 @@ unsigned int FuturesClient<CT>::stream_markprice(std::string symbol, std::string
 }
 
 template<typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::stream_liquidation_orders(std::string symbol, std::string& buffer, FT& functor)
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_liquidation_orders(const std::string& symbol, std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/" + symbol + "@" + "forceOrder";
 	if (this->_ws_client->is_open(full_stream_name))
@@ -2343,7 +2314,7 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders(std::string symbol, st
 }
 
 template<typename CT>
-template <class FT>
+template <typename FT>
 unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/!forceOrder@arr";
@@ -2360,17 +2331,17 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffe
 }
 
 template<typename CT>
-template <class FT>
-unsigned int FuturesClient<CT>::v_stream_userStream(std::string& buffer, FT& functor) { return static_cast<CT*>(this)->v__stream_userStream(buffer, functor); }
+template <typename FT>
+unsigned int FuturesClient<CT>::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key) { return static_cast<CT*>(this)->v__stream_userStream(buffer, functor, ping_listen_key); }
 
 template <typename CT>
 std::string FuturesClient<CT>::v_get_listen_key() { return static_cast<CT*>(this)->v__get_listen_key(); }
 
 template <typename CT>
-std::string FuturesClient<CT>::v_ping_listen_key(const std::string& listen_key) { return static_cast<CT*>(this)->v__ping_listen_key(); }
+Json::Value FuturesClient<CT>::v_ping_listen_key(const std::string& listen_key) { return static_cast<CT*>(this)->v__ping_listen_key(); }
 
 template <typename CT>
-std::string FuturesClient<CT>::v_revoke_listen_key(const std::string& listen_key) { return static_cast<CT*>(this)->v__revoke_listen_key(); }
+Json::Value FuturesClient<CT>::v_revoke_listen_key(const std::string& listen_key) { return static_cast<CT*>(this)->v__revoke_listen_key(); }
 
 //  ------------------------------ End | FuturesClient Global + CRTP methods - WS Streams 
 
@@ -2437,11 +2408,11 @@ Json::Value FuturesClient<CT>::basis_data(const Params* params_ptr)
 //  ------------------------------ Start | FuturesClientUSDT General methods - Infrastructure
 
 FuturesClientUSDT::FuturesClientUSDT()
-	: FuturesClient()
+	: FuturesClient(*this)
 {};
 
 FuturesClientUSDT::FuturesClientUSDT(std::string key, std::string secret)
-	: FuturesClient(key, secret)
+	: FuturesClient(*this, key, secret)
 {}
 
 FuturesClientUSDT::~FuturesClientUSDT()
@@ -2451,8 +2422,8 @@ bool FuturesClientUSDT::v__init_ws_session()
 {
 	try
 	{
-		if (this->_ws_client) delete this->_ws_client;
-		this->_ws_client = new WebsocketClient{ _WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES };
+		this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
+
 		return 1;
 	}
 	catch (...)
@@ -2461,11 +2432,12 @@ bool FuturesClientUSDT::v__init_ws_session()
 	}
 }
 
-void FuturesClientUSDT::v_set_testnet_mode(bool status)
+void FuturesClientUSDT::v_set_testnet_mode(const bool& status)
 {
-	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN_TESTNET, _WS_PORT_FUTURES);
+	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT_TESTNET, _WS_PORT_FUTURES);
 	else this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
 	this->_testnet_mode = status;
+
 }
 
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - Market Data Implementations
@@ -2881,8 +2853,8 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
 
 
-template <class FT>
-unsigned int FuturesClientUSDT::v_stream_markprice_all(std::string symbol, std::string& buffer, FT& functor)
+template <typename FT>
+unsigned int FuturesClientUSDT::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor)
 {
 	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
 	if (this->_ws_client->is_open(full_stream_name))
@@ -2898,47 +2870,41 @@ unsigned int FuturesClientUSDT::v_stream_markprice_all(std::string symbol, std::
 }
 
 
-template <class FT>
-unsigned int FuturesClientUSDT::v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval)
+template <typename FT>
+unsigned int FuturesClientUSDT::v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
 	throw("non-existing for usdt");
 }
 
-template <class FT>
-unsigned int FuturesClientUSDT::v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
+template <typename FT>
+unsigned int FuturesClientUSDT::v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
 	throw("non-existing for usdt");
 }
 
-template <class FT>
-unsigned int FuturesClientUSDT::v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval)
+template <typename FT>
+unsigned int FuturesClientUSDT::v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
 {
 	throw("non-existing for usdt");
 }
 
-template <class FT>
-unsigned int FuturesClientUSDT::v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval)
+template <typename FT>
+unsigned int FuturesClientUSDT::v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
 {
 	throw("non-existing for usdt");
 }
 
-template <class FT>
-unsigned int FuturesClientUSDT::v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+template <typename FT>
+unsigned int FuturesClientUSDT::v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
 	throw("non-existing for usdt");
 }
 
-template <class FT>
-unsigned int FuturesClientUSDT::v__stream_userStream(std::string& buffer, FT& functor)
+template <typename FT>
+unsigned int FuturesClientUSDT::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
-	std::unique_ptr<RestSession> temp_session{ new RestSession{} };
-	RestSession* keep_alive_session = temp_session.get();
-	this->set_headers(keep_alive_session);
 	std::string full_stream_name = "/ws/" + this->get_listen_key();
-	std::string renew_key_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
-	renew_key_path += "/fapi/v1/listenKey";
 
-	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
 
 	if (this->_ws_client->is_open(full_stream_name))
 	{
@@ -2947,7 +2913,7 @@ unsigned int FuturesClientUSDT::v__stream_userStream(std::string& buffer, FT& fu
 	}
 	else
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, ping_listen_key);
 		return this->_ws_client->running_streams[full_stream_name];
 	}
 
@@ -2962,26 +2928,25 @@ std::string FuturesClientUSDT::v__get_listen_key()
 	return response["response"]["listenKey"].asString();
 }
 
-std::string FuturesClientUSDT::v__ping_listen_key()
+Json::Value FuturesClientUSDT::v__ping_listen_key()
 {
-	// no signature is needed here
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/fapi/v1/listenKey";
 
 	Json::Value response = (this->_rest_client)->_putreq(full_path);
 
-	return response["response"]["listenKey"].asString();
+	return response;
 }
 
-std::string FuturesClientUSDT::v__revoke_listen_key()
+Json::Value FuturesClientUSDT::v__revoke_listen_key()
 {
-	// no signature is needed here
+
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/fapi/v1/listenKey";
 
 	Json::Value response = (this->_rest_client)->_deletereq(full_path);
 
-	return response["response"]["listenKey"].asString();
+	return response;
 }
 
 //  ------------------------------ End | FuturesClientUSDT CRTP methods - WS Streams
@@ -2993,11 +2958,11 @@ std::string FuturesClientUSDT::v__revoke_listen_key()
 //  ------------------------------ Start | FuturesClientCoin General methods - Infrastructure
 
 FuturesClientCoin::FuturesClientCoin()
-	: FuturesClient()
+	: FuturesClient(*this)
 {};
 
 FuturesClientCoin::FuturesClientCoin(std::string key, std::string secret)
-	: FuturesClient(key, secret)
+	: FuturesClient(*this, key, secret)
 {}
 
 FuturesClientCoin::~FuturesClientCoin()
@@ -3007,8 +2972,7 @@ bool FuturesClientCoin::v__init_ws_session()
 {
 	try
 	{
-		if (this->_ws_client) delete this->_ws_client;
-		this->_ws_client = new WebsocketClient{ _WS_BASE_FUTURES_COIN, _WS_PORT_FUTURES };
+		this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN, _WS_PORT_FUTURES);
 		return 1;
 	}
 	catch (...)
@@ -3017,7 +2981,7 @@ bool FuturesClientCoin::v__init_ws_session()
 	}
 }
 
-void FuturesClientCoin::v_set_testnet_mode(bool status)
+void FuturesClientCoin::v_set_testnet_mode(const bool& status)
 {
 	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN_TESTNET, _WS_PORT_FUTURES);
 	else this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN, _WS_PORT_FUTURES);
@@ -3374,15 +3338,15 @@ Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
 
 
-template <class FT>
-unsigned int FuturesClientCoin::v_stream_markprice_all(std::string symbol, std::string& buffer, FT& functor) // here
+template <typename FT>
+unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor) // here
 {
 	throw("non-existing for coin");
 }
 
 
-template <class FT>
-unsigned int FuturesClientCoin::v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval)
+template <typename FT>
+unsigned int FuturesClientCoin::v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
 	std::string full_stream_name = "/ws/" + pair + "@" + "indexPrice" + "@" + std::to_string(interval) + "ms";
 	if (this->_ws_client->is_open(full_stream_name))
@@ -3397,8 +3361,8 @@ unsigned int FuturesClientCoin::v_stream_indexprice(std::string pair, std::strin
 	}
 }
 
-template <class FT>
-unsigned int FuturesClientCoin::v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
+template <typename FT>
+unsigned int FuturesClientCoin::v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
 	std::string full_stream_name = "/ws/" + pair + "@" + "markPrice" + "@" + std::to_string(interval) + "ms";
 	if (this->_ws_client->is_open(full_stream_name))
@@ -3413,8 +3377,8 @@ unsigned int FuturesClientCoin::v_stream_markprice_by_pair(std::string& pair, st
 	}
 }
 
-template <class FT>
-unsigned int FuturesClientCoin::v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval)
+template <typename FT>
+unsigned int FuturesClientCoin::v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
 {
 	std::string full_stream_name = "/ws/" + pair_and_type + "@" + "continuousKline_" + (interval);
 	if (this->_ws_client->is_open(full_stream_name))
@@ -3429,8 +3393,8 @@ unsigned int FuturesClientCoin::v_stream_kline_contract(std::string pair_and_typ
 	}
 }
 
-template <class FT>
-unsigned int FuturesClientCoin::v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval)
+template <typename FT>
+unsigned int FuturesClientCoin::v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
 {
 	std::string full_stream_name = "/ws/" + pair + "@" + "indexPriceKline_" + (interval);
 	if (this->_ws_client->is_open(full_stream_name))
@@ -3445,8 +3409,8 @@ unsigned int FuturesClientCoin::v_stream_kline_index(std::string pair, std::stri
 	}
 }
 
-template <class FT>
-unsigned int FuturesClientCoin::v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval)
+template <typename FT>
+unsigned int FuturesClientCoin::v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
 	std::string full_stream_name = "/ws/" + symbol + "@" + "markPriceKline_" + (interval);
 	if (this->_ws_client->is_open(full_stream_name))
@@ -3461,18 +3425,10 @@ unsigned int FuturesClientCoin::v_stream_kline_markprice(std::string symbol, std
 	}
 }
 
-template <class FT>
-unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& functor)
+template <typename FT>
+unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
-	std::unique_ptr<RestSession> temp_session{ new RestSession{} };
-	RestSession* keep_alive_session = temp_session.get();
-
-	this->set_headers(keep_alive_session);
 	std::string full_stream_name = "/ws/" + this->get_listen_key();
-	std::string renew_key_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
-	renew_key_path += "/dapi/v1/listenKey";
-
-	std::pair<RestSession*, std::string> user_stream_pair = std::make_pair(keep_alive_session, renew_key_path);
 
 	if (this->_ws_client->is_open(full_stream_name))
 	{
@@ -3481,7 +3437,7 @@ unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& fu
 	}
 	else
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, user_stream_pair);
+		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, ping_listen_key);
 		return this->_ws_client->running_streams[full_stream_name];
 	}
 
@@ -3496,7 +3452,7 @@ std::string FuturesClientCoin::v__get_listen_key()
 	return response["response"]["listenKey"].asString();
 }
 
-std::string FuturesClientCoin::v__ping_listen_key()
+Json::Value FuturesClientCoin::v__ping_listen_key()
 {
 	// no signature is needed here
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -3504,10 +3460,10 @@ std::string FuturesClientCoin::v__ping_listen_key()
 
 	Json::Value response = (this->_rest_client)->_putreq(full_path);
 
-	return response["response"]["listenKey"].asString();
+	return response;
 }
 
-std::string FuturesClientCoin::v__revoke_listen_key()
+Json::Value FuturesClientCoin::v__revoke_listen_key()
 {
 	// no signature is needed here
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -3515,7 +3471,7 @@ std::string FuturesClientCoin::v__revoke_listen_key()
 
 	Json::Value response = (this->_rest_client)->_deletereq(full_path);
 
-	return response["response"]["listenKey"].asString();
+	return response;
 }
 
 //  ------------------------------ End | FuturesClientCoin CRTP methods - WS Streams
@@ -3699,7 +3655,6 @@ void Params::set_recv(const bool& set_always, const unsigned int& recv_val)
 	}
 
 }
-
 
 bool Params::empty() const
 {

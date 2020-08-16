@@ -2,6 +2,7 @@
 // todo: better handle error codes api
 // todo: marginaccount construct from futures impossible?
 // todo: pass client to _ws and use the ping_listen_key for that
+// todo: while stream = 1 = volatile??
 
 
 // DOCs todos:
@@ -12,6 +13,8 @@
 // 5. I let passing empty or none params so the user can receive the error and see whats missing! better than runtime error
 // 6. all structs require auth (even margin requires header)
 // 7. no default arguments for ws streams when using threads. Must specify...
+// 8. I initialize up to Client() constructor with a reference of 'this' in order to gain access to Renew listen key
+// 9. ping listen key spot: if ping is empty, post req is sent
 
 // First make everything for spot and then for futures
 
@@ -102,34 +105,36 @@ public:
 	~RestSession();
 };
 
+template <typename T>
 class WebsocketClient
 {
 private:
 	std::string _host; // not const because of testnet
 	std::string _port;
-	bool _reconnect_on_error;
+	T exchange_client; // user client obj
 
-	template <class FT>
-	void _connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor, std::pair<RestSession*,
-		std::string> user_stream_pair = std::make_pair<RestSession*, std::string>(nullptr, ""));
+
+	template <typename FT>
+	void _connect_to_endpoint(const std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key); // todo: make stream map name const ref?
 
 public:
-	WebsocketClient(std::string host, unsigned int port);
+	unsigned int _max_reconnect_count;
+	bool _reconnect_on_error;
+
+	WebsocketClient(T& exchange_client, const std::string host, const unsigned int port);
 
 	std::unordered_map<std::string, bool> running_streams; // will be a map, containing pairs of: <bool(status), ws_stream> 
 
-	void close_stream(const std::string stream_name);
+	void close_stream(const std::string& full_stream_name);
 	std::vector<std::string> open_streams();
 	bool is_open(const std::string& stream_name) const;
-	unsigned int refresh_listenkey_interval;
 
-	template <class FT>
-	void _stream_manager(std::string stream_map_name, std::string& buf, FT& functor, std::pair<RestSession*,
-		std::string> user_stream_pair = std::make_pair<RestSession*, std::string>(nullptr, ""));
+	template <typename FT>
+	void _stream_manager(std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key = 0);
 
 	void _set_reconnect(const bool& reconnect);
 
-	void set_host_port(const std::string& new_host, const unsigned int& new_port);
+	void set_host_port(const std::string new_host, const unsigned int new_port);
 
 	~WebsocketClient();
 
@@ -179,10 +184,11 @@ protected:
 
 
 public:
-	explicit Client();
-	Client(std::string key, std::string secret);
+	explicit Client(T& exchange_client);
+	Client(T& exchange_client, std::string key, std::string secret);
 
 	bool const _public_client;
+	unsigned int refresh_listenkey_interval;
 
 	std::string _generate_query(const Params* params_ptr, const bool& sign_query = 0);
 
@@ -221,45 +227,45 @@ public:
 
 	// WS Streams
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_aggTrade(const std::string& symbol, std::string& buffer, FT& functor);
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_Trade(const std::string& symbol, std::string& buffer, FT& functor); // todo: only for spot
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h");
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_ticker_ind_mini(const std::string& symbol, std::string& buffer, FT& functor);
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_ticker_all_mini(std::string& buffer, FT& functor);
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_ticker_ind(const std::string& symbol, std::string& buffer, FT& functor);
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_ticker_all(std::string& buffer, FT& functor);
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_ticker_ind_book(const std::string& symbol, std::string& buffer, FT& functor);
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_ticker_all_book(std::string& buffer, FT& functor);
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int levels = 5, const unsigned int interval = 100); // todo: different intervals for different fronts
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_depth_diff(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int interval = 100);
 
-	template <class FT>
-	unsigned int stream_userStream(std::string& buffer, FT& functor); // todo: for margin, spot, etc...
+	template <typename FT>
+	unsigned int stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key = 0);
 
 	std::string get_listen_key();
-	std::string ping_listen_key(const std::string& listen_key = "");
-	std::string revoke_listen_key(const std::string& listen_key = "");
+	Json::Value ping_listen_key(const std::string& listen_key = ""); // only spot requires key
+	Json::Value revoke_listen_key(const std::string& listen_key = ""); // only spot requires key
 
 
 	// Library methods
@@ -268,8 +274,9 @@ public:
 	void close_stream(const std::string& symbol, const std::string& stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
-	void ws_auto_reconnect(const bool& reconnect);
-	inline void set_refresh_key_interval(const bool val);
+	void ws_auto_reconnect(const bool reconnect);
+	inline void set_refresh_key_interval(const unsigned int val);
+	inline void set_max_reconnect_count(const unsigned int val);
 
 
 	// ----------------------end CRTP methods
@@ -398,11 +405,11 @@ public:
 		Json::Value margin_isolated_margin_symbol(const Params* params_ptr);
 		Json::Value margin_isolated_margin_symbol_all(const Params* params_ptr = nullptr);
 
-		template <class FT>
-		unsigned int margin_stream_userStream(std::string& buffer, FT& functor, const bool& isolated_margin_type = 0);
+		template <typename FT>
+		unsigned int margin_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key = 0, const bool& isolated_margin_type = 0);
 		std::string margin_get_listen_key(const bool& isolated_margin_type = 0);
-		std::string margin_ping_listen_key(const std::string& listen_key, const bool& isolated_margin_type = 0);
-		std::string margin_revoke_listen_key(const std::string& listen_key, const bool& isolated_margin_type = 0);
+		Json::Value margin_ping_listen_key(const std::string& listen_key = "", const bool& isolated_margin_type = 0);
+		Json::Value margin_revoke_listen_key(const std::string& listen_key, const bool& isolated_margin_type = 0);
 
 	};
 
@@ -454,7 +461,7 @@ public:
 	unsigned int custom_stream(std::string stream_query, std::string buffer, FT functor);
 
 	RestSession* _rest_client = nullptr; // todo: move init
-	WebsocketClient* _ws_client = nullptr; // todo: move init, leave decl
+	WebsocketClient<T>* _ws_client = nullptr; // todo: move init, leave decl
 
 	~Client();
 
@@ -469,18 +476,16 @@ private:
 	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
 	inline bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
 	inline std::vector<std::string> v_get_open_streams();
-	inline void v_ws_auto_reconnect(const bool& reconnect);
-	inline void v_set_refresh_key_interval(const bool val);
 
 
 public:
 	friend Client<FuturesClient<CT>>;
 	bool _testnet_mode;
 
-	FuturesClient();
-	FuturesClient(std::string key, std::string secret);
+	FuturesClient(CT& exchange_client);
+	FuturesClient(CT& exchange_client, std::string key, std::string secret);
 
-	inline void set_testnet_mode(bool status);
+	inline void set_testnet_mode(const bool& status);
 	inline bool get_testnet_mode();
 
 
@@ -564,7 +569,7 @@ public:
 
 // -- Global that are going deeper to USDT and COIN
 
-	template <class FT>
+	template <typename FT>
 	unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor);
 
 
@@ -572,39 +577,39 @@ public:
 
 	// todo: define global for both
 
-	template <class FT>
-	unsigned int stream_markprice(std::string symbol, std::string& buffer, FT& functor, unsigned int interval = 1000);
+	template <typename FT>
+	unsigned int stream_markprice(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval = 1000);
 
-	template <class FT>
-	unsigned int stream_liquidation_orders(std::string symbol, std::string& buffer, FT& functor);
+	template <typename FT>
+	unsigned int stream_liquidation_orders(const std::string& symbol, std::string& buffer, FT& functor);
 
-	template <class FT>
+	template <typename FT>
 	unsigned int stream_liquidation_orders_all(std::string& buffer, FT& functor);
 
-	template <class FT>
-	unsigned int stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
+	template <typename FT>
+	unsigned int stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor); // only USDT
 
-	template <class FT>
-	unsigned int stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only Coin
+	template <typename FT>
+	unsigned int stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only Coin
 
-	template <class FT>
-	unsigned int stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only coin
+	template <typename FT>
+	unsigned int stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only coin
 
-	template <class FT>
-	unsigned int stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+	template <typename FT>
+	unsigned int stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
 
-	template <class FT>
-	unsigned int stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+	template <typename FT>
+	unsigned int stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
 
-	template <class FT>
-	unsigned int stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+	template <typename FT>
+	unsigned int stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
 
-	template <class FT>
-	unsigned int v_stream_userStream(std::string& buffer, FT& functor);
+	template <typename FT>
+	unsigned int v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
 
 	std::string v_get_listen_key(); 
-	std::string v_ping_listen_key(const std::string& listen_key); 
-	std::string v_revoke_listen_key(const std::string& listen_key); 
+	Json::Value v_ping_listen_key(const std::string& listen_key);
+	Json::Value v_revoke_listen_key(const std::string& listen_key);
 
 
 
@@ -631,7 +636,7 @@ public:
 	FuturesClientUSDT();
 	FuturesClientUSDT(std::string key, std::string secret);
 	bool v__init_ws_session();
-	void v_set_testnet_mode(bool status);
+	void v_set_testnet_mode(const bool& status);
 
 
 	// up to Client level
@@ -710,30 +715,30 @@ public:
 	// -- going deeper...
 
 
-	template <class FT>
-	unsigned int v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
+	template <typename FT>
+	unsigned int v_stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor); // only USDT
 
-	template <class FT>
-	unsigned int v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
+	template <typename FT>
+	unsigned int v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
 
-	template <class FT>
-	unsigned int v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
+	template <typename FT>
+	unsigned int v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
 
-	template <class FT>
-	unsigned int v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
+	template <typename FT>
+	unsigned int v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
 
-	template <class FT>
-	unsigned int v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval); // only coin
+	template <typename FT>
+	unsigned int v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval); // only coin
 
-	template <class FT>
-	unsigned int v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval); // only coin
+	template <typename FT>
+	unsigned int v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval); // only coin
 
-	template <class FT>
-	unsigned int v__stream_userStream(std::string& buffer, FT& functor);
+	template <typename FT>
+	unsigned int v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
 
 	std::string v__get_listen_key();
-	std::string v__ping_listen_key(); 
-	std::string v__revoke_listen_key();
+	Json::Value v__ping_listen_key();
+	Json::Value v__revoke_listen_key();
 
 
 	~FuturesClientUSDT();
@@ -748,7 +753,7 @@ public:
 	FuturesClientCoin();
 	FuturesClientCoin(std::string key, std::string secret);
 	bool v__init_ws_session();
-	void v_set_testnet_mode(bool status);
+	void v_set_testnet_mode(const bool& status);
 
 
 	// up to Client level
@@ -821,30 +826,30 @@ public:
 
 	// -- going deeper...
 
-	template <class FT>
-	unsigned int v_stream_markprice_all(std::string pair, std::string& buffer, FT& functor); // only USDT
+	template <typename FT>
+	unsigned int v_stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor); // only USDT
 
-	template <class FT>
-	unsigned int v_stream_indexprice(std::string pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
+	template <typename FT>
+	unsigned int v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
 
-	template <class FT>
-	unsigned int v_stream_markprice_by_pair(std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
+	template <typename FT>
+	unsigned int v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
 
-	template <class FT>
-	unsigned int v_stream_kline_contract(std::string pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
+	template <typename FT>
+	unsigned int v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
 
-	template <class FT>
-	unsigned int v_stream_kline_index(std::string pair, std::string& buffer, FT& functor, std::string interval); // only coin
+	template <typename FT>
+	unsigned int v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval); // only coin
 
-	template <class FT>
-	unsigned int v_stream_kline_markprice(std::string symbol, std::string& buffer, FT& functor, std::string interval); // only coin
+	template <typename FT>
+	unsigned int v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval); // only coin
 
-	template <class FT>
-	unsigned int v__stream_userStream(std::string& buffer, FT& functor); 
+	template <typename FT>
+	unsigned int v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
 
 	std::string v__get_listen_key();
-	std::string v__ping_listen_key();
-	std::string v__revoke_listen_key();
+	Json::Value v__ping_listen_key();
+	Json::Value v__revoke_listen_key();
 
 	~FuturesClientCoin();
 };
@@ -895,7 +900,7 @@ private:
 
 	// WS Streams
 
-	template <class FT>
+	template <typename FT>
 	unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor); // todo: only spot
 
 
@@ -903,17 +908,15 @@ private:
 
 	bool v_init_ws_session();
 
-	template <class FT>
-	unsigned int v_stream_userStream(std::string& buffer, FT& functor);
+	template <typename FT>
+	unsigned int v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
 	std::string v_get_listen_key();
-	std::string v_ping_listen_key(const std::string& listen_key);
-	std::string v_revoke_listen_key(const std::string& listen_key);
+	Json::Value v_ping_listen_key(const std::string& listen_key);
+	Json::Value v_revoke_listen_key(const std::string& listen_key);
 
 	void v_close_stream(const std::string& symbol, const std::string& stream_name);
 	bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> v_get_open_streams();
-	void v_ws_auto_reconnect(const bool& reconnect);
-	inline void v_set_refresh_key_interval(const bool& val);
 
 	// crtp infrastructure end , todo: make this more organized ofc
 
