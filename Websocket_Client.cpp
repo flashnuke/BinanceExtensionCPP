@@ -1,19 +1,20 @@
 
 #include "CryptoExtensions.h"
 
-
-
-WebsocketClient::WebsocketClient(std::string host, unsigned int port)
-    : _host{ host }, _port{ std::to_string(port) }, _reconnect_on_error{ 0 }, refresh_listenkey_interval{ 1800 }
+template <typename T>
+WebsocketClient<T>::WebsocketClient(T& exchange_client, const std::string host, const unsigned int port)
+    : _host{ host }, _port{ std::to_string(port) }, _reconnect_on_error{ 0 }, exchange_client { exchange_client }, _max_reconnect_count{ 20 }
 {}
 
 
-void WebsocketClient::close_stream(const std::string full_stream_name)
+template <typename T>
+void WebsocketClient<T>::close_stream(const std::string& full_stream_name)
 {
     this->running_streams[full_stream_name] = 0;
 }
 
-std::vector<std::string> WebsocketClient::open_streams()
+template <typename T>
+std::vector<std::string> WebsocketClient<T>::open_streams()
 {
 	std::unordered_map<std::string, bool>::iterator itr;
 	std::vector<std::string> results;
@@ -26,7 +27,8 @@ std::vector<std::string> WebsocketClient::open_streams()
 	return results;
 };
 
-bool WebsocketClient::is_open(const std::string& full_stream_name) const
+template <typename T>
+bool WebsocketClient<T>::is_open(const std::string& full_stream_name) const
 {
 	std::unordered_map<std::string, bool>::const_iterator itr;
 
@@ -38,20 +40,22 @@ bool WebsocketClient::is_open(const std::string& full_stream_name) const
 	return 0; // does not exit - is not open
 };
 
+template <typename T>
 template <class FT>
-void WebsocketClient::_stream_manager(std::string stream_map_name, std::string& buf, FT& functor, std::pair<RestSession*,
-	std::string> user_stream_pair)
+void WebsocketClient<T>::_stream_manager(std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key)
 {
+	unsigned int reconnect_attempts = 0;
 	this->running_streams[stream_map_name] = 0; // init
 	do
 	{
-		if (user_stream_pair.first) this->_connect_to_endpoint<FT>(stream_map_name, buf, functor, user_stream_pair);
-		else this->_connect_to_endpoint<FT>(stream_map_name, buf, functor);
-	} while (this->running_streams[stream_map_name] && this->_reconnect_on_error);
+		this->_connect_to_endpoint<FT>(stream_map_name, buf, functor, ping_listen_key); // will not proceed unless connection is broken
+		reconnect_attempts++;
+	} while (this->running_streams[stream_map_name] && this->_reconnect_on_error && (reconnect_attempts < this->_max_reconnect_count)); // will repeat only of stream is up (no user shutdown) and reconnect is true, and reconnections not above max
 }
 
+template <typename T>
 template <class FT>
-void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::string& buf, FT& functor, std::pair<RestSession*, std::string> user_stream_pair)
+void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key)
 {
 	long long unsigned int last_keepalive{ 0 };
 
@@ -82,12 +86,12 @@ void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::str
 	{
 		try
 		{
-			if (user_stream_pair.first)
+			if (ping_listen_key) // since const, no volatile?
 			{
 				long long unsigned int current_timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-				if (current_timestamp - last_keepalive > this->refresh_listenkey_interval)
+				if (current_timestamp - last_keepalive > this->exchange_client.refresh_listenkey_interval)
 				{
-					(user_stream_pair.first)->_putreq(user_stream_pair.second);
+					this->exchange_client.ping_listen_key();
 					last_keepalive = current_timestamp;
 				}
 			}
@@ -111,18 +115,22 @@ void WebsocketClient::_connect_to_endpoint(std::string stream_map_name, std::str
 	}
 }
 
-void WebsocketClient::_set_reconnect(const bool& reconnect)
+template <typename T>
+void WebsocketClient<T>::_set_reconnect(const bool& reconnect)
 {
 	this->_reconnect_on_error = reconnect;
 }
 
-void WebsocketClient::set_host_port(const std::string& new_host, const unsigned int& new_port)
+template <typename T>
+void WebsocketClient<T>::set_host_port(const std::string new_host, const unsigned int new_port)
 {
+	// todo: if open streams, close? to avoid midstream change
 	this->_host = new_host;
 	this->_port = std::to_string(new_port);
 }
 
-WebsocketClient::~WebsocketClient()
+template <typename T>
+WebsocketClient<T>::~WebsocketClient()
 {
     std::unordered_map<std::string, bool>::iterator stream_itr; // while status != 0: set 0 and delete thread pointer!
 	
