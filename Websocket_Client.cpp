@@ -10,7 +10,17 @@ WebsocketClient<T>::WebsocketClient(T& exchange_client, const std::string host, 
 template <typename T>
 void WebsocketClient<T>::close_stream(const std::string& full_stream_name)
 {
-    this->running_streams[full_stream_name] = 0;
+	try
+	{
+		this->running_streams[full_stream_name] = 0;
+	}
+	catch(...)
+	{
+		std::string error = "unable to close stream: " + full_stream_name;
+		ClientException e(error);
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
@@ -37,20 +47,28 @@ bool WebsocketClient<T>::is_open(const std::string& full_stream_name) const
 		if (itr->first == full_stream_name) return itr->second;
 	}
 
-	return 0; // does not exit - is not open
+	return 0; 
 };
 
 template <typename T>
 template <class FT>
 void WebsocketClient<T>::_stream_manager(std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key)
 {
-	unsigned int reconnect_attempts = 0;
-	this->running_streams[stream_map_name] = 0; // init
-	do
+	try
 	{
-		this->_connect_to_endpoint<FT>(stream_map_name, buf, functor, ping_listen_key); // will not proceed unless connection is broken
-		reconnect_attempts++;
-	} while (this->running_streams[stream_map_name] && this->_reconnect_on_error && (reconnect_attempts < this->_max_reconnect_count)); // will repeat only of stream is up (no user shutdown) and reconnect is true, and reconnections not above max
+		unsigned int reconnect_attempts = 0;
+		this->running_streams[stream_map_name] = 0; // init
+		do
+		{
+			this->_connect_to_endpoint<FT>(stream_map_name, buf, functor, ping_listen_key); // will not proceed unless connection is broken
+			reconnect_attempts++;
+		} while (this->running_streams[stream_map_name] && this->_reconnect_on_error && (reconnect_attempts < this->_max_reconnect_count)); // will repeat only of stream is up (no user shutdown) and reconnect is true, and reconnections not above max
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
@@ -72,13 +90,15 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 
 	beast::error_code ec; // error code
 
-	if (ws.is_open())
+	if (ws.is_open()) // change back to is open
 	{
 		this->running_streams[stream_map_name] = 1;
 	}
 	else
 	{
-		throw("stream_init_bad");
+		ClientException e("ws_stream_failure");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 
 
@@ -124,9 +144,14 @@ void WebsocketClient<T>::_set_reconnect(const bool& reconnect)
 template <typename T>
 void WebsocketClient<T>::set_host_port(const std::string new_host, const unsigned int new_port)
 {
-	// todo: if open streams, close? to avoid midstream change
 	this->_host = new_host;
 	this->_port = std::to_string(new_port);
+	if (!this->open_streams().empty())
+	{
+		ClientException e("unable_to_change_host_port_due_to_open_streams");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>

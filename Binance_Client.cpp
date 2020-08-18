@@ -19,22 +19,39 @@ const unsigned int _WS_PORT_FUTURES{ 443 };
 template<typename T>
 Client<T>::Client(T& exchange_client) : _public_client{ 1 }, refresh_listenkey_interval{ 1800 }
 {
-	this->init_rest_session(); // important to init rest first - ws is dependant on it
-	this->_ws_client = new WebsocketClient<T>{ exchange_client, "", 0 };
-	this->init_ws_session();
+	try
+	{
+		this->init_rest_session(); // important to init rest first - ws is dependant on it
+		this->_ws_client = new WebsocketClient<T>{ exchange_client, "", 0 };
+		this->init_ws_session();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template<typename T>
 Client<T>::Client(T& exchange_client, std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, refresh_listenkey_interval{ 1800 }
 {
-	this->init_rest_session();
-	this->_ws_client = new WebsocketClient<T>{exchange_client, "", 0 }; 
-	this->init_ws_session();
+	try
+	{
+		this->init_rest_session();
+		this->_ws_client = new WebsocketClient<T>{exchange_client, "", 0 }; 
+		this->init_ws_session();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Client<T>::~Client()
 {
+
 	delete _rest_client;
 	delete _ws_client;
 };
@@ -149,16 +166,24 @@ template<typename T>
 template <typename FT>
 unsigned int  Client<T>::stream_aggTrade(const std::string& symbol, std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cerr << "warning: stream already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -167,16 +192,24 @@ template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
-	std::string full_stream_name = "/ws/" + symbol + '@' + "kline_" + interval;
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
+	try
+	{ 
+		std::string full_stream_name = "/ws/" + symbol + '@' + "kline_" + interval;
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cerr << "warning: stream already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -184,16 +217,24 @@ template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_ind_mini(const std::string& symbol, std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cerr << "warning: stream already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -201,16 +242,24 @@ template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/!miniTicker@arr";
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
+	try
+	{ 
+		std::string full_stream_name = "/ws/!miniTicker@arr";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cerr << "warning: stream already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -218,16 +267,24 @@ template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_ind(const std::string& symbol, std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/" + symbol + "@" + "ticker";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/" + symbol + "@" + "ticker";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cerr << "warning: stream already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -235,16 +292,24 @@ template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/!ticker@arr";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/!ticker@arr";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cerr << "warning: stream already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -252,16 +317,24 @@ template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_ind_book(const std::string& symbol, std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/" + symbol + "@" + "bookTicker";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/" + symbol + "@" + "bookTicker";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cerr << "warning: stream already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -269,16 +342,24 @@ template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/!bookTicker";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/!bookTicker";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cerr << "warning: stream already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -286,16 +367,24 @@ template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
 {
-	std::string full_stream_name = "/ws/" + symbol + "@" + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/" + symbol + "@" + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cerr << "warning: stream already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -303,16 +392,24 @@ template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval)
 {
-	std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cerr << "warning: stream already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -363,8 +460,9 @@ bool Client<T>::init_rest_session()
 	}
 	catch (...)
 	{
-		delete this->_rest_client;
-		throw("bad_init_rest");
+		ClientException e("rest_session_failure");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 
 }
@@ -372,38 +470,72 @@ bool Client<T>::init_rest_session()
 template <typename T>
 Json::Value Client<T>::custom_get_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
-	std::string query = this->_generate_query(params_ptr, signature);
-	std::string full_path = base + endpoint + query;
-	return this->_rest_client->_getreq(full_path);
+	try
+	{
+		std::string query = this->_generate_query(params_ptr, signature);
+		std::string full_path = base + endpoint + query;
+		return this->_rest_client->_getreq(full_path);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::custom_post_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
+	try
+	{
 	std::string query = this->_generate_query(params_ptr, signature);
 	std::string full_path = base + endpoint + query;
 	return this->_rest_client->_postreq(full_path);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::custom_put_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
-	std::string query = this->_generate_query(params_ptr, signature);
-	std::string full_path = base + endpoint + query;
-	return this->_rest_client->_putreq(full_path);
+	try
+	{
+		std::string query = this->_generate_query(params_ptr, signature);
+		std::string full_path = base + endpoint + query;
+		return this->_rest_client->_putreq(full_path);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+}
 }
 
 template <typename T>
 Json::Value Client<T>::custom_delete_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
-	std::string query = this->_generate_query(params_ptr, signature);
-	std::string full_path = base + endpoint + query;
-	return this->_rest_client->_deletereq(full_path);
+	try
+	{
+		std::string query = this->_generate_query(params_ptr, signature);
+		std::string full_path = base + endpoint + query;
+		return this->_rest_client->_deletereq(full_path);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 bool Client<T>::set_headers(RestSession* rest_client)
 {
+	try
+	{
 	std::string key_header = "X-MBX-APIKEY:" + this->_api_key;
 	struct curl_slist* auth_headers;
 	auth_headers = curl_slist_append(NULL, key_header.c_str());
@@ -414,6 +546,13 @@ bool Client<T>::set_headers(RestSession* rest_client)
 	curl_easy_setopt((rest_client->_delete_handle), CURLOPT_HTTPHEADER, auth_headers);
 
 	return 0;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	} // todo: throw here!
+
 }
 
 template <typename T>
@@ -427,61 +566,85 @@ template <typename T>
 template <typename FT>
 unsigned int Client<T>::custom_stream(std::string stream_query, std::string buffer, FT functor)
 {
-	stream_query = "/stream?streams=" + stream_query;
-	if (this->_ws_client->is_open(stream_query))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		stream_query = "/stream?streams=" + stream_query;
+		if (this->_ws_client->is_open(stream_query))
+		{
+			std::cout << "already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+			return this->_ws_client->running_streams[stream_query];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
 template <typename T>
 std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sign_query)
 {
-	std::string query;
-	bool no_params{ 1 };
-
-
-	if (params_ptr && (!params_ptr->empty())) // if ptr passed and it's not empty
+	try
 	{
-		no_params = 0;
-		for (std::unordered_map<std::string, std::string>::const_iterator itr = params_ptr->param_map.begin();
-			itr != params_ptr->param_map.end();
-			itr++)
+		std::string query;
+		bool no_params{ 1 };
+
+
+		if (params_ptr && (!params_ptr->empty())) // if ptr passed and it's not empty
 		{
+			no_params = 0;
+			for (std::unordered_map<std::string, std::string>::const_iterator itr = params_ptr->param_map.begin();
+				itr != params_ptr->param_map.end();
+				itr++)
+			{
 
-			if (itr != params_ptr->param_map.begin()) query += "&";
+				if (itr != params_ptr->param_map.begin()) query += "&";
 
-			query += (itr->first + "=" + itr->second);
+				query += (itr->first + "=" + itr->second);
+			}
 		}
-	}
 
-	if (sign_query) // todo: add timestamp in query only
+		if (sign_query) // todo: add timestamp in query only
+		{
+			unsigned long long timestamp = local_timestamp();
+			query = no_params ? "timestamp=" : "&timestamp=";
+
+			query += std::to_string(timestamp);
+
+			std::string signature = HMACsha256(query, this->_api_secret);
+			query += "&signature=" + signature;
+		}
+
+		query = query.empty() ? "" : ("?" + query); // no need for the question mark if empty
+
+		return query;
+	}
+	catch (ClientException e) // todo: throw
 	{
-		unsigned long long timestamp = local_timestamp();
-		query = no_params ? "timestamp=" : "&timestamp=";
-
-		query += std::to_string(timestamp);
-
-		std::string signature = HMACsha256(query, this->_api_secret);
-		query += "&signature=" + signature;
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
-
-	query = query.empty() ? "" : ("?" + query); // no need for the question mark if empty
-
-	return query;
 }
 
 template <typename T>
 bool Client<T>::exchange_status() // todo: is this abstract?
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
-	return this->_rest_client->_getreq(full_path)["response"]["status"].asBool();
+	try
+	{ 
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
+		return this->_rest_client->_getreq(full_path)["response"]["status"].asBool();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 
@@ -499,14 +662,14 @@ template <typename T>
 Client<T>::Wallet::Wallet(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
 Client<T>::Wallet::Wallet(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
@@ -521,147 +684,260 @@ Client<T>::Wallet::~Wallet()
 template <typename T>
 Json::Value Client<T>::Wallet::get_all_coins(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/capital/config/getall";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/capital/config/getall";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::daily_snapshot(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/accountSnapshot";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/accountSnapshot";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::fast_withdraw_switch(const bool& state)
 {
-	Params temp_params;
-	std::string endpoint = state ? "/sapi/v1/account/enableFastWithdrawSwitch" : "/sapi/v1/account/disableFastWithdrawSwitch";
-	std::string full_path = _BASE_REST_SPOT + endpoint;
-	std::string query = user_client->_generate_query(temp_params, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		Params temp_params;
+		std::string endpoint = state ? "/sapi/v1/account/enableFastWithdrawSwitch" : "/sapi/v1/account/disableFastWithdrawSwitch";
+		std::string full_path = _BASE_REST_SPOT + endpoint;
+		std::string query = user_client->_generate_query(temp_params, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::withdraw_balances(const Params* params_ptr, const bool& SAPI)
 {
-	std::string endpoint = SAPI ? "/sapi/v1/capital/withdraw/apply" : "/wapi/v3/withdraw.html";
-	std::string full_path = _BASE_REST_SPOT + endpoint;
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string endpoint = SAPI ? "/sapi/v1/capital/withdraw/apply" : "/wapi/v3/withdraw.html";
+		std::string full_path = _BASE_REST_SPOT + endpoint;
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::deposit_history(const Params* params_ptr, const bool& network)
 {
-	std::string endpoint = network ? "/sapi/v1/capital/deposit/hisrec" : "/wapi/v3/depositHistory.html";
-	std::string full_path = _BASE_REST_SPOT + endpoint;
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string endpoint = network ? "/sapi/v1/capital/deposit/hisrec" : "/wapi/v3/depositHistory.html";
+		std::string full_path = _BASE_REST_SPOT + endpoint;
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::withdraw_history(const Params* params_ptr, const bool& network)
 {
-	std::string endpoint = network ? "/sapi/v1/capital/withdraw/history" : "/wapi/v3/withdrawHistory.html";
-	std::string full_path = _BASE_REST_SPOT + endpoint;
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string endpoint = network ? "/sapi/v1/capital/withdraw/history" : "/wapi/v3/withdrawHistory.html";
+		std::string full_path = _BASE_REST_SPOT + endpoint;
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::deposit_address(const Params* params_ptr, const bool& network)
 {
-	std::string endpoint = network ? "/sapi/v1/capital/deposit/address" : "/wapi/v3/depositAddress.html";
-	std::string full_path = _BASE_REST_SPOT + endpoint;
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string endpoint = network ? "/sapi/v1/capital/deposit/address" : "/wapi/v3/depositAddress.html";
+		std::string full_path = _BASE_REST_SPOT + endpoint;
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::account_status(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/accountStatus.html";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/accountStatus.html";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::account_status_api(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/apiTradingStatus.html";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/apiTradingStatus.html";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::dust_log(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/userAssetDribbletLog.html";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/userAssetDribbletLog.html";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::dust_transfer(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/asset/dust";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/asset/dust";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::asset_dividend_records(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/asset/assetDividend";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/asset/assetDividend";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::asset_details(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/assetDetail.html";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/assetDetail.html";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Wallet::trading_fees(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/tradeFee.html";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/tradeFee.html";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 //  ------------------------------ End | Client Wallet - User Wallet Endpoints
@@ -677,14 +953,14 @@ template <typename T>
 Client<T>::FuturesWallet::FuturesWallet(Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
 Client<T>::FuturesWallet::FuturesWallet(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
@@ -699,131 +975,235 @@ Client<T>::FuturesWallet::~FuturesWallet()
 template <typename T>
 Json::Value Client<T>::FuturesWallet::futures_transfer(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/transfer";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/transfer";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::futures_transfer_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/transfer";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/transfer";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_borrow(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/borrow";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/borrow";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_borrow_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/borrow/history";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/borrow/history";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_repay(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/repay";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/repay";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_repay_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/repay/history";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/repay/history";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_wallet(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/wallet";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/wallet";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_info(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/configs";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/configs";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/calcAdjustLevel";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/calcAdjustLevel";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/calcMaxAdjustAmount";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/calcMaxAdjustAmount";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/adjustCollateral";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/adjustCollateral";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/adjustCollateral/history";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/adjustCollateral/history";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_liquidation_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/liquidationHistory";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/liquidationHistory";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 //  ------------------------------ End | Client FuturesWallet - User FuturesWallet Endpoints
@@ -840,14 +1220,14 @@ template <typename T>
 Client<T>::SubAccount::SubAccount(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
 Client<T>::SubAccount::SubAccount(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
@@ -861,191 +1241,343 @@ Client<T>::SubAccount::~SubAccount()
 template <typename T>
 Json::Value Client<T>::SubAccount::get_all_subaccounts(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/list.html";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/list.html";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_master_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/transfer/history.html";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/transfer/history.html";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_master_to_subaccount(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/transfer.html";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/transfer.html";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_balances(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/assets.html";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/assets.html";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_deposit_address(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/capital/deposit/subAddress";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/capital/deposit/subAddress";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_deposit_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/capital/deposit/subHisrec";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/capital/deposit/subHisrec";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_future_margin_status(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/status";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/status";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::enable_subaccount_margin(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/margin/enable";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/margin/enable";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_margin_status(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/margin/account";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/margin/account";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_margin_summary(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/margin/accountSummary";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/margin/accountSummary";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::enable_subaccount_futures(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/enable";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/enable";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_futures_status(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/account";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/account";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_futures_summary(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/accountSummary";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/accountSummary";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_futures_positionrisk(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/positionRisk";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/positionRisk";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_to_subaccount_futures(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/transfer";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/transfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_to_subaccount_margin(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/margin/transfer";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/margin/transfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_subaccount_to_subaccount(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subToSub";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subToSub";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_subaccount_to_master(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subToMaster";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subToMaster";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_subaccount_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subUserHistory";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subUserHistory";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 //  ------------------------------ End | Client SubAccount - User SubAccount Endpoints
@@ -1058,14 +1590,14 @@ template <typename T>
 Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
 Client<T>::MarginAccount::MarginAccount(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
@@ -1080,297 +1612,529 @@ Client<T>::MarginAccount::~MarginAccount()
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_transfer(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/transfer";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/transfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_borrow(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/loan";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/loan";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_repay(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/repay";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/repay";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_asset_query(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/asset";
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/asset";
+		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_pair_query(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/pair";
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/pair";
+		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_all_assets_query()
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/allAssets";
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/allAssets";
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_all_pairs_query()
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/allPairs";
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/allPairs";
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_price_index(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/transfer";
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/transfer";
+		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_new_order(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/order";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/order";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_cancel_order(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/order";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_deletereq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/order";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_deletereq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_transfer_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/transfer";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/transfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_loan_record(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/loan";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/loan";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_repay_record(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/repay";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/repay";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_interest_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/interestHistory";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/interestHistory";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_liquidations_record(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/forceLiquidationRec";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/forceLiquidationRec";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_info(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/account";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/account";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_order(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/order";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/order";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_open_orders(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/openOrders";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/openOrders";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_all_orders(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/allOrders";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/allOrders";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_trades_list(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/myTrades";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{ 
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/myTrades";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_max_borrow(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/maxBorrowable";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/maxBorrowable";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_max_transfer(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/maxTransferable";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/maxTransferable";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_create(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/create";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/create";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_transfer(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/transfer";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/transfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_transfer_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/transfer";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/transfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_account_info(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/account";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/account";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/pair";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/pair";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/allPairs";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/allPairs";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 template <typename FT>
 unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key, const bool& isolated_margin_type)
 {
-	std::string full_stream_name = "/ws/" + this->margin_get_listen_key(isolated_margin_type);
-	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+	try
+	{
+		std::string full_stream_name = "/ws/" + this->margin_get_listen_key(isolated_margin_type);
+		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
 
-	if (this->_ws_client->is_open(full_stream_name))
-	{
-		std::cout << "already exists";
-		return 0;
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cout << "already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, ping_listen_key);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, ping_listen_key);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 
 }
@@ -1378,31 +2142,55 @@ unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buf
 template <typename T>
 std::string Client<T>::MarginAccount::margin_get_listen_key(const bool& isolated_margin_type)
 {
-	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
-	std::string full_path = _BASE_REST_SPOT + endpoint;
-	Json::Value response = (this->_rest_client)->_postreq(full_path);
+	try
+	{
+		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+		std::string full_path = _BASE_REST_SPOT + endpoint;
+		Json::Value response = (this->_rest_client)->_postreq(full_path);
 
-	return response["response"]["listenKey"].asString();
+		return response["response"]["listenKey"].asString();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
 {
-	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
-	std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
-	Json::Value response = listen_key.empty() ? (this->_rest_client)->_putreq(full_path) : (this->_rest_client)->_postreq(full_path);
+	try
+	{
+		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
+		Json::Value response = listen_key.empty() ? (this->_rest_client)->_putreq(full_path) : (this->_rest_client)->_postreq(full_path);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
 {
-	std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
-	std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
-	Json::Value response = (this->_rest_client)->_postreq(full_path);
+	try
+	{
+		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
+		Json::Value response = (this->_rest_client)->_postreq(full_path);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 //  ------------------------------ End | Client MarginAccount - User MarginAccount Endpoints
@@ -1415,20 +2203,20 @@ template <typename T>
 Client<T>::Savings::Savings(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
 Client<T>::Savings::Savings(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
 Client<T>::Savings::~Savings()
 {
-	user_client = nullptr;
+	user_client = nullptr; 
 }
 
 // ------ Endpoint methods
@@ -1437,131 +2225,235 @@ Client<T>::Savings::~Savings()
 template <typename T>
 Json::Value Client<T>::Savings::get_product_list_flexible(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/product/list";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/product/list";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::get_product_daily_quota_purchase_flexible(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/userLeftQuota";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/userLeftQuota";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::purchase_product_flexible(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/purchase";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/purchase";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::get_product_daily_quota_redemption_flexible(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/userRedemptionQuota";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/userRedemptionQuota";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::redeem_product_flexible(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/redeem";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/redeem";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::get_product_position_flexible(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/token/position";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/daily/token/position";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::get_product_list_fixed(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/project/list";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/project/list";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::purchase_product_fixed(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/customizedFixed/purchase";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/customizedFixed/purchase";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::get_product_position_fixed(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/project/position/list";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/project/position/list";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::lending_account(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/union/account";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/union/account";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::get_purchase_record(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/union/purchaseRecord";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/union/purchaseRecord";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::get_redemption_record(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/union/redemptionRecord";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/union/redemptionRecord";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Savings::get_interest_history(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/union/interestHistory";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{ 
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/union/interestHistory";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 //  ------------------------------ End | Client Savings - User Savings Endpoints
@@ -1575,20 +2467,20 @@ template <typename T>
 Client<T>::Mining::Mining(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
 Client<T>::Mining::Mining(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client");
+	if (user_client->_public_client) throw("public client"); // todo: throw
 }
 
 template <typename T>
 Client<T>::Mining::~Mining()
 {
-	user_client = nullptr;
+	user_client = nullptr; 
 }
 
 // ------ Endpoint methods
@@ -1597,70 +2489,125 @@ Client<T>::Mining::~Mining()
 template <typename T>
 Json::Value Client<T>::Mining::algo_list()
 {
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/pub/algoList";
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path);
 
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/pub/algoList";
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path);
-
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Mining::coin_list()
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/pub/coinList";
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/pub/coinList";
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Mining::get_miner_list_detail(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/worker/detail";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/worker/detail";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Mining::get_miner_list(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/worker/list";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/worker/list";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Mining::revenue_list(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/payment/list";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/payment/list";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Mining::statistic_list(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/statistics/user/status";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/statistics/user/status";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 template <typename T>
 Json::Value Client<T>::Mining::account_list(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/statistics/user/list";
-	std::string query = user_client->_generate_query(params_ptr, 1);
-	Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/statistics/user/list";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 
@@ -1750,9 +2697,10 @@ void SpotClient::v_close_stream(const std::string& symbol, const std::string& st
 	{
 		this->_ws_client->close_stream(symbol + "@" + stream_name);
 	}
-	catch (...)
+	catch (ClientException e)
 	{
-		throw("stream_close_exc");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -3662,3 +4610,31 @@ bool Params::empty() const
 }
 
 //  ------------------------------ End | Params methods
+
+//  ------------------------------ Start | Exceptions methods
+
+ClientException::ClientException(std::string error_text)
+	: error_desc{ error_text }
+{};
+
+void ClientException::append_to_traceback(const std::string& loc)
+{
+	this->traceback.push_back(loc);
+}
+
+void ClientException::append_to_traceback(std::string&& loc)
+{
+	this->traceback.push_back(std::move(loc));
+}
+
+
+const char* ClientException::what()
+{
+	final_error_body = "exception: " + this->error_desc;
+	for (std::string func : traceback)
+	{
+		final_error_body += "\n" + func;
+	}
+
+	return final_error_body.c_str();
+}

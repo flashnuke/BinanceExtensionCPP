@@ -1,8 +1,8 @@
 // todo: idea - pass stream of name to functor?
 // todo: better handle error codes api
-// todo: marginaccount construct from futures impossible?
-// todo: pass client to _ws and use the ping_listen_key for that
+// todo: marginaccount construct from futures impossible? exc?
 // todo: while stream = 1 = volatile??
+// todo: exception handling for highest level, and ind methods only.
 
 
 // DOCs todos:
@@ -15,6 +15,7 @@
 // 7. no default arguments for ws streams when using threads. Must specify...
 // 8. I initialize up to Client() constructor with a reference of 'this' in order to gain access to Renew listen key
 // 9. ping listen key spot: if ping is empty, post req is sent
+// 10. explain how exceptions work
 
 // First make everything for spot and then for futures
 
@@ -930,5 +931,22 @@ public:
 
 	~SpotClient();
 };
+
+class ClientException
+{
+	std::string error_desc;
+	std::vector<std::string> traceback;
+	std::string final_error_body;
+
+public:
+	explicit ClientException(std::string error_reason);
+	inline void append_to_traceback(const std::string& loc); 
+	void append_to_traceback(std::string&& loc);
+
+	const char* what(); // returns body
+};
+
+
+
 
 #endif
