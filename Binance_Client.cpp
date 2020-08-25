@@ -61,25 +61,97 @@ Client<T>::~Client()
 //  ------------------------------ Start | Client CRTP methods - Infrastructure
 
 template<typename T>
-bool Client<T>::init_ws_session() { return static_cast<T*>(this)->v_init_ws_session(); }
+void Client<T>::init_ws_session()
+{
+	try
+	{
+		static_cast<T*>(this)->v_init_ws_session();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename T>
-std::string Client<T>::get_listen_key() { return static_cast<T*>(this)->v_get_listen_key(); }
+std::string Client<T>::get_listen_key()
+{
+	try
+	{
+		return static_cast<T*>(this)->v_get_listen_key();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
+	
 
 template<typename T>
-Json::Value Client<T>::ping_listen_key(const std::string& listen_key) { return static_cast<T*>(this)->v_ping_listen_key(listen_key); }
+Json::Value Client<T>::ping_listen_key(const std::string& listen_key) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_ping_listen_key(listen_key);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::revoke_listen_key(const std::string& listen_key) { return static_cast<T*>(this)->v_revoke_listen_key(listen_key); }
+Json::Value Client<T>::revoke_listen_key(const std::string& listen_key)
+{
+	try
+	{
+		return static_cast<T*>(this)->v_revoke_listen_key(listen_key);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-void Client<T>::close_stream(const std::string& symbol, const std::string& stream_name) { static_cast<T*>(this)->v_close_stream(symbol, stream_name); }
+void Client<T>::close_stream(const std::string& symbol, const std::string& stream_name) 
+{
+	try
+	{
+		static_cast<T*>(this)->v_close_stream(symbol, stream_name);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-bool Client<T>::is_stream_open(const std::string& symbol, const std::string& stream_name) { return static_cast<T*>(this)->v_is_stream_open(symbol, stream_name); }
+bool Client<T>::is_stream_open(const std::string& symbol, const std::string& stream_name)
+{
+	try
+	{
+		return static_cast<T*>(this)->v_is_stream_open(symbol, stream_name);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-std::vector<std::string> Client<T>::get_open_streams() { return static_cast<T*>(this)->v_get_open_streams(); }
+std::vector<std::string> Client<T>::get_open_streams() 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_get_open_streams();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 
 //  ------------------------------ End | Client CRTP methods - Infrastructure
@@ -87,37 +159,147 @@ std::vector<std::string> Client<T>::get_open_streams() { return static_cast<T*>(
 //  ------------------------------ Start | Client CRTP methods - Market Data Endpoints 
 
 template<typename T>
-unsigned long long Client<T>::exchange_time() { return static_cast<T*>(this)->v_exchange_time(); }
+unsigned long long Client<T>::exchange_time()
+{
+	try
+	{
+		return static_cast<T*>(this)->v_exchange_time();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-bool Client<T>::ping_client() { return static_cast<T*>(this)->v_ping_client(); }
+bool Client<T>::ping_client() 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_ping_client();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::exchange_info() { return static_cast<T*>(this)->v_exchange_info(); }
+Json::Value Client<T>::exchange_info()
+{
+	try
+	{
+		return static_cast<T*>(this)->v_exchange_info();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::order_book(const Params* params_ptr) { return static_cast<T*>(this)->v_order_book(params_ptr); }
+Json::Value Client<T>::order_book(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_order_book(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::public_trades_recent(const Params* params_ptr) { return static_cast<T*>(this)->v_public_trades_recent(params_ptr); }
+Json::Value Client<T>::public_trades_recent(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<T*>(this)->v_public_trades_recent(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::public_trades_historical(const Params* params_ptr) { return static_cast<T*>(this)->v_public_trades_historical(params_ptr); }
+Json::Value Client<T>::public_trades_historical(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_public_trades_historical(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::public_trades_agg(const Params* params_ptr) { return static_cast<T*>(this)->v_public_trades_agg(params_ptr); }
+Json::Value Client<T>::public_trades_agg(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_public_trades_agg(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::klines(const Params* params_ptr) { return static_cast<T*>(this)->v_klines(params_ptr); }
+Json::Value Client<T>::klines(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<T*>(this)->v_klines(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::daily_ticker_stats(const Params* params_ptr) { return static_cast<T*>(this)->v_daily_ticker_stats(params_ptr); }
+Json::Value Client<T>::daily_ticker_stats(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<T*>(this)->v_daily_ticker_stats(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::get_ticker(const Params* params_ptr) { return static_cast<T*>(this)->v_get_ticker(params_ptr); }
+Json::Value Client<T>::get_ticker(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<T*>(this)->v_get_ticker(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::get_order_book_ticker(const Params* params_ptr) { return static_cast<T*>(this)->v_get_order_book_ticker(params_ptr); }
+Json::Value Client<T>::get_order_book_ticker(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_get_order_book_ticker(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 //  ------------------------------ End | Client CRTP methods - Market Data Endpoints 
 
@@ -125,31 +307,121 @@ Json::Value Client<T>::get_order_book_ticker(const Params* params_ptr) { return 
 //  ------------------------------ Start | Client CRTP methods - Trade Endpoints
 
 template<typename T>
-Json::Value Client<T>::test_new_order(const Params* params_ptr) { return static_cast<T*>(this)->v_test_new_order(); }
+Json::Value Client<T>::test_new_order(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_test_new_order();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::new_order(const Params* params_ptr) { return static_cast<T*>(this)->v_new_order(params_ptr); }
+Json::Value Client<T>::new_order(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_new_order(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::cancel_order(const Params* params_ptr) { return static_cast<T*>(this)->v_cancel_order(params_ptr); }
+Json::Value Client<T>::cancel_order(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_cancel_order(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::cancel_all_orders(const Params* params_ptr) { return static_cast<T*>(this)->v_cancel_all_orders(params_ptr); }
+Json::Value Client<T>::cancel_all_orders(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_cancel_all_orders(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::query_order(const Params* params_ptr) { return static_cast<T*>(this)->v_query_order(params_ptr); }
+Json::Value Client<T>::query_order(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_query_order(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::open_orders(const Params* params_ptr) { return static_cast<T*>(this)->v_open_orders(params_ptr); }
+Json::Value Client<T>::open_orders(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_open_orders(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::all_orders(const Params* params_ptr) { return static_cast<T*>(this)->v_all_orders(params_ptr); }
+Json::Value Client<T>::all_orders(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_all_orders(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::account_info(const Params* params_ptr) { return static_cast<T*>(this)->v_account_info(params_ptr); }
+Json::Value Client<T>::account_info(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_account_info(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 template<typename T>
-Json::Value Client<T>::account_trades_list(const Params* params_ptr) { return static_cast<T*>(this)->v_account_trades_list(params_ptr); }
+Json::Value Client<T>::account_trades_list(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<T*>(this)->v_account_trades_list(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}
+}
 
 
 //  ------------------------------ End | Client CRTP methods - Trade Endpoints
@@ -168,11 +440,14 @@ unsigned int  Client<T>::stream_aggTrade(const std::string& symbol, std::string&
 {
 	try
 	{
+		throw(WhatsUp("some"));
 		std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
 		if (this->_ws_client->is_open(full_stream_name))
 		{
-			std::cerr << "warning: stream already exists";
-			return 0;
+			std::string error_msg = "stream already open: ";
+			error_msg += full_stream_name;
+			ClientException e(error_msg);
+			throw(e);
 		}
 		else
 		{
@@ -197,8 +472,10 @@ unsigned int Client<T>::stream_kline(const std::string& symbol, std::string& buf
 		std::string full_stream_name = "/ws/" + symbol + '@' + "kline_" + interval;
 		if (this->_ws_client->is_open(full_stream_name))
 		{
-			std::cerr << "warning: stream already exists";
-			return 0;
+			std::string error_msg = "stream already open: ";
+			error_msg += full_stream_name;
+			ClientException e(error_msg);
+			throw(e);
 		}
 		else
 		{
@@ -222,8 +499,10 @@ unsigned int Client<T>::stream_ticker_ind_mini(const std::string& symbol, std::s
 		std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
 		if (this->_ws_client->is_open(full_stream_name))
 		{
-			std::cerr << "warning: stream already exists";
-			return 0;
+			std::string error_msg = "stream already open: ";
+			error_msg += full_stream_name;
+			ClientException e(error_msg);
+			throw(e);
 		}
 		else
 		{
@@ -247,8 +526,10 @@ unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
 		std::string full_stream_name = "/ws/!miniTicker@arr";
 		if (this->_ws_client->is_open(full_stream_name))
 		{
-			std::cerr << "warning: stream already exists";
-			return 0;
+			std::string error_msg = "stream already open: ";
+			error_msg += full_stream_name;
+			ClientException e(error_msg);
+			throw(e);
 		}
 		else
 		{
@@ -272,8 +553,10 @@ unsigned int Client<T>::stream_ticker_ind(const std::string& symbol, std::string
 		std::string full_stream_name = "/ws/" + symbol + "@" + "ticker";
 		if (this->_ws_client->is_open(full_stream_name))
 		{
-			std::cerr << "warning: stream already exists";
-			return 0;
+			std::string error_msg = "stream already open: ";
+			error_msg += full_stream_name;
+			ClientException e(error_msg);
+			throw(e);
 		}
 		else
 		{
@@ -297,8 +580,10 @@ unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
 		std::string full_stream_name = "/ws/!ticker@arr";
 		if (this->_ws_client->is_open(full_stream_name))
 		{
-			std::cerr << "warning: stream already exists";
-			return 0;
+			std::string error_msg = "stream already open: ";
+			error_msg += full_stream_name;
+			ClientException e(error_msg);
+			throw(e);
 		}
 		else
 		{
@@ -322,8 +607,10 @@ unsigned int Client<T>::stream_ticker_ind_book(const std::string& symbol, std::s
 		std::string full_stream_name = "/ws/" + symbol + "@" + "bookTicker";
 		if (this->_ws_client->is_open(full_stream_name))
 		{
-			std::cerr << "warning: stream already exists";
-			return 0;
+			std::string error_msg = "stream already open: ";
+			error_msg += full_stream_name;
+			ClientException e(error_msg);
+			throw(e);
 		}
 		else
 		{
@@ -347,8 +634,10 @@ unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
 		std::string full_stream_name = "/ws/!bookTicker";
 		if (this->_ws_client->is_open(full_stream_name))
 		{
-			std::cerr << "warning: stream already exists";
-			return 0;
+			std::string error_msg = "stream already open: ";
+			error_msg += full_stream_name;
+			ClientException e(error_msg);
+			throw(e);
 		}
 		else
 		{
@@ -372,8 +661,10 @@ unsigned int Client<T>::stream_depth_partial(const std::string& symbol, std::str
 		std::string full_stream_name = "/ws/" + symbol + "@" + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
 		if (this->_ws_client->is_open(full_stream_name))
 		{
-			std::cerr << "warning: stream already exists";
-			return 0;
+			std::string error_msg = "stream already open: ";
+			error_msg += full_stream_name;
+			ClientException e(error_msg);
+			throw(e);
 		}
 		else
 		{
@@ -397,8 +688,10 @@ unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string
 		std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
 		if (this->_ws_client->is_open(full_stream_name))
 		{
-			std::cerr << "warning: stream already exists";
-			return 0;
+			std::string error_msg = "stream already open: ";
+			error_msg += full_stream_name;
+			ClientException e(error_msg);
+			throw(e);
 		}
 		else
 		{
@@ -416,8 +709,18 @@ unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string
 
 template<typename T>
 template <typename FT>
-unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key) { return static_cast<T*>(this)->v_stream_userStream(buffer, functor, ping_listen_key); }
-
+unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
+{
+	try
+	{
+		return static_cast<T*>(this)->v_stream_userStream(buffer, functor, ping_listen_key);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 //  ------------------------------ End | Client Global + CRTP methods - WS Streams
 
@@ -551,7 +854,12 @@ bool Client<T>::set_headers(RestSession* rest_client)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
-	} // todo: throw here!
+	} 
+	catch (...)
+	{
+		ClientException e("error_setting_headers");
+		e.append_to_traceback(std::string(__FUNCTION__));
+	}; 
 
 }
 
@@ -610,7 +918,7 @@ std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sig
 			}
 		}
 
-		if (sign_query) // todo: add timestamp in query only
+		if (sign_query)
 		{
 			unsigned long long timestamp = local_timestamp();
 			query = no_params ? "timestamp=" : "&timestamp=";
@@ -625,10 +933,15 @@ std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sig
 
 		return query;
 	}
-	catch (ClientException e) // todo: throw
+	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
+	}
+	catch (...)
+	{
+		ClientException e("error_generating_query");
+		e.append_to_traceback(std::string(__FUNCTION__));
 	}
 }
 
@@ -662,14 +975,24 @@ template <typename T>
 Client<T>::Wallet::Wallet(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
 }
 
 template <typename T>
 Client<T>::Wallet::Wallet(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
 }
 
 template <typename T>
@@ -953,14 +1276,24 @@ template <typename T>
 Client<T>::FuturesWallet::FuturesWallet(Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
 }
 
 template <typename T>
 Client<T>::FuturesWallet::FuturesWallet(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
 }
 
 template <typename T>
@@ -1220,14 +1553,24 @@ template <typename T>
 Client<T>::SubAccount::SubAccount(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
 }
 
 template <typename T>
 Client<T>::SubAccount::SubAccount(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
 }
 
 template <typename T>
@@ -1590,14 +1933,24 @@ template <typename T>
 Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
 }
 
 template <typename T>
 Client<T>::MarginAccount::MarginAccount(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
 }
 
 template <typename T>
@@ -2203,14 +2556,24 @@ template <typename T>
 Client<T>::Savings::Savings(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}; 
 }
 
 template <typename T>
 Client<T>::Savings::Savings(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
 }
 
 template <typename T>
@@ -2467,14 +2830,24 @@ template <typename T>
 Client<T>::Mining::Mining(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}; 
 }
 
 template <typename T>
 Client<T>::Mining::Mining(const Client<T>& client_obj)
 	: user_client{ &client_obj }
 {
-	if (user_client->_public_client) throw("public client"); // todo: throw
+	if (user_client->_public_client)
+	{
+		ClientException e("missing_credentials");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
 }
 
 template <typename T>
@@ -2627,25 +3000,17 @@ SpotClient::SpotClient(std::string key, std::string secret)
 {}
 
 
-SpotClient::~SpotClient() // todo: is delete restand ws client needed ? ? ?
+SpotClient::~SpotClient() 
 {};
 
 //  ------------------------------ End | SpotClient General methods - Infrastructure
 
 //  ------------------------------ Start | SpotClient CRTP methods - Client infrastructure
 
-bool SpotClient::v_init_ws_session()
+void SpotClient::v_init_ws_session()
 {
-	try
-	{
-		this->_ws_client->set_host_port(_WS_BASE_SPOT, _WS_PORT_SPOT);
 
-		return 1;
-	}
-	catch (...)
-	{
-		throw("bad_init_ws");
-	}
+	this->_ws_client->set_host_port(_WS_BASE_SPOT, _WS_PORT_SPOT);
 }
 
 template <typename FT>
@@ -2655,8 +3020,11 @@ unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor, c
 
 	if (this->_ws_client->is_open(full_stream_name))
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string error_msg = "stream already open: ";
+		error_msg += full_stream_name;
+		ClientException e(error_msg);
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 	else
 	{
@@ -2731,7 +3099,9 @@ bool SpotClient::v_ping_client()
 	}
 	catch (...)
 	{
-		throw("bad_ping");
+		ClientException e("bad_ping");
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -2742,7 +3112,7 @@ unsigned long long SpotClient::v_exchange_time()
 
 	return std::atoll(ex_time.c_str());
 }
-Json::Value SpotClient::v_exchange_info() // todo: define
+Json::Value SpotClient::v_exchange_info() 
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v1/exchangeInfo";
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
@@ -2908,47 +3278,88 @@ Json::Value SpotClient::v_account_trades_list(const Params* params_ptr)
 
 Json::Value SpotClient::oco_new_order(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/api/v3/order/oco";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/api/v3/order/oco";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+
 }
 
 Json::Value SpotClient::oco_cancel_order(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/api/v3/orderList";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/api/v3/orderList";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 Json::Value SpotClient::oco_query_order(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/api/v3/orderList";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/api/v3/orderList";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 Json::Value SpotClient::oco_all_orders(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/api/v3/allOrderList";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/api/v3/allOrderList";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 Json::Value SpotClient::oco_open_orders(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_SPOT + "/api/v3/openOrderList";
-	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/api/v3/openOrderList";
+		std::string query = this->_generate_query(params_ptr, 1);
+		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
 
-	return response;
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 //  ------------------------------ End | SpotClient General methods - Trade Implementations 
@@ -2962,8 +3373,11 @@ unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer,
 	std::string full_stream_name = "/ws/" + symbol + '@' + "trade";
 	if (this->_ws_client->is_open(full_stream_name))
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string error_msg = "stream already open: ";
+		error_msg += full_stream_name;
+		ClientException e(error_msg);
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 	else
 	{
@@ -3009,7 +3423,7 @@ bool FuturesClient<CT>::get_testnet_mode()
 
 
 template <typename CT>
-bool FuturesClient<CT>::v_init_ws_session() { return static_cast<CT*>(this)->v__init_ws_session(); }
+void FuturesClient<CT>::v_init_ws_session() { static_cast<CT*>(this)->v__init_ws_session(); }
 
 template <typename CT>
 void FuturesClient<CT>::set_testnet_mode(const bool& status) { return static_cast<CT*>(this)->v_set_testnet_mode(status); }
@@ -3086,25 +3500,102 @@ Json::Value FuturesClient<CT>::v_get_order_book_ticker(const Params* params_ptr)
 //  ------------------------------ Start | FuturesClient CRTP methods - Unique Endpoints
 
 template<typename CT>
-Json::Value FuturesClient<CT>::mark_price(const Params* params_ptr) { return static_cast<CT*>(this)->v_mark_price(params_ptr); }
+Json::Value FuturesClient<CT>::mark_price(const Params* params_ptr) 
+{ 
+	try
+	{
+		return static_cast<CT*>(this)->v_mark_price(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::public_liquidation_orders(const Params* params_ptr) { return static_cast<CT*>(this)->v_public_liquidation_orders(params_ptr); }
+Json::Value FuturesClient<CT>::public_liquidation_orders(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_public_liquidation_orders(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::open_interest(const Params* params_ptr) { return static_cast<CT*>(this)->v_open_interest(params_ptr); }
+Json::Value FuturesClient<CT>::open_interest(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_open_interest(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::continues_klines(const Params* params_ptr) { return static_cast<CT*>(this)->v_continues_klines(params_ptr); }
+Json::Value FuturesClient<CT>::continues_klines(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_continues_klines(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::index_klines(const Params* params_ptr) { return static_cast<CT*>(this)->v_index_klines(params_ptr); }
+Json::Value FuturesClient<CT>::index_klines(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_index_klines(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::mark_klines(const Params* params_ptr) { return static_cast<CT*>(this)->v_get_ticker(params_ptr); }
+Json::Value FuturesClient<CT>::mark_klines(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_get_ticker(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::funding_rate_history(const Params* params_ptr) { return static_cast<CT*>(this)->v_funding_rate_history(params_ptr); }
+Json::Value FuturesClient<CT>::funding_rate_history(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_funding_rate_history(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 //  ------------------------------ End | FuturesClient CRTP methods - Unique Endpoints
 
@@ -3143,49 +3634,215 @@ Json::Value FuturesClient<CT>::v_account_trades_list(const Params* params_ptr) {
 // -- Up to 'FuturesClient' (this) Level
 
 template<typename CT>
-Json::Value FuturesClient<CT>::change_position_mode(const Params* params_ptr) { return static_cast<CT*>(this)->v_change_position_mode(params_ptr); }
+Json::Value FuturesClient<CT>::change_position_mode(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_change_position_mode(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::get_position_mode(const Params* params_ptr) { return static_cast<CT*>(this)->v_get_position_mode(params_ptr); }
+Json::Value FuturesClient<CT>::get_position_mode(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_get_position_mode(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::batch_orders(const Params* params_ptr) { return static_cast<CT*>(this)->v_batch_orders(params_ptr); }
+Json::Value FuturesClient<CT>::batch_orders(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_batch_orders(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::cancel_batch_orders(const Params* params_ptr) { return static_cast<CT*>(this)->v_cancel_batch_orders(params_ptr); }
+Json::Value FuturesClient<CT>::cancel_batch_orders(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_cancel_batch_orders(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::cancel_all_orders_timer(const Params* params_ptr) { return static_cast<CT*>(this)->v_cancel_all_orders_timer(params_ptr); }
+Json::Value FuturesClient<CT>::cancel_all_orders_timer(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_cancel_all_orders_timer(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::query_open_order(const Params* params_ptr) { return static_cast<CT*>(this)->v_query_open_order(params_ptr); }
+Json::Value FuturesClient<CT>::query_open_order(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_query_open_order(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::account_balances(const Params* params_ptr) { return static_cast<CT*>(this)->v_account_balances(params_ptr); }
+Json::Value FuturesClient<CT>::account_balances(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_account_balances(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+	}
+
 
 template<typename CT>
-Json::Value FuturesClient<CT>::change_leverage(const Params* params_ptr) { return static_cast<CT*>(this)->v_change_leverage(params_ptr); }
+Json::Value FuturesClient<CT>::change_leverage(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_change_leverage(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::change_margin_type(const Params* params_ptr) { return static_cast<CT*>(this)->v_change_margin_type(params_ptr); }
+Json::Value FuturesClient<CT>::change_margin_type(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_change_margin_type(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::change_position_margin(const Params* params_ptr) { return static_cast<CT*>(this)->v_change_position_margin(params_ptr); }
+Json::Value FuturesClient<CT>::change_position_margin(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_change_position_margin(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::change_position_margin_history(const Params* params_ptr) { return static_cast<CT*>(this)->v_change_position_margin_history(params_ptr); }
+Json::Value FuturesClient<CT>::change_position_margin_history(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_change_position_margin_history(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::position_info(const Params* params_ptr) { return static_cast<CT*>(this)->v_position_info(params_ptr); }
+Json::Value FuturesClient<CT>::position_info(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_position_info(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::get_income_history(const Params* params_ptr) { return static_cast<CT*>(this)->v_get_income_history(params_ptr); }
+Json::Value FuturesClient<CT>::get_income_history(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_get_income_history(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::get_leverage_bracket(const Params* params_ptr) { return static_cast<CT*>(this)->v_get_leverage_bracket(params_ptr); }
+Json::Value FuturesClient<CT>::get_leverage_bracket(const Params* params_ptr) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_get_leverage_bracket(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 template<typename CT>
-Json::Value FuturesClient<CT>::pos_adl_quantile_est(const Params* params_ptr) { return static_cast<CT*>(this)->v_pos_adl_quantile_est(params_ptr); }
+Json::Value FuturesClient<CT>::pos_adl_quantile_est(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_pos_adl_quantile_est(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 
 //  ------------------------------ End | FuturesClient CRTP methods - Trade Implementations
@@ -3198,49 +3855,125 @@ template <typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
-	throw("does not exist for futures");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 
 template<typename CT>
 template <typename FT>
-unsigned int FuturesClient<CT>::stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor) { return static_cast<CT*>(this)->v_stream_markprice_all(pair, buffer, functor); }  // only USDT
+unsigned int FuturesClient<CT>::stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_stream_markprice_all(pair, buffer, functor);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}  // only USDT
 
 template<typename CT>
 template <typename FT>
-unsigned int FuturesClient<CT>::stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v_stream_indexprice(pair, buffer, functor, interval); } // only Coin
+unsigned int FuturesClient<CT>::stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_stream_indexprice(pair, buffer, functor, interval);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+} // only Coin
 
 template<typename CT>
 template <typename FT>
-unsigned int FuturesClient<CT>::stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval) { return static_cast<CT*>(this)->v_stream_markprice_by_pair(pair, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_stream_markprice_by_pair(pair, buffer, functor, interval);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+} // only coin
 
 template<typename CT>
 template <typename FT>
-unsigned int FuturesClient<CT>::stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_contract(pair_and_type, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_stream_kline_contract(pair_and_type, buffer, functor, interval);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+} // only coin
 
 template<typename CT>
 template <typename FT>
-unsigned int FuturesClient<CT>::stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_index(pair, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_stream_kline_index(pair, buffer, functor, interval);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+} // only coin
 
 template<typename CT>
 template <typename FT>
-unsigned int FuturesClient<CT>::stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval) { return static_cast<CT*>(this)->v_stream_kline_markprice(symbol, buffer, functor, interval); } // only coin
+unsigned int FuturesClient<CT>::stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval) 
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_stream_kline_markprice(symbol, buffer, functor, interval);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+} // only coin
 
 
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_markprice(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval)
 {
-	std::string full_stream_name = "/ws/" + symbol + '@' + "markPrice" + std::to_string(interval) + "ms";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/" + symbol + '@' + "markPrice" + std::to_string(interval) + "ms";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cout << "already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -3248,16 +3981,24 @@ template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_liquidation_orders(const std::string& symbol, std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/" + symbol + "@" + "forceOrder";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/" + symbol + "@" + "forceOrder";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cout << "already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -3265,16 +4006,24 @@ template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/!forceOrder@arr";
-	if (this->_ws_client->is_open(full_stream_name))
+	try
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string full_stream_name = "/ws/!forceOrder@arr";
+		if (this->_ws_client->is_open(full_stream_name))
+		{
+			std::cout << "already exists";
+			return 0;
+		}
+		else
+		{
+			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
+			return this->_ws_client->running_streams[full_stream_name];
+		}
 	}
-	else
+	catch (ClientException e)
 	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -3299,52 +4048,92 @@ Json::Value FuturesClient<CT>::v_revoke_listen_key(const std::string& listen_key
 template <typename CT>
 Json::Value FuturesClient<CT>::open_interest_stats(const Params* params_ptr)
 {
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
-	full_path += "/futures/data/openInterestHist" + query;
-	Json::Value response = (this->_rest_client)->_getreq(full_path);
-	return response;
+	try
+	{
+		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+		full_path += "/futures/data/openInterestHist" + query;
+		Json::Value response = (this->_rest_client)->_getreq(full_path);
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename CT>
 Json::Value FuturesClient<CT>::top_long_short_ratio(const Params* params_ptr, bool accounts)
 {
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string endpoint = accounts ? "/futures/data/topLongShortAccountRatio" : "/futures/data/topLongShortPositionRatio";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
-	full_path += (endpoint + query);
-	Json::Value response = (this->_rest_client)->_getreq(full_path);
-	return response;
+	try
+	{
+		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		std::string endpoint = accounts ? "/futures/data/topLongShortAccountRatio" : "/futures/data/topLongShortPositionRatio";
+		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+		full_path += (endpoint + query);
+		Json::Value response = (this->_rest_client)->_getreq(full_path);
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename CT>
 Json::Value FuturesClient<CT>::global_long_short_ratio(const Params* params_ptr)
 {
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
-	full_path += ("/futures/data/globalLongShortAccountRatio" + query);
-	Json::Value response = (this->_rest_client)->_getreq(full_path);
-	return response;
+	try
+	{
+		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+		full_path += ("/futures/data/globalLongShortAccountRatio" + query);
+		Json::Value response = (this->_rest_client)->_getreq(full_path);
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename CT>
 Json::Value FuturesClient<CT>::taker_long_short_ratio(const Params* params_ptr)
 {
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
-	full_path += ("/futures/data/takerlongshortRatio" + query);
-	Json::Value response = (this->_rest_client)->_getreq(full_path);
-	return response;
+	try
+	{
+		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+		full_path += ("/futures/data/takerlongshortRatio" + query);
+		Json::Value response = (this->_rest_client)->_getreq(full_path);
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 template <typename CT>
 Json::Value FuturesClient<CT>::basis_data(const Params* params_ptr)
 {
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
-	full_path += ("/futures/data/basis" + query);
-	Json::Value response = (this->_rest_client)->_getreq(full_path);
-	return response;
+	try
+	{
+		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+		full_path += ("/futures/data/basis" + query);
+		Json::Value response = (this->_rest_client)->_getreq(full_path);
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 //  ------------------------------ End | FuturesClient General methods - Markets Stats
@@ -3366,18 +4155,9 @@ FuturesClientUSDT::FuturesClientUSDT(std::string key, std::string secret)
 FuturesClientUSDT::~FuturesClientUSDT()
 {}
 
-bool FuturesClientUSDT::v__init_ws_session()
+void FuturesClientUSDT::v__init_ws_session()
 {
-	try
-	{
-		this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
-
-		return 1;
-	}
-	catch (...)
-	{
-		throw("bad_init_ws");
-	}
+	this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
 }
 
 void FuturesClientUSDT::v_set_testnet_mode(const bool& status)
@@ -3501,7 +4281,7 @@ Json::Value FuturesClientUSDT::v__get_order_book_ticker(const Params* params_ptr
 
 Json::Value FuturesClientUSDT::v_mark_price(const Params* params_ptr)
 {
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : ""; // todo: copy this format for everything?
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/premiumIndex" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
@@ -3529,15 +4309,21 @@ Json::Value FuturesClientUSDT::v_open_interest(const Params* params_ptr)
 
 Json::Value FuturesClientUSDT::v_continues_klines(const Params* params_ptr)
 {
-	throw("non existing endpoint");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 Json::Value FuturesClientUSDT::v_index_klines(const Params* params_ptr)
 {
-	throw("non existing endpoint");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 Json::Value FuturesClientUSDT::v_mark_klines(const Params* params_ptr)
 {
-	throw("non existing endpoint");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 
@@ -3807,8 +4593,10 @@ unsigned int FuturesClientUSDT::v_stream_markprice_all(const std::string& symbol
 	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
 	if (this->_ws_client->is_open(full_stream_name))
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string error_msg = "stream already open: ";
+		error_msg += full_stream_name;
+		ClientException e(error_msg);
+		throw(e);
 	}
 	else
 	{
@@ -3821,31 +4609,41 @@ unsigned int FuturesClientUSDT::v_stream_markprice_all(const std::string& symbol
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
-	throw("non-existing for usdt");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
-	throw("non-existing for usdt");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
 {
-	throw("non-existing for usdt");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
 {
-	throw("non-existing for usdt");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
-	throw("non-existing for usdt");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 template <typename FT>
@@ -3916,17 +4714,11 @@ FuturesClientCoin::FuturesClientCoin(std::string key, std::string secret)
 FuturesClientCoin::~FuturesClientCoin()
 {}
 
-bool FuturesClientCoin::v__init_ws_session()
+void FuturesClientCoin::v__init_ws_session()
 {
-	try
-	{
-		this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN, _WS_PORT_FUTURES);
-		return 1;
-	}
-	catch (...)
-	{
-		throw("bad_init_ws");
-	}
+
+	this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN, _WS_PORT_FUTURES);
+
 }
 
 void FuturesClientCoin::v_set_testnet_mode(const bool& status)
@@ -4278,7 +5070,9 @@ Json::Value FuturesClientCoin::v_get_leverage_bracket(const Params* params_ptr)
 
 Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 {
-	throw("no such endpoint :)"); // todo: no implementation
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 //  ------------------------------ End | FuturesClientUSDT CRTP methods - Trade Implementations 
@@ -4289,7 +5083,9 @@ Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor) // here
 {
-	throw("non-existing for coin");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 
@@ -4299,8 +5095,10 @@ unsigned int FuturesClientCoin::v_stream_indexprice(const std::string& pair, std
 	std::string full_stream_name = "/ws/" + pair + "@" + "indexPrice" + "@" + std::to_string(interval) + "ms";
 	if (this->_ws_client->is_open(full_stream_name))
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string error_msg = "stream already open: ";
+		error_msg += full_stream_name;
+		ClientException e(error_msg);
+		throw(e);
 	}
 	else
 	{
@@ -4315,8 +5113,10 @@ unsigned int FuturesClientCoin::v_stream_markprice_by_pair(const std::string& pa
 	std::string full_stream_name = "/ws/" + pair + "@" + "markPrice" + "@" + std::to_string(interval) + "ms";
 	if (this->_ws_client->is_open(full_stream_name))
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string error_msg = "stream already open: ";
+		error_msg += full_stream_name;
+		ClientException e(error_msg);
+		throw(e);
 	}
 	else
 	{
@@ -4331,8 +5131,10 @@ unsigned int FuturesClientCoin::v_stream_kline_contract(const std::string& pair_
 	std::string full_stream_name = "/ws/" + pair_and_type + "@" + "continuousKline_" + (interval);
 	if (this->_ws_client->is_open(full_stream_name))
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string error_msg = "stream already open: ";
+		error_msg += full_stream_name;
+		ClientException e(error_msg);
+		throw(e);
 	}
 	else
 	{
@@ -4347,8 +5149,10 @@ unsigned int FuturesClientCoin::v_stream_kline_index(const std::string& pair, st
 	std::string full_stream_name = "/ws/" + pair + "@" + "indexPriceKline_" + (interval);
 	if (this->_ws_client->is_open(full_stream_name))
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string error_msg = "stream already open: ";
+		error_msg += full_stream_name;
+		ClientException e(error_msg);
+		throw(e);
 	}
 	else
 	{
@@ -4363,8 +5167,10 @@ unsigned int FuturesClientCoin::v_stream_kline_markprice(const std::string& symb
 	std::string full_stream_name = "/ws/" + symbol + "@" + "markPriceKline_" + (interval);
 	if (this->_ws_client->is_open(full_stream_name))
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string error_msg = "stream already open: ";
+		error_msg += full_stream_name;
+		ClientException e(error_msg);
+		throw(e);
 	}
 	else
 	{
@@ -4380,8 +5186,10 @@ unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& fu
 
 	if (this->_ws_client->is_open(full_stream_name))
 	{
-		std::cout << "already exists";
-		return 0;
+		std::string error_msg = "stream already open: ";
+		error_msg += full_stream_name;
+		ClientException e(error_msg);
+		throw(e);
 	}
 	else
 	{
@@ -4486,7 +5294,9 @@ Json::Value FuturesClientCoin::v_mark_klines(const Params* params_ptr)
 
 Json::Value FuturesClientCoin::v_funding_rate_history(const Params* params_ptr)
 {
-	throw("non-existing endpoint");
+	ClientException e("no_such_endpoint");
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 //  ------------------------------ End | FuturesClientCoin CRTP methods - Unique Endpoints
@@ -4638,3 +5448,11 @@ const char* ClientException::what()
 
 	return final_error_body.c_str();
 }
+
+BadRequest::BadRequest()
+	: ClientException("error_sending_rest_request")
+{};
+
+MissingCredentials::MissingCredentials()
+	: ClientException("missing_credentials_for_this_method_or_class")
+{};

@@ -1,8 +1,5 @@
-// todo: idea - pass stream of name to functor?
 // todo: better handle error codes api
-// todo: marginaccount construct from futures impossible? exc?
-// todo: while stream = 1 = volatile??
-// todo: exception handling for highest level, and ind methods only.
+// todo: exception class for each case
 
 
 // DOCs todos:
@@ -16,6 +13,7 @@
 // 8. I initialize up to Client() constructor with a reference of 'this' in order to gain access to Renew listen key
 // 9. ping listen key spot: if ping is empty, post req is sent
 // 10. explain how exceptions work
+// 11. example of handling 'BadRequest' where you retry sending the request
 
 // First make everything for spot and then for futures
 
@@ -271,7 +269,7 @@ public:
 
 	// Library methods
 
-	bool init_ws_session();
+	void init_ws_session();
 	void close_stream(const std::string& symbol, const std::string& stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
@@ -473,7 +471,7 @@ template <typename CT> // CT = coin type
 class FuturesClient : public Client<FuturesClient<CT>>
 {
 private:
-	inline bool v_init_ws_session();
+	inline void v_init_ws_session();
 	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
 	inline bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
 	inline std::vector<std::string> v_get_open_streams();
@@ -636,7 +634,7 @@ public:
 
 	FuturesClientUSDT();
 	FuturesClientUSDT(std::string key, std::string secret);
-	bool v__init_ws_session();
+	void v__init_ws_session();
 	void v_set_testnet_mode(const bool& status);
 
 
@@ -753,7 +751,7 @@ public:
 
 	FuturesClientCoin();
 	FuturesClientCoin(std::string key, std::string secret);
-	bool v__init_ws_session();
+	void v__init_ws_session();
 	void v_set_testnet_mode(const bool& status);
 
 
@@ -907,7 +905,7 @@ private:
 
 	// crtp infrastructure start
 
-	bool v_init_ws_session();
+	void v_init_ws_session();
 
 	template <typename FT>
 	unsigned int v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
@@ -946,6 +944,23 @@ public:
 	const char* what(); // returns body
 };
 
+class BadRequest : public ClientException // for bad REST requests
+{
+public:
+	BadRequest();
+};
+
+class MissingCredentials : public ClientException // for trying methods where auth is needed but keys are missing
+{
+public:
+	MissingCredentials();
+};
+
+class BadStream : public ClientException // for trying methods where auth is needed but keys are missing
+{
+public:
+	BadStream();
+};
 
 
 
