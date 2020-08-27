@@ -1,4 +1,3 @@
-
 #ifndef CLIENT_EXCEPTIONS_H
 #define CLIENT_EXCEPTIONS_H
 

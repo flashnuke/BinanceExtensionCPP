@@ -5,7 +5,6 @@ Json::CharReader* _J_READER = _J_BUILDER.newCharReader();
 static long _IDLE_TIME_TCP = 120L;
 static long _INTVL_TIME_TCP = 60L;
 
-
 unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req) 
 {
 	(&req->req_raw)->append((char*)contents, size * nmemb);
@@ -40,7 +39,7 @@ unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 	return 1;
 };
 
-RestSession::RestSession()
+RestSession::RestSession() // except handles in rest_init exchange client level
 {
 	_get_handle = curl_easy_init();
 	curl_easy_setopt(this->_get_handle, CURLOPT_HTTPGET, 1L);
@@ -92,63 +91,99 @@ void RestSession::set_verbose(const long int state)
 
 Json::Value RestSession::_getreq(std::string full_path)
 {
-	RequestHandler request{};
+	try
+	{
+		RequestHandler request{};
 
-	std::unique_lock<std::mutex> req_lock(this->_get_lock); // will be unlocked in callback
-	request.locker = &req_lock;
+		std::unique_lock<std::mutex> req_lock(this->_get_lock); // will be unlocked in callback
+		request.locker = &req_lock;
 
-	curl_easy_setopt(this->_get_handle, CURLOPT_URL, full_path.c_str());
-	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEDATA, &request);
+		curl_easy_setopt(this->_get_handle, CURLOPT_URL, full_path.c_str());
+		curl_easy_setopt(this->_get_handle, CURLOPT_WRITEDATA, &request);
 
-	request.req_status = curl_easy_perform(this->_get_handle);
+		request.req_status = curl_easy_perform(this->_get_handle);
 
 
-	return request.req_json;
+		return request.req_json;
+	}
+	catch (...)
+	{
+		BadRequestREST e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 Json::Value RestSession::_postreq(std::string full_path)
 {
-	RequestHandler request{};
+	try
+	{
+		RequestHandler request{};
 
-	std::unique_lock<std::mutex> req_lock(this->_post_lock); // will be unlocked in callback
-	request.locker = &req_lock;
+		std::unique_lock<std::mutex> req_lock(this->_post_lock); // will be unlocked in callback
+		request.locker = &req_lock;
 
-	curl_easy_setopt(this->_post_handle, CURLOPT_URL, full_path.c_str());
-	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEDATA, &request);
+		curl_easy_setopt(this->_post_handle, CURLOPT_URL, full_path.c_str());
+		curl_easy_setopt(this->_post_handle, CURLOPT_WRITEDATA, &request);
 
-	request.req_status = curl_easy_perform(this->_post_handle);
+		request.req_status = curl_easy_perform(this->_post_handle);
 
-	return request.req_json;
+		return request.req_json;
+	}
+	catch (...)
+	{
+		BadRequestREST e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 Json::Value RestSession::_putreq(std::string full_path)
 {
-	RequestHandler request{};
+	try
+	{
+		RequestHandler request{};
 
-	std::unique_lock<std::mutex> req_lock(this->_put_lock); // will be unlocked in callback
-	request.locker = &req_lock;
+		std::unique_lock<std::mutex> req_lock(this->_put_lock); // will be unlocked in callback
+		request.locker = &req_lock;
 
-	curl_easy_setopt(this->_put_handle, CURLOPT_URL, full_path.c_str());
-	curl_easy_setopt(this->_put_handle, CURLOPT_WRITEDATA, &request);
+		curl_easy_setopt(this->_put_handle, CURLOPT_URL, full_path.c_str());
+		curl_easy_setopt(this->_put_handle, CURLOPT_WRITEDATA, &request);
 
-	request.req_status = curl_easy_perform(this->_put_handle);
+		request.req_status = curl_easy_perform(this->_put_handle);
 
-	return request.req_json;
+		return request.req_json;
+	}
+	catch (...)
+	{
+		BadRequestREST e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 Json::Value RestSession::_deletereq(std::string full_path)
 {
-	RequestHandler request{};
+	try
+	{
+		RequestHandler request{};
 
-	std::unique_lock<std::mutex> req_lock(this->_delete_lock); // will be unlocked in callback
-	request.locker = &req_lock;
+		std::unique_lock<std::mutex> req_lock(this->_delete_lock); // will be unlocked in callback
+		request.locker = &req_lock;
 
-	curl_easy_setopt(this->_delete_handle, CURLOPT_URL, full_path.c_str());
-	curl_easy_setopt(this->_delete_handle, CURLOPT_WRITEDATA, &request);
+		curl_easy_setopt(this->_delete_handle, CURLOPT_URL, full_path.c_str());
+		curl_easy_setopt(this->_delete_handle, CURLOPT_WRITEDATA, &request);
 
-	request.req_status = curl_easy_perform(this->_delete_handle);
+		request.req_status = curl_easy_perform(this->_delete_handle);
 
-	return request.req_json;
+		return request.req_json;
+	}
+	catch (...)
+	{
+		BadRequestREST e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 };
 
 inline void RestSession::get_timeout(unsigned long interval) { curl_easy_setopt(this->_get_handle, CURLOPT_TIMEOUT, interval); };
@@ -174,7 +209,9 @@ bool RestSession::close()
 	}
 	catch (...)
 	{
-		throw("bad_close_rest");
+		BadCleanupREST e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 };
 
@@ -189,5 +226,4 @@ RestSession::RequestHandler::RequestHandler()
 RestSession::~RestSession()
 {
 	this->close();
-	std::cout << "rest des called\n";
 }

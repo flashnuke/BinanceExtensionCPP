@@ -1,6 +1,5 @@
 #include "../include/Binance_Client.h"
 
-
 //  ------------------------------ Base Exception Class
 
 ClientException::ClientException(std::string error_text)
@@ -38,46 +37,46 @@ BadSetupSessionREST::BadSetupSessionREST()
 {};
 
 BadRequestREST::BadRequestREST()
-	: ClientException("missing_credentials_for_this_method_or_class")
+	: ClientException("bad_rest_client_request")
 {};
 
 BadCleanupREST::BadCleanupREST()
-	: ClientException("missing_credentials_for_this_method_or_class")
+	: ClientException("bad_rest_client_cleanup")
 {};
 
 BadSetupHeadersREST::BadSetupHeadersREST()
-	: ClientException("missing_credentials_for_this_method_or_class")
+	: ClientException("bad_rest_client_headers_setup")
 {};
 
 //  ------------------------------ WS Client Exceptions
 
 BadStreamOpenWS::BadStreamOpenWS()
-	: ClientException("missing_credentials_for_this_method_or_class")
+	: ClientException("bad_ws_client_stream_open")
 {};
 
 BadStreamCloseWS::BadStreamCloseWS()
-	: ClientException("missing_credentials_for_this_method_or_class")
+	: ClientException("bad_ws_client_stream_close")
 {};
 
 BadStreamCallbackWS::BadStreamCallbackWS()
-	: ClientException("bad_stream_callback")
+	: ClientException("bad_ws_client_stream_callback")
 {};
 
 BadSetupPathWS::BadSetupPathWS()
-	: ClientException("missing_credentials_for_this_method_or_class")
+	: ClientException("bad_ws_client_stream_path_setup")
 {};
 
 //  ------------------------------ WS Client Exceptions
 
 BadQuery::BadQuery()
-	: ClientException("missing_credentials_for_this_method_or_class")
+	: ClientException("bad_exchange_client_request_query")
 {};
 
 MissingCredentials::MissingCredentials()
-	: ClientException("missing_credentials_for_this_method_or_class")
+	: ClientException("missing_exchange_client_credentials_for_method")
 {};
 
 MissingEndpoint::MissingEndpoint()
-	: ClientException("missing_credentials_for_this_method_or_class")
+	: ClientException("missing_exchange_client_method_endpoint")
 {};
 
