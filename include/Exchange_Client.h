@@ -1,145 +1,12 @@
-// todo: idea - pass stream of name to functor?
-// todo: better handle error codes api
-// todo: marginaccount construct from futures impossible? exc?
-// todo: while stream = 1 = volatile??
-// todo: exception handling for highest level, and ind methods only.
 
-
-// DOCs todos:
-// 1. order book fetch from scratch example
-// 2. ws symbols must be lower case
-// 3. v_ is for crtp
-// 4. custom requests, pass params into query
-// 5. I let passing empty or none params so the user can receive the error and see whats missing! better than runtime error
-// 6. all structs require auth (even margin requires header)
-// 7. no default arguments for ws streams when using threads. Must specify...
-// 8. I initialize up to Client() constructor with a reference of 'this' in order to gain access to Renew listen key
-// 9. ping listen key spot: if ping is empty, post req is sent
-// 10. explain how exceptions work
-
-// First make everything for spot and then for futures
-
-#ifndef CRYPTO_EXTENSIONS_H
-#define CRYPTO_EXTENSIONS_H
-
-#define _WIN32_WINNT 0x0601 // for boost
-
-// external libraries
-#include <boost/beast/ssl.hpp>
-#include <boost/beast/websocket.hpp>
-#include <boost/asio/connect.hpp>
-
-#include <json/json.h>
-#include <curl/curl.h>
-#include <openssl/hmac.h>
-#include <openssl/sha.h>
-
-// STL
-#include <iostream>
-#include <chrono>
-#include <string>
-#include <unordered_map>
-#include <thread>
-#include <mutex>
-#include <vector>
-
-
-
-namespace beast = boost::beast;
-namespace websocket = beast::websocket;
-namespace net = boost::asio;
-namespace ssl = boost::asio::ssl;
-using tcp = boost::asio::ip::tcp;
+#ifndef EXCHANGE_CLIENT_H
+#define EXCHANGE_CLIENT_H
 
 unsigned long long local_timestamp();
 inline char binary_to_hex_digit(unsigned a);
 std::string binary_to_hex(unsigned char const* binary, unsigned binary_len);
 std::string HMACsha256(std::string const& message, std::string const& key);
 
-
-
-class RestSession
-{
-private:
-
-	struct RequestHandler // handles response
-	{
-		RequestHandler();
-		std::string req_raw;
-		Json::Value req_json;
-		CURLcode req_status;
-		std::unique_lock<std::mutex>* locker;
-	};
-
-
-public:
-	RestSession();
-
-	bool status; // bool for whether session is active or not
-
-	CURL* _get_handle{};
-	CURL* _post_handle{};
-	CURL* _put_handle{};
-	CURL* _delete_handle{};
-
-	Json::Value _getreq(std::string full_path);
-	inline void get_timeout(unsigned long interval);
-	std::mutex _get_lock;
-
-	Json::Value _postreq(std::string full_path);
-	inline void post_timeout(unsigned long interval);
-	std::mutex _post_lock;
-
-	Json::Value _putreq(std::string full_path);
-	inline void put_timeout(unsigned long interval);
-	std::mutex _put_lock;
-
-	Json::Value _deletereq(std::string full_path);
-	inline void delete_timeout(unsigned long interval);
-	std::mutex _delete_lock;
-
-	bool close();
-	void set_verbose(const long int state);
-
-	friend unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req);
-
-	~RestSession();
-};
-
-template <typename T>
-class WebsocketClient
-{
-private:
-	std::string _host; // not const because of testnet
-	std::string _port;
-	T exchange_client; // user client obj
-
-
-	template <typename FT>
-	void _connect_to_endpoint(const std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key); // todo: make stream map name const ref?
-
-public:
-	unsigned int _max_reconnect_count;
-	bool _reconnect_on_error;
-
-	WebsocketClient(T& exchange_client, const std::string host, const unsigned int port);
-
-	std::unordered_map<std::string, bool> running_streams; // will be a map, containing pairs of: <bool(status), ws_stream> 
-
-	void close_stream(const std::string& full_stream_name);
-	std::vector<std::string> open_streams();
-	bool is_open(const std::string& stream_name) const;
-
-	template <typename FT>
-	void _stream_manager(std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key = 0);
-
-	void _set_reconnect(const bool& reconnect);
-
-	void set_host_port(const std::string new_host, const unsigned int new_port);
-
-	~WebsocketClient();
-
-};
 
 
 struct Params
@@ -271,7 +138,7 @@ public:
 
 	// Library methods
 
-	bool init_ws_session();
+	void init_ws_session();
 	void close_stream(const std::string& symbol, const std::string& stream_name);
 	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
@@ -473,7 +340,7 @@ template <typename CT> // CT = coin type
 class FuturesClient : public Client<FuturesClient<CT>>
 {
 private:
-	inline bool v_init_ws_session();
+	inline void v_init_ws_session();
 	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
 	inline bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
 	inline std::vector<std::string> v_get_open_streams();
@@ -636,7 +503,7 @@ public:
 
 	FuturesClientUSDT();
 	FuturesClientUSDT(std::string key, std::string secret);
-	bool v__init_ws_session();
+	void v__init_ws_session();
 	void v_set_testnet_mode(const bool& status);
 
 
@@ -753,7 +620,7 @@ public:
 
 	FuturesClientCoin();
 	FuturesClientCoin(std::string key, std::string secret);
-	bool v__init_ws_session();
+	void v__init_ws_session();
 	void v_set_testnet_mode(const bool& status);
 
 
@@ -907,7 +774,7 @@ private:
 
 	// crtp infrastructure start
 
-	bool v_init_ws_session();
+	void v_init_ws_session();
 
 	template <typename FT>
 	unsigned int v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
@@ -931,21 +798,6 @@ public:
 
 	~SpotClient();
 };
-
-class ClientException
-{
-	std::string error_desc;
-	std::vector<std::string> traceback;
-	std::string final_error_body;
-
-public:
-	explicit ClientException(std::string error_reason);
-	inline void append_to_traceback(const std::string& loc); 
-	void append_to_traceback(std::string&& loc);
-
-	const char* what(); // returns body
-};
-
 
 
 
