@@ -51,32 +51,30 @@ template <typename T>
 template <class FT>
 void WebsocketClient<T>::_stream_manager(std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key)
 {
-	try
+	unsigned int reconnect_attempts = 0;
+	this->running_streams[stream_map_name] = 0; // init
+	do
 	{
-		unsigned int reconnect_attempts = 0;
-		this->running_streams[stream_map_name] = 0; // init
-		do
+		try
 		{
-			try
+			this->_connect_to_endpoint<FT>(stream_map_name, buf, functor, ping_listen_key); // will not proceed unless connection is broken
+		}
+
+		catch (ClientException e)
+		{
+			if(this->running_streams[stream_map_name] && this->_reconnect_on_error) // if reconnect
 			{
-				this->_connect_to_endpoint<FT>(stream_map_name, buf, functor, ping_listen_key); // will not proceed unless connection is broken
+				reconnect_attempts++;
 			}
-			catch (ClientException e)
+			else // if not reconnect, throw exception
 			{
-				if(this->running_streams[stream_map_name] && this->_reconnect_on_error) // if reconnect
-				{
-					reconnect_attempts++;
-				}
-				else // if not reconnect, throw exception
-				{
-					e.append_to_traceback(std::string(__FUNCTION__));
-					throw(e);
-				}
+				e.append_to_traceback(std::string(__FUNCTION__));
+				throw(e);
 			}
-		} while (this->running_streams[stream_map_name] && this->_reconnect_on_error && (reconnect_attempts < this->_max_reconnect_count)); // will repeat only of stream is up (no user shutdown) and reconnect is true, and reconnections not above max
-	}
-	
+		}
+	} while (this->running_streams[stream_map_name] && this->_reconnect_on_error && (reconnect_attempts < this->_max_reconnect_count)); // will repeat only of stream is up (no user shutdown) and reconnect is true, and reconnections not above max
 }
+
 
 template <typename T>
 template <class FT>
