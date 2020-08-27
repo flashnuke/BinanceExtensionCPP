@@ -1,4 +1,3 @@
-
 #ifndef EXCHANGE_CLIENT_H
 #define EXCHANGE_CLIENT_H
 
@@ -326,7 +325,7 @@ public:
 	Json::Value custom_delete_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);
 
 	template <typename FT>
-	unsigned int custom_stream(std::string stream_query, std::string buffer, FT functor);
+	unsigned int custom_stream(std::string stream_query, std::string buffer, FT functor, const bool ping_listen_key = 0);
 
 	RestSession* _rest_client = nullptr; // todo: move init
 	WebsocketClient<T>* _ws_client = nullptr; // todo: move init, leave decl

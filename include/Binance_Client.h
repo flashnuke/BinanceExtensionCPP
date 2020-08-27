@@ -14,7 +14,7 @@
 // 9. ping listen key spot: if ping is empty, post req is sent
 // 10. explain how exceptions work
 // 11. example of handling 'BadRequest' where you retry sending the request
-// 12. include headers: binance client, client exceptions, exchange client, rest client, ws client
+// 12. include headers: none. you should only include binance_client.cpp
 // 13. include src: auth utils, client exceptions, rest client, ws client
 // 
 
@@ -51,7 +51,7 @@ namespace net = boost::asio;
 namespace ssl = boost::asio::ssl;
 using tcp = boost::asio::ip::tcp;
 
-
+// this library
 #include "Client_Exceptions.h"
 #include "REST_Client.h"
 #include "WS_Client.h"

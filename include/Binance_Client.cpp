@@ -431,7 +431,18 @@ Json::Value Client<T>::account_trades_list(const Params* params_ptr)
 
 template<typename T>
 template <typename FT>
-unsigned int  Client<T>::stream_Trade(const std::string& symbol, std::string& buffer, FT& functor) { return static_cast<T*>(this)->v_stream_Trade(symbol, buffer, functor); }
+unsigned int  Client<T>::stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
+{
+	try
+	{
+	return static_cast<T*>(this)->v_stream_Trade(symbol, buffer, functor); 
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 
 template<typename T>
@@ -440,20 +451,13 @@ unsigned int  Client<T>::stream_aggTrade(const std::string& symbol, std::string&
 {
 	try
 	{
-		throw(BadStreamCallbackWS());
-		std::string full_stream_name = "/ws/" + symbol + '@' + "aggTrade";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/" + symbol + '@' + "aggTrade";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::string error_msg = "stream already open: ";
-			error_msg += full_stream_name;
-			ClientException e(error_msg);
-			throw(e);
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -469,19 +473,13 @@ unsigned int Client<T>::stream_kline(const std::string& symbol, std::string& buf
 {
 	try
 	{ 
-		std::string full_stream_name = "/ws/" + symbol + '@' + "kline_" + interval;
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/" + symbol + '@' + "kline_" + interval;
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::string error_msg = "stream already open: ";
-			error_msg += full_stream_name;
-			ClientException e(error_msg);
-			throw(e);
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];	
 	}
 	catch (ClientException e)
 	{
@@ -496,19 +494,13 @@ unsigned int Client<T>::stream_ticker_ind_mini(const std::string& symbol, std::s
 {
 	try
 	{
-		std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/" + symbol + '@' + "miniTicker";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::string error_msg = "stream already open: ";
-			error_msg += full_stream_name;
-			ClientException e(error_msg);
-			throw(e);
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -523,19 +515,13 @@ unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
 {
 	try
 	{ 
-		std::string full_stream_name = "/ws/!miniTicker@arr";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/!miniTicker@arr";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::string error_msg = "stream already open: ";
-			error_msg += full_stream_name;
-			ClientException e(error_msg);
-			throw(e);
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -550,19 +536,13 @@ unsigned int Client<T>::stream_ticker_ind(const std::string& symbol, std::string
 {
 	try
 	{
-		std::string full_stream_name = "/ws/" + symbol + "@" + "ticker";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/" + symbol + "@" + "ticker";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::string error_msg = "stream already open: ";
-			error_msg += full_stream_name;
-			ClientException e(error_msg);
-			throw(e);
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -577,19 +557,13 @@ unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
 {
 	try
 	{
-		std::string full_stream_name = "/ws/!ticker@arr";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/!ticker@arr";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::string error_msg = "stream already open: ";
-			error_msg += full_stream_name;
-			ClientException e(error_msg);
-			throw(e);
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -604,19 +578,13 @@ unsigned int Client<T>::stream_ticker_ind_book(const std::string& symbol, std::s
 {
 	try
 	{
-		std::string full_stream_name = "/ws/" + symbol + "@" + "bookTicker";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/" + symbol + "@" + "bookTicker";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::string error_msg = "stream already open: ";
-			error_msg += full_stream_name;
-			ClientException e(error_msg);
-			throw(e);
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -631,19 +599,13 @@ unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
 {
 	try
 	{
-		std::string full_stream_name = "/ws/!bookTicker";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/!bookTicker";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::string error_msg = "stream already open: ";
-			error_msg += full_stream_name;
-			ClientException e(error_msg);
-			throw(e);
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -658,19 +620,13 @@ unsigned int Client<T>::stream_depth_partial(const std::string& symbol, std::str
 {
 	try
 	{
-		std::string full_stream_name = "/ws/" + symbol + "@" + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/" + symbol + "@" + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::string error_msg = "stream already open: ";
-			error_msg += full_stream_name;
-			ClientException e(error_msg);
-			throw(e);
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -685,19 +641,13 @@ unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string
 {
 	try
 	{
-		std::string full_stream_name = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::string error_msg = "stream already open: ";
-			error_msg += full_stream_name;
-			ClientException e(error_msg);
-			throw(e);
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -763,7 +713,7 @@ bool Client<T>::init_rest_session()
 	}
 	catch (...)
 	{
-		ClientException e("rest_session_failure");
+		BadSetupSessionREST e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	}
@@ -857,7 +807,7 @@ bool Client<T>::set_headers(RestSession* rest_client)
 	} 
 	catch (...)
 	{
-		ClientException e("error_setting_headers");
+		BadSetupHeadersREST e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 	}; 
 
@@ -872,21 +822,18 @@ void Client<T>::rest_set_verbose(const bool& state)
 
 template <typename T>
 template <typename FT>
-unsigned int Client<T>::custom_stream(std::string stream_query, std::string buffer, FT functor)
+unsigned int Client<T>::custom_stream(std::string stream_query, std::string buffer, FT functor, const bool ping_listen_key)
 {
 	try
 	{
 		stream_query = "/stream?streams=" + stream_query;
 		if (this->_ws_client->is_open(stream_query))
 		{
-			std::cout << "already exists";
-			return 0;
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-			return this->_ws_client->running_streams[stream_query];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
+		return this->_ws_client->running_streams[stream_query];
+
 	}
 	catch (ClientException e)
 	{
@@ -940,7 +887,7 @@ std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sig
 	}
 	catch (...)
 	{
-		ClientException e("error_generating_query");
+		BadQuery e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 	}
 }
@@ -977,7 +924,7 @@ Client<T>::Wallet::Wallet(Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	};
@@ -989,7 +936,7 @@ Client<T>::Wallet::Wallet(const Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	};
@@ -1278,7 +1225,7 @@ Client<T>::FuturesWallet::FuturesWallet(Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	};
@@ -1290,7 +1237,7 @@ Client<T>::FuturesWallet::FuturesWallet(const Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	};
@@ -1555,7 +1502,7 @@ Client<T>::SubAccount::SubAccount(Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	};
@@ -1567,7 +1514,7 @@ Client<T>::SubAccount::SubAccount(const Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	};
@@ -1935,7 +1882,7 @@ Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	};
@@ -1947,7 +1894,7 @@ Client<T>::MarginAccount::MarginAccount(const Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	};
@@ -2470,19 +2417,13 @@ unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buf
 {
 	try
 	{
-		std::string full_stream_name = "/ws/" + this->margin_get_listen_key(isolated_margin_type);
-		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
-
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/" + this->margin_get_listen_key(isolated_margin_type);
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::cout << "already exists";
-			return 0;
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, ping_listen_key);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -2558,7 +2499,7 @@ Client<T>::Savings::Savings(Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	}; 
@@ -2570,7 +2511,7 @@ Client<T>::Savings::Savings(const Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	};
@@ -2832,7 +2773,7 @@ Client<T>::Mining::Mining(Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	}; 
@@ -2844,7 +2785,7 @@ Client<T>::Mining::Mining(const Client<T>& client_obj)
 {
 	if (user_client->_public_client)
 	{
-		ClientException e("missing_credentials");
+		MissingCredentials e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	};
@@ -3016,21 +2957,13 @@ void SpotClient::v_init_ws_session()
 template <typename FT>
 unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
-	std::string full_stream_name = "/ws/" + this->get_listen_key();
-
-	if (this->_ws_client->is_open(full_stream_name))
+	std::string stream_query = "/ws/" + this->get_listen_key();
+	if (this->_ws_client->is_open(stream_query))
 	{
-		std::string error_msg = "stream already open: ";
-		error_msg += full_stream_name;
-		ClientException e(error_msg);
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
+		this->_ws_client->close_stream(stream_query);
 	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, ping_listen_key);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
+	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
+	return this->_ws_client->running_streams[stream_query];
 
 }
 
@@ -3361,20 +3294,13 @@ Json::Value SpotClient::oco_open_orders(const Params* params_ptr)
 template <typename FT>
 unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/" + symbol + '@' + "trade";
-	if (this->_ws_client->is_open(full_stream_name))
+	std::string stream_query = "/ws/" + symbol + '@' + "trade";
+	if (this->_ws_client->is_open(stream_query))
 	{
-		std::string error_msg = "stream already open: ";
-		error_msg += full_stream_name;
-		ClientException e(error_msg);
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
+		this->_ws_client->close_stream(stream_query);
 	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
+	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
+	return this->_ws_client->running_streams[stream_query];
 }
 
 //  ------------------------------ End | SpotClient General methods - WS Streams
@@ -3429,7 +3355,9 @@ void FuturesClient<CT>::v_close_stream(const std::string& symbol, const std::str
 	}
 	catch (...)
 	{
-		throw("stream_close_exc");
+		BadStreamCloseWS e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -3846,7 +3774,7 @@ template <typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
@@ -3949,17 +3877,13 @@ unsigned int FuturesClient<CT>::stream_markprice(const std::string& symbol, std:
 {
 	try
 	{
-		std::string full_stream_name = "/ws/" + symbol + '@' + "markPrice" + std::to_string(interval) + "ms";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/" + symbol + '@' + "markPrice" + std::to_string(interval) + "ms";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::cout << "already exists";
-			return 0;
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -3974,17 +3898,13 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders(const std::string& sym
 {
 	try
 	{
-		std::string full_stream_name = "/ws/" + symbol + "@" + "forceOrder";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/" + symbol + "@" + "forceOrder";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::cout << "already exists";
-			return 0;
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -3999,17 +3919,13 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffe
 {
 	try
 	{
-		std::string full_stream_name = "/ws/!forceOrder@arr";
-		if (this->_ws_client->is_open(full_stream_name))
+		std::string stream_query = "/ws/!forceOrder@arr";
+		if (this->_ws_client->is_open(stream_query))
 		{
-			std::cout << "already exists";
-			return 0;
+			this->_ws_client->close_stream(stream_query);
 		}
-		else
-		{
-			this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-			return this->_ws_client->running_streams[full_stream_name];
-		}
+		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
 	{
@@ -4293,19 +4209,19 @@ Json::Value FuturesClientUSDT::v_open_interest(const Params* params_ptr)
 
 Json::Value FuturesClientUSDT::v_continues_klines(const Params* params_ptr)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
 Json::Value FuturesClientUSDT::v_index_klines(const Params* params_ptr)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
 Json::Value FuturesClientUSDT::v_mark_klines(const Params* params_ptr)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
@@ -4574,26 +4490,20 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor)
 {
-	std::string full_stream_name = "/ws/" + symbol + '@' + "miniTicker";
-	if (this->_ws_client->is_open(full_stream_name))
+	std::string stream_query = "/ws/" + symbol + '@' + "miniTicker";
+	if (this->_ws_client->is_open(stream_query))
 	{
-		std::string error_msg = "stream already open: ";
-		error_msg += full_stream_name;
-		ClientException e(error_msg);
-		throw(e);
+		this->_ws_client->close_stream(stream_query);
 	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
+	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	return this->_ws_client->running_streams[stream_query];
 }
 
 
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
@@ -4601,7 +4511,7 @@ unsigned int FuturesClientUSDT::v_stream_indexprice(const std::string& pair, std
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
@@ -4609,7 +4519,7 @@ unsigned int FuturesClientUSDT::v_stream_markprice_by_pair(const std::string& pa
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
@@ -4617,7 +4527,7 @@ unsigned int FuturesClientUSDT::v_stream_kline_contract(const std::string& pair_
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
@@ -4625,7 +4535,7 @@ unsigned int FuturesClientUSDT::v_stream_kline_index(const std::string& pair, st
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
@@ -4633,20 +4543,13 @@ unsigned int FuturesClientUSDT::v_stream_kline_markprice(const std::string& symb
 template <typename FT>
 unsigned int FuturesClientUSDT::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
-	std::string full_stream_name = "/ws/" + this->get_listen_key();
-
-
-	if (this->_ws_client->is_open(full_stream_name))
+	std::string stream_query = "/ws/" + this->get_listen_key();
+	if (this->_ws_client->is_open(stream_query))
 	{
-		std::cout << "already exists";
-		return 0;
+		this->_ws_client->close_stream(stream_query);
 	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, ping_listen_key);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-
+	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	return this->_ws_client->running_streams[stream_query];	
 }
 
 std::string FuturesClientUSDT::v__get_listen_key()
@@ -5047,7 +4950,7 @@ Json::Value FuturesClientCoin::v_get_leverage_bracket(const Params* params_ptr)
 
 Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
@@ -5060,7 +4963,7 @@ Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor) // here
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
@@ -5069,111 +4972,73 @@ unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
-	std::string full_stream_name = "/ws/" + pair + "@" + "indexPrice" + "@" + std::to_string(interval) + "ms";
-	if (this->_ws_client->is_open(full_stream_name))
+	std::string stream_query = "/ws/" + pair + "@" + "indexPrice" + "@" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(stream_query))
 	{
-		std::string error_msg = "stream already open: ";
-		error_msg += full_stream_name;
-		ClientException e(error_msg);
-		throw(e);
+		this->_ws_client->close_stream(stream_query);
 	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
+	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	return this->_ws_client->running_streams[stream_query];
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
-	std::string full_stream_name = "/ws/" + pair + "@" + "markPrice" + "@" + std::to_string(interval) + "ms";
-	if (this->_ws_client->is_open(full_stream_name))
+	std::string stream_query = "/ws/" + pair + "@" + "markPrice" + "@" + std::to_string(interval) + "ms";
+	if (this->_ws_client->is_open(stream_query))
 	{
-		std::string error_msg = "stream already open: ";
-		error_msg += full_stream_name;
-		ClientException e(error_msg);
-		throw(e);
+		this->_ws_client->close_stream(stream_query);
 	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
+	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	return this->_ws_client->running_streams[stream_query];
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
 {
-	std::string full_stream_name = "/ws/" + pair_and_type + "@" + "continuousKline_" + (interval);
-	if (this->_ws_client->is_open(full_stream_name))
+	std::string stream_query = "/ws/" + pair_and_type + "@" + "continuousKline_" + (interval);
+	if (this->_ws_client->is_open(stream_query))
 	{
-		std::string error_msg = "stream already open: ";
-		error_msg += full_stream_name;
-		ClientException e(error_msg);
-		throw(e);
+		this->_ws_client->close_stream(stream_query);
 	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
+	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	return this->_ws_client->running_streams[stream_query];	
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
 {
-	std::string full_stream_name = "/ws/" + pair + "@" + "indexPriceKline_" + (interval);
-	if (this->_ws_client->is_open(full_stream_name))
+	std::string stream_query = "/ws/" + pair + "@" + "indexPriceKline_" + (interval);
+	if (this->_ws_client->is_open(stream_query))
 	{
-		std::string error_msg = "stream already open: ";
-		error_msg += full_stream_name;
-		ClientException e(error_msg);
-		throw(e);
+		this->_ws_client->close_stream(stream_query);
 	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
+	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	return this->_ws_client->running_streams[stream_query];
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
-	std::string full_stream_name = "/ws/" + symbol + "@" + "markPriceKline_" + (interval);
-	if (this->_ws_client->is_open(full_stream_name))
+	std::string stream_query = "/ws/" + symbol + "@" + "markPriceKline_" + (interval);
+	if (this->_ws_client->is_open(stream_query))
 	{
-		std::string error_msg = "stream already open: ";
-		error_msg += full_stream_name;
-		ClientException e(error_msg);
-		throw(e);
+		this->_ws_client->close_stream(stream_query);
 	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
+	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	return this->_ws_client->running_streams[stream_query];	
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
-	std::string full_stream_name = "/ws/" + this->get_listen_key();
-
-	if (this->_ws_client->is_open(full_stream_name))
+	std::string stream_query = "/ws/" + this->get_listen_key();
+	if (this->_ws_client->is_open(stream_query))
 	{
-		std::string error_msg = "stream already open: ";
-		error_msg += full_stream_name;
-		ClientException e(error_msg);
-		throw(e);
+		this->_ws_client->close_stream(stream_query);
 	}
-	else
-	{
-		this->_ws_client->_stream_manager<FT>(full_stream_name, buffer, functor, ping_listen_key);
-		return this->_ws_client->running_streams[full_stream_name];
-	}
-
+	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
+	return this->_ws_client->running_streams[stream_query];
 }
 
 std::string FuturesClientCoin::v__get_listen_key()
@@ -5271,7 +5136,7 @@ Json::Value FuturesClientCoin::v_mark_klines(const Params* params_ptr)
 
 Json::Value FuturesClientCoin::v_funding_rate_history(const Params* params_ptr)
 {
-	ClientException e("no_such_endpoint");
+	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
