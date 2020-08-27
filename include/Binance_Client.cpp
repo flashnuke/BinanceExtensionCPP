@@ -84,6 +84,7 @@ std::string Client<T>::get_listen_key()
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 	
@@ -98,6 +99,7 @@ Json::Value Client<T>::ping_listen_key(const std::string& listen_key)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -111,6 +113,7 @@ Json::Value Client<T>::revoke_listen_key(const std::string& listen_key)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -124,6 +127,7 @@ void Client<T>::close_stream(const std::string& symbol, const std::string& strea
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -137,6 +141,7 @@ bool Client<T>::is_stream_open(const std::string& symbol, const std::string& str
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -150,6 +155,7 @@ std::vector<std::string> Client<T>::get_open_streams()
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -168,6 +174,7 @@ unsigned long long Client<T>::exchange_time()
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -181,6 +188,7 @@ bool Client<T>::ping_client()
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -194,6 +202,7 @@ Json::Value Client<T>::exchange_info()
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -207,6 +216,7 @@ Json::Value Client<T>::order_book(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -220,6 +230,7 @@ Json::Value Client<T>::public_trades_recent(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -233,6 +244,7 @@ Json::Value Client<T>::public_trades_historical(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -246,6 +258,7 @@ Json::Value Client<T>::public_trades_agg(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -259,6 +272,7 @@ Json::Value Client<T>::klines(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -272,6 +286,7 @@ Json::Value Client<T>::daily_ticker_stats(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -285,6 +300,7 @@ Json::Value Client<T>::get_ticker(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -298,6 +314,7 @@ Json::Value Client<T>::get_order_book_ticker(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -316,6 +333,7 @@ Json::Value Client<T>::test_new_order(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -329,6 +347,7 @@ Json::Value Client<T>::new_order(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -342,6 +361,7 @@ Json::Value Client<T>::cancel_order(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -355,6 +375,7 @@ Json::Value Client<T>::cancel_all_orders(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -368,6 +389,7 @@ Json::Value Client<T>::query_order(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -381,6 +403,7 @@ Json::Value Client<T>::open_orders(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -394,6 +417,7 @@ Json::Value Client<T>::all_orders(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -407,6 +431,7 @@ Json::Value Client<T>::account_info(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -420,6 +445,7 @@ Json::Value Client<T>::account_trades_list(const Params* params_ptr)
 	catch (ClientException e)
 	{
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
