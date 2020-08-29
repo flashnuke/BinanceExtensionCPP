@@ -57,7 +57,7 @@ public:
 	bool const _public_client;
 	unsigned int refresh_listenkey_interval;
 
-	std::string _generate_query(const Params* params_ptr, const bool& sign_query = 0);
+	std::string _generate_query(const Params* params_ptr, const bool& sign_query = 0) const;
 
 
 
@@ -158,7 +158,7 @@ public:
 
 	struct Wallet
 	{
-		Client<T>* user_client;
+		const Client<T>* user_client;
 		explicit Wallet(Client<T>& client);
 		explicit Wallet(const Client<T>& client);
 		~Wallet();
@@ -181,7 +181,7 @@ public:
 
 	struct FuturesWallet
 	{
-		Client<T>* user_client;
+		const Client<T>* user_client;
 		explicit FuturesWallet(Client<T>& client);
 		explicit FuturesWallet(const Client<T>& client);
 		~FuturesWallet();
@@ -204,7 +204,7 @@ public:
 
 	struct SubAccount // for corporate accounts
 	{
-		Client<T>* user_client;
+		const Client<T>* user_client;
 		explicit SubAccount(Client<T>& client);
 		explicit SubAccount(const Client<T>& client);
 		~SubAccount();
@@ -238,7 +238,7 @@ public:
 
 	struct MarginAccount
 	{
-		Client<T>* user_client;
+		const Client<T>* user_client;
 		explicit MarginAccount(Client<T>& client);
 		explicit MarginAccount(const Client<T>& client);
 		~MarginAccount();
@@ -282,7 +282,7 @@ public:
 
 	struct Savings
 	{
-		Client<T>* user_client;
+		const Client<T>* user_client;
 		explicit Savings(Client<T>& client);
 		explicit Savings(const Client<T>& client);
 		~Savings();
@@ -291,7 +291,7 @@ public:
 		Json::Value get_product_daily_quota_purchase_flexible(const Params* params_ptr);
 		Json::Value purchase_product_flexible(const Params* params_ptr);
 		Json::Value get_product_daily_quota_redemption_flexible(const Params* params_ptr);
-		Json::Value redeem_product_flexible(const Params* params_ptr);
+		Json::Value redeem_product_flexible(const Params* params_ptr); 
 		Json::Value get_product_position_flexible(const Params* params_ptr);
 		Json::Value get_product_list_fixed(const Params* params_ptr);
 		Json::Value purchase_product_fixed(const Params* params_ptr);
@@ -305,7 +305,7 @@ public:
 
 	struct Mining
 	{
-		Client<T>* user_client;
+		const Client<T>* user_client;
 		explicit Mining(Client<T>& client);
 		explicit Mining(const Client<T>& client);
 		~Mining();

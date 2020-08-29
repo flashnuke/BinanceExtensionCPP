@@ -1,6 +1,5 @@
 
 #include "../include/Binance_Client.h"
-#include "Websocket_Client.cpp"
 
 //  ------------------------------ Start Client General methods - Infrastructure
 
@@ -328,7 +327,7 @@ Json::Value Client<T>::test_new_order(const Params* params_ptr)
 {
 	try
 	{
-		return static_cast<T*>(this)->v_test_new_order();
+		return static_cast<T*>(this)->v_test_new_order(params_ptr);
 	}
 	catch (ClientException e)
 	{
@@ -470,233 +469,6 @@ unsigned int  Client<T>::stream_Trade(const std::string& symbol, std::string& bu
 	}
 }
 
-
-template<typename T>
-template <typename FT>
-unsigned int  Client<T>::stream_aggTrade(const std::string& symbol, std::string& buffer, FT& functor)
-{
-	try
-	{
-		std::string stream_query = "/ws/" + symbol + '@' + "aggTrade";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
-{
-	try
-	{ 
-		std::string stream_query = "/ws/" + symbol + '@' + "kline_" + interval;
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];	
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_ticker_ind_mini(const std::string& symbol, std::string& buffer, FT& functor)
-{
-	try
-	{
-		std::string stream_query = "/ws/" + symbol + '@' + "miniTicker";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
-{
-	try
-	{ 
-		std::string stream_query = "/ws/!miniTicker@arr";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_ticker_ind(const std::string& symbol, std::string& buffer, FT& functor)
-{
-	try
-	{
-		std::string stream_query = "/ws/" + symbol + "@" + "ticker";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
-{
-	try
-	{
-		std::string stream_query = "/ws/!ticker@arr";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_ticker_ind_book(const std::string& symbol, std::string& buffer, FT& functor)
-{
-	try
-	{
-		std::string stream_query = "/ws/" + symbol + "@" + "bookTicker";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
-{
-	try
-	{
-		std::string stream_query = "/ws/!bookTicker";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
-{
-	try
-	{
-		std::string stream_query = "/ws/" + symbol + "@" + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval)
-{
-	try
-	{
-		std::string stream_query = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
-{
-	try
-	{
-		return static_cast<T*>(this)->v_stream_userStream(buffer, functor, ping_listen_key);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
 
 //  ------------------------------ End | Client Global + CRTP methods - WS Streams
 
@@ -847,29 +619,7 @@ void Client<T>::rest_set_verbose(const bool& state)
 }
 
 template <typename T>
-template <typename FT>
-unsigned int Client<T>::custom_stream(std::string stream_query, std::string buffer, FT functor, const bool ping_listen_key)
-{
-	try
-	{
-		stream_query = "/stream?streams=" + stream_query;
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
-		return this->_ws_client->running_streams[stream_query];
-
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template <typename T>
-std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sign_query)
+std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sign_query) const
 {
 	try
 	{
@@ -958,7 +708,7 @@ Client<T>::Wallet::Wallet(Client<T>& client_obj)
 
 template <typename T>
 Client<T>::Wallet::Wallet(const Client<T>& client_obj)
-	: user_client{ &client_obj }
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
 	if (user_client->_public_client)
 	{
@@ -1022,7 +772,7 @@ Json::Value Client<T>::Wallet::fast_withdraw_switch(const bool& state)
 		Params temp_params;
 		std::string endpoint = state ? "/sapi/v1/account/enableFastWithdrawSwitch" : "/sapi/v1/account/disableFastWithdrawSwitch";
 		std::string full_path = _BASE_REST_SPOT + endpoint;
-		std::string query = user_client->_generate_query(temp_params, 1);
+		std::string query = user_client->_generate_query(&temp_params, 1);
 		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
 		return response;
@@ -1284,8 +1034,8 @@ Json::Value Client<T>::FuturesWallet::futures_transfer(const Params* params_ptr)
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/transfer";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path + query);
 
 		return response;
 	}
@@ -1302,8 +1052,8 @@ Json::Value Client<T>::FuturesWallet::futures_transfer_history(const Params* par
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/transfer";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
@@ -1320,8 +1070,8 @@ Json::Value Client<T>::FuturesWallet::collateral_borrow(const Params* params_ptr
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/borrow";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path + query);
 
 		return response;
 	}
@@ -1338,8 +1088,8 @@ Json::Value Client<T>::FuturesWallet::collateral_borrow_history(const Params* pa
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/borrow/history";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
@@ -1356,8 +1106,8 @@ Json::Value Client<T>::FuturesWallet::collateral_repay(const Params* params_ptr)
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/repay";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path + query);
 
 		return response;
 	}
@@ -1374,8 +1124,8 @@ Json::Value Client<T>::FuturesWallet::collateral_repay_history(const Params* par
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/repay/history";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
@@ -1392,8 +1142,8 @@ Json::Value Client<T>::FuturesWallet::collateral_wallet(const Params* params_ptr
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/wallet";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
@@ -1410,8 +1160,8 @@ Json::Value Client<T>::FuturesWallet::collateral_info(const Params* params_ptr)
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/configs";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
@@ -1428,8 +1178,8 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(const Params* 
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/calcAdjustLevel";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
@@ -1446,8 +1196,8 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(const Params* pa
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/calcMaxAdjustAmount";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
@@ -1464,8 +1214,8 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust(const Params* params_ptr
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/adjustCollateral";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path + query);
 
 		return response;
 	}
@@ -1482,8 +1232,8 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_history(const Params* pa
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/adjustCollateral/history";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
@@ -1500,8 +1250,8 @@ Json::Value Client<T>::FuturesWallet::collateral_liquidation_history(const Param
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/liquidationHistory";
-		std::string query = this->_generate_query(params_ptr, 1);
-		Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
@@ -1536,7 +1286,7 @@ Client<T>::SubAccount::SubAccount(Client<T>& client_obj)
 
 template <typename T>
 Client<T>::SubAccount::SubAccount(const Client<T>& client_obj)
-	: user_client{ &client_obj }
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
 	if (user_client->_public_client)
 	{
@@ -1916,7 +1666,7 @@ Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
 
 template <typename T>
 Client<T>::MarginAccount::MarginAccount(const Client<T>& client_obj)
-	: user_client{ &client_obj }
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
 	if (user_client->_public_client)
 	{
@@ -1995,7 +1745,7 @@ Json::Value Client<T>::MarginAccount::margin_asset_query(const Params* params_pt
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/asset";
-		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		std::string query = params_ptr ? this->user_client->_generate_query(params_ptr) : "";
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path);
 
 		return response;
@@ -2013,7 +1763,7 @@ Json::Value Client<T>::MarginAccount::margin_pair_query(const Params* params_ptr
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/pair";
-		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		std::string query = params_ptr ? this->user_client->_generate_query(params_ptr) : "";
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path);
 
 		return response;
@@ -2065,7 +1815,7 @@ Json::Value Client<T>::MarginAccount::margin_price_index(const Params* params_pt
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/transfer";
-		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+		std::string query = params_ptr ? this->user_client->_generate_query(params_ptr) : "";
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
@@ -2438,35 +2188,13 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Pa
 };
 
 template <typename T>
-template <typename FT>
-unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key, const bool& isolated_margin_type)
-{
-	try
-	{
-		std::string stream_query = "/ws/" + this->margin_get_listen_key(isolated_margin_type);
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-
-}
-
-template <typename T>
 std::string Client<T>::MarginAccount::margin_get_listen_key(const bool& isolated_margin_type)
 {
 	try
 	{
 		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
 		std::string full_path = _BASE_REST_SPOT + endpoint;
-		Json::Value response = (this->_rest_client)->_postreq(full_path);
+		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path);
 
 		return response["response"]["listenKey"].asString();
 	}
@@ -2484,7 +2212,7 @@ Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& 
 	{
 		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
 		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
-		Json::Value response = listen_key.empty() ? (this->_rest_client)->_putreq(full_path) : (this->_rest_client)->_postreq(full_path);
+		Json::Value response = listen_key.empty() ? (this->user_client->_rest_client)->_putreq(full_path) : (this->user_client->_rest_client)->_postreq(full_path);
 
 		return response;
 	}
@@ -2502,7 +2230,7 @@ Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string
 	{
 		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
 		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
-		Json::Value response = (this->_rest_client)->_postreq(full_path);
+		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path);
 
 		return response;
 	}
@@ -2533,7 +2261,7 @@ Client<T>::Savings::Savings(Client<T>& client_obj)
 
 template <typename T>
 Client<T>::Savings::Savings(const Client<T>& client_obj)
-	: user_client{ &client_obj }
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
 	if (user_client->_public_client)
 	{
@@ -2807,7 +2535,7 @@ Client<T>::Mining::Mining(Client<T>& client_obj)
 
 template <typename T>
 Client<T>::Mining::Mining(const Client<T>& client_obj)
-	: user_client{ &client_obj }
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
 {
 	if (user_client->_public_client)
 	{
@@ -2978,19 +2706,6 @@ void SpotClient::v_init_ws_session()
 {
 
 	this->_ws_client->set_host_port(_WS_BASE_SPOT, _WS_PORT_SPOT);
-}
-
-template <typename FT>
-unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
-{
-	std::string stream_query = "/ws/" + this->get_listen_key();
-	if (this->_ws_client->is_open(stream_query))
-	{
-		this->_ws_client->close_stream(stream_query);
-	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
-	return this->_ws_client->running_streams[stream_query];
-
 }
 
 std::string SpotClient::v_get_listen_key()
@@ -3317,17 +3032,7 @@ Json::Value SpotClient::oco_open_orders(const Params* params_ptr)
 
 //  ------------------------------ Start | SpotClient General methods - WS Streams
 
-template <typename FT>
-unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
-{
-	std::string stream_query = "/ws/" + symbol + '@' + "trade";
-	if (this->_ws_client->is_open(stream_query))
-	{
-		this->_ws_client->close_stream(stream_query);
-	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
-	return this->_ws_client->running_streams[stream_query];
-}
+
 
 //  ------------------------------ End | SpotClient General methods - WS Streams
 
@@ -3431,7 +3136,7 @@ template<typename CT>
 Json::Value FuturesClient<CT>::v_klines(const Params* params_ptr) { return static_cast<CT*>(this)->v__klines(params_ptr); }
 
 template<typename CT>
-Json::Value FuturesClient<CT>::v_daily_ticker_stats(const Params* params_ptr) { return static_cast<CT*>(this)->v_daily__ticker_stats(params_ptr); }
+Json::Value FuturesClient<CT>::v_daily_ticker_stats(const Params* params_ptr) { return static_cast<CT*>(this)->v__daily_ticker_stats(params_ptr); }
 
 template<typename CT>
 Json::Value FuturesClient<CT>::v_get_ticker(const Params* params_ptr) { return static_cast<CT*>(this)->v__get_ticker(params_ptr); }
@@ -3794,175 +3499,6 @@ Json::Value FuturesClient<CT>::pos_adl_quantile_est(const Params* params_ptr)
 
 
 //  ------------------------------ Start | FuturesClient Global + CRTP methods - WS Streams 
-
-
-template <typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
-{
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
-}
-
-
-template<typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor)
-{
-	try
-	{
-		return static_cast<CT*>(this)->v_stream_markprice_all(pair, buffer, functor);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}  // only USDT
-
-template<typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
-{
-	try
-	{
-		return static_cast<CT*>(this)->v_stream_indexprice(pair, buffer, functor, interval);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-} // only Coin
-
-template<typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval) 
-{
-	try
-	{
-		return static_cast<CT*>(this)->v_stream_markprice_by_pair(pair, buffer, functor, interval);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-} // only coin
-
-template<typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval) 
-{
-	try
-	{
-		return static_cast<CT*>(this)->v_stream_kline_contract(pair_and_type, buffer, functor, interval);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-} // only coin
-
-template<typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval) 
-{
-	try
-	{
-		return static_cast<CT*>(this)->v_stream_kline_index(pair, buffer, functor, interval);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-} // only coin
-
-template<typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval) 
-{
-	try
-	{
-		return static_cast<CT*>(this)->v_stream_kline_markprice(symbol, buffer, functor, interval);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-} // only coin
-
-
-template<typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::stream_markprice(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval)
-{
-	try
-	{
-		std::string stream_query = "/ws/" + symbol + '@' + "markPrice" + std::to_string(interval) + "ms";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::stream_liquidation_orders(const std::string& symbol, std::string& buffer, FT& functor)
-{
-	try
-	{
-		std::string stream_query = "/ws/" + symbol + "@" + "forceOrder";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffer, FT& functor)
-{
-	try
-	{
-		std::string stream_query = "/ws/!forceOrder@arr";
-		if (this->_ws_client->is_open(stream_query))
-		{
-			this->_ws_client->close_stream(stream_query);
-		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-		return this->_ws_client->running_streams[stream_query];
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename CT>
-template <typename FT>
-unsigned int FuturesClient<CT>::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key) { return static_cast<CT*>(this)->v__stream_userStream(buffer, functor, ping_listen_key); }
 
 template <typename CT>
 std::string FuturesClient<CT>::v_get_listen_key() { return static_cast<CT*>(this)->v__get_listen_key(); }
@@ -4513,71 +4049,6 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
 
 
-template <typename FT>
-unsigned int FuturesClientUSDT::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor)
-{
-	std::string stream_query = "/ws/" + symbol + '@' + "miniTicker";
-	if (this->_ws_client->is_open(stream_query))
-	{
-		this->_ws_client->close_stream(stream_query);
-	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-	return this->_ws_client->running_streams[stream_query];
-}
-
-
-template <typename FT>
-unsigned int FuturesClientUSDT::v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
-{
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
-}
-
-template <typename FT>
-unsigned int FuturesClientUSDT::v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
-{
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
-}
-
-template <typename FT>
-unsigned int FuturesClientUSDT::v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
-{
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
-}
-
-template <typename FT>
-unsigned int FuturesClientUSDT::v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
-{
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
-}
-
-template <typename FT>
-unsigned int FuturesClientUSDT::v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
-{
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
-}
-
-template <typename FT>
-unsigned int FuturesClientUSDT::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
-{
-	std::string stream_query = "/ws/" + this->get_listen_key();
-	if (this->_ws_client->is_open(stream_query))
-	{
-		this->_ws_client->close_stream(stream_query);
-	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-	return this->_ws_client->running_streams[stream_query];	
-}
-
 std::string FuturesClientUSDT::v__get_listen_key()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -4995,78 +4466,6 @@ unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol
 }
 
 
-template <typename FT>
-unsigned int FuturesClientCoin::v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
-{
-	std::string stream_query = "/ws/" + pair + "@" + "indexPrice" + "@" + std::to_string(interval) + "ms";
-	if (this->_ws_client->is_open(stream_query))
-	{
-		this->_ws_client->close_stream(stream_query);
-	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-	return this->_ws_client->running_streams[stream_query];
-}
-
-template <typename FT>
-unsigned int FuturesClientCoin::v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
-{
-	std::string stream_query = "/ws/" + pair + "@" + "markPrice" + "@" + std::to_string(interval) + "ms";
-	if (this->_ws_client->is_open(stream_query))
-	{
-		this->_ws_client->close_stream(stream_query);
-	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-	return this->_ws_client->running_streams[stream_query];
-}
-
-template <typename FT>
-unsigned int FuturesClientCoin::v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
-{
-	std::string stream_query = "/ws/" + pair_and_type + "@" + "continuousKline_" + (interval);
-	if (this->_ws_client->is_open(stream_query))
-	{
-		this->_ws_client->close_stream(stream_query);
-	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-	return this->_ws_client->running_streams[stream_query];	
-}
-
-template <typename FT>
-unsigned int FuturesClientCoin::v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
-{
-	std::string stream_query = "/ws/" + pair + "@" + "indexPriceKline_" + (interval);
-	if (this->_ws_client->is_open(stream_query))
-	{
-		this->_ws_client->close_stream(stream_query);
-	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-	return this->_ws_client->running_streams[stream_query];
-}
-
-template <typename FT>
-unsigned int FuturesClientCoin::v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
-{
-	std::string stream_query = "/ws/" + symbol + "@" + "markPriceKline_" + (interval);
-	if (this->_ws_client->is_open(stream_query))
-	{
-		this->_ws_client->close_stream(stream_query);
-	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
-	return this->_ws_client->running_streams[stream_query];	
-}
-
-template <typename FT>
-unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
-{
-	std::string stream_query = "/ws/" + this->get_listen_key();
-	if (this->_ws_client->is_open(stream_query))
-	{
-		this->_ws_client->close_stream(stream_query);
-	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
-	return this->_ws_client->running_streams[stream_query];
-}
-
 std::string FuturesClientCoin::v__get_listen_key()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -5288,3 +4687,7 @@ bool Params::empty() const
 }
 
 //  ------------------------------ End | Params methods
+
+template class Client<SpotClient>;
+template class Client<FuturesClient<FuturesClientUSDT>>;
+template class Client<FuturesClient<FuturesClientCoin>>;
