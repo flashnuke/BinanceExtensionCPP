@@ -1,5 +1,5 @@
 // todo: better handle error codes api
-// todo: exception class for each case
+// todo: v_close_stream from symbol+stream to just stream_name
 
 
 // DOCs todos:

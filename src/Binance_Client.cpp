@@ -49,11 +49,7 @@ Client<T>::Client(T& exchange_client, std::string key, std::string secret) : _pu
 
 template <typename T>
 Client<T>::~Client()
-{
-
-	delete _rest_client;
-	delete _ws_client;
-};
+{};
 
 //  ------------------------------ End | Client General methods - Infrastructure
 
@@ -2696,7 +2692,10 @@ SpotClient::SpotClient(std::string key, std::string secret)
 
 
 SpotClient::~SpotClient() 
-{};
+{
+	delete _rest_client;
+	delete _ws_client;
+};
 
 //  ------------------------------ End | SpotClient General methods - Infrastructure
 
@@ -3622,7 +3621,10 @@ FuturesClientUSDT::FuturesClientUSDT(std::string key, std::string secret)
 {}
 
 FuturesClientUSDT::~FuturesClientUSDT()
-{}
+{
+	delete _rest_client;
+	delete _ws_client;
+}
 
 void FuturesClientUSDT::v__init_ws_session()
 {
@@ -4096,7 +4098,10 @@ FuturesClientCoin::FuturesClientCoin(std::string key, std::string secret)
 {}
 
 FuturesClientCoin::~FuturesClientCoin()
-{}
+{
+	delete _rest_client;
+	delete _ws_client;
+}
 
 void FuturesClientCoin::v__init_ws_session()
 {
