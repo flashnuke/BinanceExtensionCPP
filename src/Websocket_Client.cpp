@@ -76,7 +76,6 @@ WebsocketClient<T>::~WebsocketClient()
         (stream_itr->second) = 0; // set status to false to ensure closing streams
 
     }
-	std::cout << "asdsasdasds";
 }
 
 template class WebsocketClient<SpotClient>;

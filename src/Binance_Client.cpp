@@ -4693,6 +4693,17 @@ bool Params::empty() const
 
 //  ------------------------------ End | Params methods
 
+//  ------------------------------ Start | Explicit template instantiations
+
 template class Client<SpotClient>;
 template class Client<FuturesClient<FuturesClientUSDT>>;
 template class Client<FuturesClient<FuturesClientCoin>>;
+
+template void Params::set_param<int>(const std::string& key, const int& value);
+template void Params::set_param<float>(const std::string& key, const float& value);
+template void Params::set_param<double>(const std::string& key, const double& value);
+
+template void Params::set_param<int>(const std::string& key, int&& value);
+template void Params::set_param<float>(const std::string& key, float&& value);
+template void Params::set_param<double>(const std::string& key, double&& value);
+
