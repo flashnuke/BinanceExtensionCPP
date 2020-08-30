@@ -1,5 +1,6 @@
 // todo: better handle error codes api
-// todo: exception class for each case
+// todo: v_close_stream from symbol+stream to just stream_name
+// todo: define when copying to be fully copied as reference?? or assign??
 
 
 // DOCs todos:

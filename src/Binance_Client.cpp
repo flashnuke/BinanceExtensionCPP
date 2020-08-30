@@ -49,11 +49,7 @@ Client<T>::Client(T& exchange_client, std::string key, std::string secret) : _pu
 
 template <typename T>
 Client<T>::~Client()
-{
-
-	delete _rest_client;
-	delete _ws_client;
-};
+{};
 
 //  ------------------------------ End | Client General methods - Infrastructure
 
@@ -2696,7 +2692,10 @@ SpotClient::SpotClient(std::string key, std::string secret)
 
 
 SpotClient::~SpotClient() 
-{};
+{
+	delete _rest_client;
+	delete _ws_client;
+};
 
 //  ------------------------------ End | SpotClient General methods - Infrastructure
 
@@ -3622,7 +3621,10 @@ FuturesClientUSDT::FuturesClientUSDT(std::string key, std::string secret)
 {}
 
 FuturesClientUSDT::~FuturesClientUSDT()
-{}
+{
+	delete _rest_client;
+	delete _ws_client;
+}
 
 void FuturesClientUSDT::v__init_ws_session()
 {
@@ -4096,7 +4098,10 @@ FuturesClientCoin::FuturesClientCoin(std::string key, std::string secret)
 {}
 
 FuturesClientCoin::~FuturesClientCoin()
-{}
+{
+	delete _rest_client;
+	delete _ws_client;
+}
 
 void FuturesClientCoin::v__init_ws_session()
 {
@@ -4688,6 +4693,17 @@ bool Params::empty() const
 
 //  ------------------------------ End | Params methods
 
+//  ------------------------------ Start | Explicit template instantiations
+
 template class Client<SpotClient>;
 template class Client<FuturesClient<FuturesClientUSDT>>;
 template class Client<FuturesClient<FuturesClientCoin>>;
+
+template void Params::set_param<int>(const std::string& key, const int& value);
+template void Params::set_param<float>(const std::string& key, const float& value);
+template void Params::set_param<double>(const std::string& key, const double& value);
+
+template void Params::set_param<int>(const std::string& key, int&& value);
+template void Params::set_param<float>(const std::string& key, float&& value);
+template void Params::set_param<double>(const std::string& key, double&& value);
+
