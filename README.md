@@ -11,7 +11,7 @@ No virtual classes/methods are used in this library.
 documentation
 
 ## Examples
-*orderbook_manager.cpp = Connecting to a symbol orderbook and fetching live data + getting initial snap via REST. (not thread-safe)
+*orderbook_manager.cpp = Connecting to a symbol orderbook and fetching live data + getting initial snap via REST (not thread-safe).
 
 ## Dependencies
 
