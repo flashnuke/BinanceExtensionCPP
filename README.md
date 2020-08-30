@@ -10,6 +10,9 @@ No virtual classes/methods are used in this library.
 
 documentation
 
+## Examples
+-Orderbook_manager.cpp *Connecting to a symbol orderbook and fetching live data + getting initial snap via REST.
+
 ## Dependencies
 
 1. JsonCPP https://github.com/open-source-parsers/jsoncpp
