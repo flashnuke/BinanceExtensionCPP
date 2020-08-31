@@ -1,4 +1,6 @@
-#include "Binance_Client.h"
+#include "../Binance_Client.h"
+
+// Client stream templates
 
 template <typename T>
 template <typename FT>
@@ -607,6 +609,9 @@ unsigned int Client<T>::custom_stream(std::string stream_query, std::string buff
 		throw(e);
 	}
 }
+
+
+// Websocket methods templates
 
 
 template <typename T>

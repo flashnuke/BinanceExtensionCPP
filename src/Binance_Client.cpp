@@ -47,9 +47,14 @@ Client<T>::Client(T& exchange_client, std::string key, std::string secret) : _pu
 	}
 };
 
+
+
+
 template <typename T>
 Client<T>::~Client()
 {};
+
+
 
 //  ------------------------------ End | Client General methods - Infrastructure
 
@@ -104,48 +109,6 @@ Json::Value Client<T>::revoke_listen_key(const std::string& listen_key)
 	try
 	{
 		return static_cast<T*>(this)->v_revoke_listen_key(listen_key);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-void Client<T>::close_stream(const std::string& symbol, const std::string& stream_name) 
-{
-	try
-	{
-		static_cast<T*>(this)->v_close_stream(symbol, stream_name);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-bool Client<T>::is_stream_open(const std::string& symbol, const std::string& stream_name)
-{
-	try
-	{
-		return static_cast<T*>(this)->v_is_stream_open(symbol, stream_name);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template<typename T>
-std::vector<std::string> Client<T>::get_open_streams() 
-{
-	try
-	{
-		return static_cast<T*>(this)->v_get_open_streams();
 	}
 	catch (ClientException e)
 	{
@@ -471,23 +434,7 @@ unsigned int  Client<T>::stream_Trade(const std::string& symbol, std::string& bu
 
 //  ------------------------------ Start | Client General methods - Infrastructure
 
-template <typename T>
-void Client<T>::set_refresh_key_interval(const unsigned int val)
-{
-	this->refresh_listenkey_interval = val;
-}
 
-template <typename T>
-void Client<T>::set_max_reconnect_count(const unsigned int val)
-{
-	this->_ws_client->_max_reconnect_count = val;
-}
-
-template<typename T>
-void Client<T>::ws_auto_reconnect(const bool reconnect)
-{
-	this->_ws_client->_set_reconnect(reconnect);
-}
 
 template <typename T>
 bool Client<T>::init_rest_session()
@@ -2731,33 +2678,6 @@ Json::Value SpotClient::v_revoke_listen_key(const std::string& listen_key)
 	return response;
 }
 
-
-void SpotClient::v_close_stream(const std::string& symbol, const std::string& stream_name)
-{
-	try
-	{
-		this->_ws_client->close_stream(symbol + "@" + stream_name);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-
-bool SpotClient::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
-{
-	std::string full_stream_name = symbol + '@' + stream_name;
-	return this->_ws_client->is_open(full_stream_name);
-}
-
-std::vector<std::string> SpotClient::v_get_open_streams()
-{
-	return this->_ws_client->open_streams();
-}
-
-
 //  ------------------------------ End | SpotClient CRTP methods - Client infrastructure
 
 //  ------------------------------ Start | SpotClient CRTP methods - Market Data Implementations
@@ -3057,12 +2977,6 @@ FuturesClient<CT>::~FuturesClient()
 {}
 
 
-template <typename CT>
-bool FuturesClient<CT>::get_testnet_mode()
-{
-	return this->_testnet_mode;
-}
-
 //  ------------------------------ End | FuturesClient General methods - Infrastructure
 
 
@@ -3072,38 +2986,6 @@ bool FuturesClient<CT>::get_testnet_mode()
 template <typename CT>
 void FuturesClient<CT>::v_init_ws_session() { static_cast<CT*>(this)->v__init_ws_session(); }
 
-template <typename CT>
-void FuturesClient<CT>::set_testnet_mode(const bool& status) { return static_cast<CT*>(this)->v_set_testnet_mode(status); }
-
-
-template <typename CT>
-void FuturesClient<CT>::v_close_stream(const std::string& symbol, const std::string& stream_name)
-{
-	try
-	{
-		this->_ws_client->close_stream(symbol + "@" + stream_name);
-	}
-	catch (...)
-	{
-		BadStreamCloseWS e{};
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template <typename CT>
-bool FuturesClient<CT>::v_is_stream_open(const std::string& symbol, const std::string& stream_name)
-{
-	std::string full_stream_name = symbol + '@' + stream_name;
-	return this->_ws_client->is_open(full_stream_name);
-}
-
-
-template <typename CT>
-std::vector<std::string> FuturesClient<CT>::v_get_open_streams()
-{
-	return this->_ws_client->open_streams();
-}
 
 
 //  ------------------------------ End | FuturesClient CRTP methods - Client infrastructure
@@ -3641,7 +3523,7 @@ void FuturesClientUSDT::v_set_testnet_mode(const bool& status)
 
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - Market Data Implementations
 
-inline bool FuturesClientUSDT::v__ping_client()
+bool FuturesClientUSDT::v__ping_client()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/fapi/v1/ping";
@@ -3649,7 +3531,7 @@ inline bool FuturesClientUSDT::v__ping_client()
 	return (ping_response != Json::nullValue);
 }
 
-inline unsigned long long FuturesClientUSDT::v__exchange_time()
+unsigned long long FuturesClientUSDT::v__exchange_time()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/fapi/v1/time";
@@ -4121,7 +4003,7 @@ void FuturesClientCoin::v_set_testnet_mode(const bool& status)
 
 //  ------------------------------ Start | FuturesClientCoin CRTP methods - Market Data Implementations
 
-inline bool FuturesClientCoin::v__ping_client()
+bool FuturesClientCoin::v__ping_client()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/dapi/v1/ping";
@@ -4129,7 +4011,7 @@ inline bool FuturesClientCoin::v__ping_client()
 	return (ping_response != Json::nullValue);
 }
 
-inline unsigned long long FuturesClientCoin::v__exchange_time()
+unsigned long long FuturesClientCoin::v__exchange_time()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += "/dapi/v1/time";

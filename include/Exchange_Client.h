@@ -138,10 +138,10 @@ public:
 	// Library methods
 
 	void init_ws_session();
-	void close_stream(const std::string& symbol, const std::string& stream_name);
-	bool is_stream_open(const std::string& symbol, const std::string& stream_name);
-	std::vector<std::string> get_open_streams();
-	void ws_auto_reconnect(const bool reconnect);
+	inline void close_stream(const std::string& stream_name);
+	inline bool is_stream_open(const std::string& stream_name);
+	inline std::vector<std::string> get_open_streams();
+	inline void ws_auto_reconnect(const bool reconnect);
 	inline void set_refresh_key_interval(const unsigned int val);
 	inline void set_max_reconnect_count(const unsigned int val);
 
@@ -339,10 +339,7 @@ template <typename CT> // CT = coin type
 class FuturesClient : public Client<FuturesClient<CT>>
 {
 private:
-	inline void v_init_ws_session();
-	inline void v_close_stream(const std::string& symbol, const std::string& stream_name);
-	inline bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
-	inline std::vector<std::string> v_get_open_streams();
+	void v_init_ws_session();
 
 
 public:
@@ -360,8 +357,8 @@ public:
 
 	// market data
 
-	inline bool v_ping_client();  // todo: define lower levels
-	inline unsigned long long v_exchange_time();
+	bool v_ping_client();  // todo: define lower levels
+	unsigned long long v_exchange_time();
 	Json::Value v_exchange_info();
 	Json::Value v_order_book(const Params* params_ptr);
 	Json::Value v_public_trades_recent(const Params* params_ptr);
@@ -508,8 +505,8 @@ public:
 
 	// up to Client level
 
-	inline bool v__ping_client();
-	inline unsigned long long v__exchange_time();
+	bool v__ping_client();
+	unsigned long long v__exchange_time();
 	Json::Value v__exchange_info();
 	Json::Value v__order_book(const Params* params_ptr);
 	Json::Value v__public_trades_recent(const Params* params_ptr);
@@ -625,8 +622,8 @@ public:
 
 	// up to Client level
 
-	inline bool v__ping_client();
-	inline unsigned long long v__exchange_time();
+	bool v__ping_client();
+	unsigned long long v__exchange_time();
 	Json::Value v__exchange_info();
 	Json::Value v__order_book(const Params* params_ptr);
 	Json::Value v__public_trades_recent(const Params* params_ptr);
@@ -729,8 +726,8 @@ private:
 
 	// market data
 
-	inline bool v_ping_client();
-	inline unsigned long long v_exchange_time();
+	bool v_ping_client();
+	unsigned long long v_exchange_time();
 	Json::Value v_exchange_info();
 	Json::Value v_order_book(const Params* params_ptr);
 	Json::Value v_public_trades_recent(const Params* params_ptr);
@@ -781,9 +778,6 @@ private:
 	Json::Value v_ping_listen_key(const std::string& listen_key);
 	Json::Value v_revoke_listen_key(const std::string& listen_key);
 
-	void v_close_stream(const std::string& symbol, const std::string& stream_name);
-	bool v_is_stream_open(const std::string& symbol, const std::string& stream_name);
-	std::vector<std::string> v_get_open_streams();
 
 	// crtp infrastructure end , todo: make this more organized ofc
 
