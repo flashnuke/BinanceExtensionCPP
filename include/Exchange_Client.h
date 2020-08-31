@@ -2,7 +2,7 @@
 #define EXCHANGE_CLIENT_H
 
 unsigned long long local_timestamp();
-inline char binary_to_hex_digit(unsigned a);
+char binary_to_hex_digit(unsigned a);
 std::string binary_to_hex(unsigned char const* binary, unsigned binary_len);
 std::string HMACsha256(std::string const& message, std::string const& key);
 
@@ -138,12 +138,12 @@ public:
 	// Library methods
 
 	void init_ws_session();
-	inline void close_stream(const std::string& stream_name);
-	inline bool is_stream_open(const std::string& stream_name);
-	inline std::vector<std::string> get_open_streams();
-	inline void ws_auto_reconnect(const bool reconnect);
-	inline void set_refresh_key_interval(const unsigned int val);
-	inline void set_max_reconnect_count(const unsigned int val);
+	void close_stream(const std::string& stream_name);
+	bool is_stream_open(const std::string& stream_name);
+	std::vector<std::string> get_open_streams();
+	void ws_auto_reconnect(const bool reconnect);
+	void set_refresh_key_interval(const unsigned int val);
+	void set_max_reconnect_count(const unsigned int val);
 
 
 	// ----------------------end CRTP methods
@@ -349,8 +349,8 @@ public:
 	FuturesClient(CT& exchange_client);
 	FuturesClient(CT& exchange_client, std::string key, std::string secret);
 
-	inline void set_testnet_mode(const bool& status);
-	inline bool get_testnet_mode();
+	void set_testnet_mode(const bool& status);
+	bool get_testnet_mode();
 
 
 	// ------------------- crtp for all (spot + coin/usdt)

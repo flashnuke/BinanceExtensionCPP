@@ -26,19 +26,19 @@ public:
 	CURL* _delete_handle{};
 
 	Json::Value _getreq(std::string full_path);
-	inline void get_timeout(unsigned long interval);
+	void get_timeout(unsigned long interval);
 	std::mutex _get_lock;
 
 	Json::Value _postreq(std::string full_path);
-	inline void post_timeout(unsigned long interval);
+	void post_timeout(unsigned long interval);
 	std::mutex _post_lock;
 
 	Json::Value _putreq(std::string full_path);
-	inline void put_timeout(unsigned long interval);
+	void put_timeout(unsigned long interval);
 	std::mutex _put_lock;
 
 	Json::Value _deletereq(std::string full_path);
-	inline void delete_timeout(unsigned long interval);
+	void delete_timeout(unsigned long interval);
 	std::mutex _delete_lock;
 
 	bool close();

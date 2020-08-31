@@ -6,16 +6,6 @@ ClientException::ClientException(std::string error_text)
 	: error_desc{ error_text }
 {};
 
-void ClientException::append_to_traceback(const std::string& loc)
-{
-	this->traceback.push_back(loc);
-}
-
-void ClientException::append_to_traceback(std::string&& loc)
-{
-	this->traceback.push_back(std::move(loc));
-}
-
 
 const char* ClientException::what()
 {
