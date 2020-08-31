@@ -9,7 +9,7 @@ class ClientException
 
 public:
 	explicit ClientException(std::string error_reason);
-	inline void append_to_traceback(const std::string& loc);
+	void append_to_traceback(const std::string& loc);
 	void append_to_traceback(std::string&& loc);
 
 	const char* what(); // returns body
