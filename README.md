@@ -20,3 +20,7 @@ documentation
 3. Boost/Beast websockets https://github.com/boostorg/beast
 
 These 3 must be present in order to use the library.
+
+
+## Lined up
+* constexpr for endpoints + api base after the release of c++20 (support for constexpr and std::string)
