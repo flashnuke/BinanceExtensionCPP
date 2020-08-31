@@ -7,11 +7,6 @@ unsigned long long local_timestamp()
 	return ms_timestamp.count();
 }
 
-inline char binary_to_hex_digit(unsigned a)
-{
-	return a + (a < 10 ? '0' : 'a' - 10);
-}
-
 std::string binary_to_hex(unsigned char const* binary, unsigned binary_len)
 {
 	std::string r(binary_len * 2, '\0');

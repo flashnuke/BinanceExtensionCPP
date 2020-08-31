@@ -1,6 +1,5 @@
 // todo: better handle error codes api
-// todo: v_close_stream from symbol+stream to just stream_name
-// todo: define when copying to be fully copied as reference?? or assign??
+// todo: see where else to put inline
 
 
 // DOCs todos:
@@ -17,7 +16,7 @@
 // 11. example of handling 'BadRequest' where you retry sending the request
 // 12. include headers: none. you should only include binance_client.h
 // 13. include src: auth utils, client exceptions, rest client, ws client, binance_client
-// 
+// 14. no default args for threads
 
 // First make everything for spot and then for futures
 
@@ -57,7 +56,11 @@ using tcp = boost::asio::ip::tcp;
 #include "REST_Client.h"
 #include "WS_Client.h"
 #include "Exchange_Client.h"
-#include "Websocket_methods.inl"
+
+// inl files
+#include "inl_files/Websocket_methods.inl"
+#include "inl_files/Client_methods.inl"
+#include "inl_files/REST_methods.inl"
 
 
 
