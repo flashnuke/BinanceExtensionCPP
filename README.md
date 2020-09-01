@@ -14,6 +14,8 @@ WIP
 For Microsoft compilers set the following flags for better runtime performance:
 * Optimization: /O2
 * Instrinsic functions: /Oi
+* Favor speed: /Ot
+* Frame pointers: /Oy (if available)
 
 ## Examples
 * orderbook_manager.cpp = Connecting to a symbol orderbook and fetching live data + getting initial snap via REST (not thread-safe).
