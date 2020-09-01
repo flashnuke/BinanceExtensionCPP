@@ -4,6 +4,10 @@
 #include <map>
 #include <iomanip>
 
+// todo: define and declare separately
+// todo: get initial snap as private method
+
+
 
 class OrderbookManager
 {
@@ -43,7 +47,7 @@ int main()
 
     btcusdt_orderbook.setup_initial_snap();
 
-    while(1)
+    while (1)
     {
         std::cout << "\nbest bid    ";
         btcusdt_orderbook.get_best_bid();
@@ -58,7 +62,7 @@ int main()
 }
 
 
- OrderbookManager::OrderbookManager(const std::string ticker_symbol, FuturesClientUSDT& client_init)
+OrderbookManager::OrderbookManager(const std::string ticker_symbol, FuturesClientUSDT& client_init)
     : symbol{ ticker_symbol }, user_client{ &client_init }, msg_buffer{ "" }, parse_errors{ }, charreader{ charbuilder.newCharReader() }
 {}
 
@@ -90,10 +94,17 @@ void OrderbookManager::append_initial_into_book(const Json::Value& record, std::
             if (positions_of_quotes.size() == 4) break;
         }
 
-        float price_str = std::stof(val.substr(positions_of_quotes[0], positions_of_quotes[1] - positions_of_quotes[0]));
-        float quantity_str = std::stof(val.substr(positions_of_quotes[2], positions_of_quotes[3] - positions_of_quotes[2]));
+        float price = std::stof(val.substr(positions_of_quotes[0], positions_of_quotes[1] - positions_of_quotes[0]));
+        float quantity = std::stof(val.substr(positions_of_quotes[2], positions_of_quotes[3] - positions_of_quotes[2]));
 
-        side[price_str] = quantity_str;
+        if (price != 0)
+        {
+            side[price] = quantity;
+        }
+        else
+        {
+            side.erase(price);
+        }
     }
 }
 

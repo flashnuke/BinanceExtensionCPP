@@ -1,20 +1,16 @@
-// todo: better handle error codes api
-// todo: see where else to put inline + delete inline for crtp
+
+// 1. all CRTP v_ and v__ into private!!!
 
 
 // DOCs todos:
-// 3. v_ is for crtp
+
+// 3. example: custom stream
 // 4. custom requests, pass params into query
 // 5. I let passing empty or none params so the user can receive the error and see whats missing! better than runtime error
-// 6. all structs require auth (even margin requires header)
-// 7. no default arguments for ws streams when using threads. Must specify...
 // 8. I initialize up to Client() constructor with a reference of 'this' in order to gain access to Renew listen key
 // 9. ping listen key spot: if ping is empty, post req is sent
 // 10. explain how exceptions work
-// 11. example of handling 'BadRequest' where you retry sending the request
-// 12. include headers: none. you should only include binance_client.h
-// 13. include src: auth utils, client exceptions, rest client, ws client, binance_client
-// 14. no default args for threads
+// 11. example of handling 'BadRequest' where you retry sending the request. use a custom request~!!
 
 // First make everything for spot and then for futures
 
@@ -34,7 +30,6 @@
 #include <openssl/sha.h>
 
 // STL
-#include <iostream>
 #include <chrono>
 #include <string>
 #include <unordered_map>

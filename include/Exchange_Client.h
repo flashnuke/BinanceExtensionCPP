@@ -33,6 +33,7 @@ struct Params
 
 	void set_recv(const bool& set_always, const unsigned int& recv_val = 0);
 
+	void flush_params();
 	bool empty() const;
 
 
@@ -52,14 +53,18 @@ protected:
 
 public:
 	explicit Client(T& exchange_client);
-	Client(T& exchange_client, std::string key, std::string secret);
+	Client(T& exchange_client, const std::string key, const std::string secret);
 
 	bool const _public_client;
 	unsigned int refresh_listenkey_interval;
 
 	std::string _generate_query(const Params* params_ptr, const bool& sign_query = 0) const;
-
-
+	void close_stream(const std::string& stream_name);
+	bool is_stream_open(const std::string& stream_name);
+	std::vector<std::string> get_open_streams();
+	void ws_auto_reconnect(const bool reconnect);
+	void set_refresh_key_interval(const unsigned int val);
+	void set_max_reconnect_count(const unsigned int val);
 
 
 
@@ -138,12 +143,7 @@ public:
 	// Library methods
 
 	void init_ws_session();
-	void close_stream(const std::string& stream_name);
-	bool is_stream_open(const std::string& stream_name);
-	std::vector<std::string> get_open_streams();
-	void ws_auto_reconnect(const bool reconnect);
-	void set_refresh_key_interval(const unsigned int val);
-	void set_max_reconnect_count(const unsigned int val);
+
 
 
 	// ----------------------end CRTP methods
@@ -347,7 +347,7 @@ public:
 	bool _testnet_mode;
 
 	FuturesClient(CT& exchange_client);
-	FuturesClient(CT& exchange_client, std::string key, std::string secret);
+	FuturesClient(CT& exchange_client, const std::string key, const std::string secret);
 
 	void set_testnet_mode(const bool& status);
 	bool get_testnet_mode();
@@ -498,7 +498,7 @@ public:
 	friend FuturesClient;
 
 	FuturesClientUSDT();
-	FuturesClientUSDT(std::string key, std::string secret);
+	FuturesClientUSDT(const std::string key, const std::string secret);
 	void v__init_ws_session();
 	void v_set_testnet_mode(const bool& status);
 
@@ -615,7 +615,7 @@ public:
 	friend FuturesClient;
 
 	FuturesClientCoin();
-	FuturesClientCoin(std::string key, std::string secret);
+	FuturesClientCoin(const std::string key, const std::string secret);
 	void v__init_ws_session();
 	void v_set_testnet_mode(const bool& status);
 
@@ -787,7 +787,7 @@ public:
 	friend Client;
 
 	SpotClient();
-	SpotClient(std::string key, std::string secret);
+	SpotClient(const std::string key, const std::string secret);
 
 	~SpotClient();
 };
