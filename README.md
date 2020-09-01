@@ -7,22 +7,23 @@ The design is delibaretly attempting to reduce 'thinking' during runtime, by usi
 No virtual classes/methods are used in this library.
 
 ## Documentation
-
-WIP
-
 ### General
 
 ### Exchange client
-
 #### Exceptions
+WIP
+#### CRTP implementation
+WIP
 
 ### REST client
-
 #### 'Params' object
+WIP
 
 ### Websocket client
-
 #### Callback functor
+WIP
+#### Notes
+1. Default arguments are not allowed with threads. The argument must be specified
 
 ### Optimizations
 For Microsoft compilers set the following flags for better runtime performance:
