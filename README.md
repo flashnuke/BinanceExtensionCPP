@@ -38,7 +38,7 @@ In order to initialize a client that is not public, api-key and api-secret must 
 	The CRTP is implemented as follows:
     <br />
     <br />├── Client
-    <br />│        ├── SpotClient
+    <br />│‎‎‎‎‎‎‎‎├── SpotClient
     <br />│        │
     <br />│           └── FuturesClient
     <br />│                │
