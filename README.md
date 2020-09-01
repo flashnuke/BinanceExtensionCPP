@@ -12,7 +12,7 @@ This library is an extension for the API of Binance. It is used to help write tr
 	2. CURL 
 	3. Boost/Beast websockets https://github.com/boostorg/beast
 
-These 3 must be present in order to use the library.
+These 3 must be installed in order to use the library.
 
 
 # Documentation
