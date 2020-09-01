@@ -1,11 +1,12 @@
 
+
 BinanceExtensionCPP
 =
 
 # Intro 
 
 This library is an extension for the API of Binance. It is used to help write trading algorithms on Binance. 
-<br />The design is delibaretly attempting to reduce 'thinking' during runtime, by using clever methods such as CRTP and the `Params` object; no virtual classes/methods are used in this library.
+<br />The design is delibaretly attempting to reduce runtime execution, by using methods such as CRTP and the `Params` object; no virtual classes/methods are used in this library.
 <br /> More performance boosting features are planned to be added in the future. One of them is `constexpr` for string concatenation after the release of C++20.
 # Dependencies
 
@@ -17,19 +18,21 @@ These 3 must be installed in order to use the library.
 
 
 # Documentation
-In order to use this library, you must have all dependencies installed. Afterwards you can simply `#include "include/Binance_Client.h"` and add all content of `/src` directory to the Source files. 
+In order to use this library, you must have all dependencies installed. Only one included statement is required - `#include "include/Binance_Client.h"`, and add all content of `/src` directory should be added to the Source files. 
 <br />Note that `.inl` files are included inside the main header.
 <br /> <br />
-<br />You must initialize a client object, which is one of the following: *[SpotClient, FuturesClientUSDT, FuturesClientCoin]*
-<br /> In order to use *[Wallet, FuturesWallet, SubAccount, MarginAccount, Savings, Mining]* endpoints, they should be initialized from within other Client classes, by passing the Client object to the constructor.					
+<br />You must initialize a `Client` object, which is one of the following: *[SpotClient, FuturesClientUSDT, FuturesClientCoin]*
+<br /> **Unique methods** - In order to use *[Wallet, FuturesWallet, SubAccount, MarginAccount, Savings, Mining]* endpoints, they should be initialized from within other Client classes, and by passing the Client object to the constructor.					
 i.e:
  >SpotClient::Wallet my_wallet{ my_client_obj }. 
  
-<br /> These endpoints each has their own dedicated struct inside 'Client' class.
+<br /> Each of the aforementioned is a struct inside `Client` that contains methods.
 
 ## Exchange client
-If the client is not public, api-key and api-secret must be passed in std::string format to the constructor.
-<br />Futures clients may be declared in testnet mode by using the method "set_testnet_mode(bool)". SpotClient has 'test_new_order' method but no testnet mode endpoints.
+In order to initialize a client that is not public, api-key and api-secret must be passed in std::string format to the constructor.
+> FuturesClientUSDT(api_key, api_secret)
+> 
+<br />Futures clients may be set in testnet mode by using the method "set_testnet_mode(bool)". SpotClient has 'test_new_order' method but no testnet mode endpoints.
 - #### Exceptions
 	WIP
     
@@ -55,11 +58,12 @@ If the client is not public, api-key and api-secret must be passed in std::strin
 		2. All unique endpoint structs require that the client object contains keys and is not a public client.
 
 ## REST client
-All REST request methods accept a pointer to a Params object. This object holds the parameters that would be generated into a query string and sent as the request body.
-<br /> Endpoints that do not require any params, have a default argument that passes a `nullptr` (beware if using threads). Signing requests is done after generating the query, and the Params object remains unchanged.
+All REST request methods take a pointer to a `Params` object. This object holds the parameters that would be generated to a query string and sent as the request body.
+<br /> Endpoints that do not require any params, have a default argument which is a `nullptr` (beware if using threads). 
+<br />* Signing requests is done after generating the query, and the `Params` object remains unchanged.
 - #### 'Params' object
 	The `Params` object holds all parameters in an `unordered_map`, and thus allows quick access and modification during runtime. The idea here is to prepare most of the request body and have it ready at all time. (**i.e: have the side and quantity ready at all times. Price may be set on signal, using the time complexity of `unordered_map` insertion**)
-	<br />You can set  or delete parameters from the object using the methods `set_param<type>()` and `delete_param()`. Using the `flush_params()` method will delete all params from the object.
+	<br />You can set  or delete parameters from the object using the methods `set_param<type>()` and `delete_param()`. Using`flush_params()` method will delete all params from the object.
 	<br />It is also possible to set a default `recvWindow` value that would be set again after each flush, using the `set_recv()` method.
 - #### Response type
 	Each REST request returns a JSON type objet, that holds the three following keys:
