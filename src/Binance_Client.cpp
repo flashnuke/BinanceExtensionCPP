@@ -4573,6 +4573,15 @@ void Params::set_recv(const bool& set_always, const unsigned int& recv_val)
 
 }
 
+void Params::flush_params()
+{
+	this->param_map.clear();
+	if(this->default_recv)
+	{
+		this->set_param<unsigned int>("recvWindow", this->default_recv_amt);
+	}
+}
+
 bool Params::empty() const
 {
 	return this->param_map.empty();

@@ -33,6 +33,7 @@ struct Params
 
 	void set_recv(const bool& set_always, const unsigned int& recv_val = 0);
 
+	void flush_params();
 	bool empty() const;
 
 
