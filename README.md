@@ -55,8 +55,12 @@ If the client is not public, api-key and api-secret must be passed in std::strin
 		2. All unique endpoint structs require that the client object contains keys and is not a public client.
 
 ## REST client
+All REST request methods accept a pointer to a Params object. This object holds the parameters that would be generated into a query string and sent as the request body.
+<br /> Endpoints that do not require any params, have a default argument that passes a `nullptr` (beware if using threads). Signing requests is done after generating the query, and the Params object remains unchanged.
 - #### 'Params' object
-	WIP
+	The `Params` object holds all parameters in an `unordered_map`, and thus allows quick access and modification during runtime. The idea here is to prepare most of the request body and have it ready at all time. (**i.e: have the side and quantity ready at all times. Price may be set on signal, using the time complexity of `unordered_map` insertion**)
+	<br />You can set  or delete parameters from the object using the methods `set_param<type>()` and `delete_param()`. Using the `flush_params()` method will delete all params from the object.
+	<br />It is also possible to set a default `recvWindow` value that would be set again after each flush, using the `set_recv()` method.
 - #### Response type
 	Each REST request returns a JSON type objet, that holds the three following keys:
     1. "response" = Actual response from the exchange in std::string format
