@@ -3136,7 +3136,12 @@ Json::Value FuturesClient<CT>::funding_rate_history(const Params* params_ptr)
 // -- Up to 'Client' Level
 
 template<typename CT>
-Json::Value FuturesClient<CT>::v_test_new_order(const Params* params_ptr) { throw("please use testnet instead!"); } // todo: exceptions
+Json::Value FuturesClient<CT>::v_test_new_order(const Params* params_ptr)
+{ 
+	CustomException e{ "use_tesnet_instead" };
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
 
 template<typename CT>
 Json::Value FuturesClient<CT>::v_new_order(const Params* params_ptr) { return static_cast<CT*>(this)->v__new_order(params_ptr); }
