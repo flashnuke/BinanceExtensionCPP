@@ -10,6 +10,20 @@ No virtual classes/methods are used in this library.
 
 WIP
 
+### General
+
+### Exchange client
+
+#### Exceptions
+
+### REST client
+
+#### 'Params' object
+
+### Websocket client
+
+#### Callback functor
+
 ### Optimizations
 For Microsoft compilers set the following flags for better runtime performance:
 * Optimization: /O2
