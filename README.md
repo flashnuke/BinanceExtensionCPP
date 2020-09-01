@@ -83,4 +83,4 @@ For Microsoft compilers set the following flags for better runtime performance:
 
 
 # Lined up
-* constexpr for endpoints + api base after the release of c++20 (support for constexpr and std::string)
+* constexpr for endpoints + api base after the release of c++20 (constexpr support for std::string)
