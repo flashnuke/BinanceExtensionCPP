@@ -1,10 +1,8 @@
 // todo: better handle error codes api
-// todo: see where else to put inline
+// todo: see where else to put inline + delete inline for crtp
 
 
 // DOCs todos:
-// 1. order book fetch from scratch example
-// 2. ws symbols must be lower case
 // 3. v_ is for crtp
 // 4. custom requests, pass params into query
 // 5. I let passing empty or none params so the user can receive the error and see whats missing! better than runtime error

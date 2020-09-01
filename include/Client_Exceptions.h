@@ -87,4 +87,13 @@ public:
 	MissingEndpoint();
 };
 
+// Custom Client Exception
+
+class CustomException : public ClientException
+{
+public:
+	CustomException(const std::string error_msg);
+	CustomException(std::string&& error_msg);
+};
+
 #endif

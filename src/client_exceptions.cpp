@@ -70,3 +70,12 @@ MissingEndpoint::MissingEndpoint()
 	: ClientException("missing_exchange_client_method_endpoint")
 {};
 
+//  ------------------------------ Custom Client Exception
+
+CustomException::CustomException(const std::string error_msg)
+	: ClientException(error_msg)
+{};
+
+CustomException::CustomException(std::string&& error_msg)
+	: ClientException(std::move(error_msg))
+{};
