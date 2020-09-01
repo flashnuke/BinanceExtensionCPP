@@ -8,7 +8,11 @@ No virtual classes/methods are used in this library.
 
 ## Documentation
 
-documentation
+WIP
+# Optimizations
+For Microsoft compilers set the following flags for better runtime performance:
+* Optimization: /O2
+* Instrinsic functions: /Oi
 
 ## Examples
 * orderbook_manager.cpp = Connecting to a symbol orderbook and fetching live data + getting initial snap via REST (not thread-safe).
