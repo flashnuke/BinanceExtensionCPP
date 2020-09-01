@@ -40,7 +40,6 @@ If the client is not public, api-key and api-secret must be passed in std::strin
     <br />│                │
     <br />│                ├── FuturesClientUSDT
     <br />│                └── FuturesClientCoin
-    <br />│                └── FuturesClientCoin
     <br />
     <br /> 
     <br /> 
