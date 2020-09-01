@@ -16,7 +16,7 @@ WIP
 WIP
 
 ### REST client
-#### 'Params' object
+- #### 'Params' object
 WIP
 
 ### Websocket client
