@@ -32,7 +32,7 @@ Client<T>::Client(T& exchange_client) : _public_client{ 1 }, refresh_listenkey_i
 };
 
 template<typename T>
-Client<T>::Client(T& exchange_client, std::string key, std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, refresh_listenkey_interval{ 1800 }
+Client<T>::Client(T& exchange_client, const std::string key, const std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, refresh_listenkey_interval{ 1800 }
 {
 	try
 	{
@@ -48,17 +48,15 @@ Client<T>::Client(T& exchange_client, std::string key, std::string secret) : _pu
 };
 
 
-
-
 template <typename T>
 Client<T>::~Client()
 {};
 
 
-
 //  ------------------------------ End | Client General methods - Infrastructure
 
 //  ------------------------------ Start | Client CRTP methods - Infrastructure
+
 
 template<typename T>
 void Client<T>::init_ws_session()
@@ -2633,7 +2631,7 @@ Json::Value Client<T>::Mining::account_list(const Params* params_ptr)
 SpotClient::SpotClient() : Client(*this)
 {};
 
-SpotClient::SpotClient(std::string key, std::string secret)
+SpotClient::SpotClient(const std::string key, const std::string secret)
 	: Client(*this, key, secret)
 {}
 
@@ -3138,7 +3136,8 @@ Json::Value FuturesClient<CT>::funding_rate_history(const Params* params_ptr)
 template<typename CT>
 Json::Value FuturesClient<CT>::v_test_new_order(const Params* params_ptr)
 { 
-	CustomException e{ "use_tesnet_instead" };
+	std::string error_msg{ "use_tesnet_instead" };
+	CustomException e(error_msg);
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
@@ -3491,6 +3490,7 @@ Json::Value FuturesClient<CT>::basis_data(const Params* params_ptr)
 	}
 }
 
+
 //  ------------------------------ End | FuturesClient General methods - Markets Stats
 
 
@@ -3499,11 +3499,12 @@ Json::Value FuturesClient<CT>::basis_data(const Params* params_ptr)
 
 //  ------------------------------ Start | FuturesClientUSDT General methods - Infrastructure
 
+
 FuturesClientUSDT::FuturesClientUSDT()
 	: FuturesClient(*this)
 {};
 
-FuturesClientUSDT::FuturesClientUSDT(std::string key, std::string secret)
+FuturesClientUSDT::FuturesClientUSDT(const std::string key, const std::string secret)
 	: FuturesClient(*this, key, secret)
 {}
 
@@ -3980,7 +3981,7 @@ FuturesClientCoin::FuturesClientCoin()
 	: FuturesClient(*this)
 {};
 
-FuturesClientCoin::FuturesClientCoin(std::string key, std::string secret)
+FuturesClientCoin::FuturesClientCoin(const std::string key, const std::string secret)
 	: FuturesClient(*this, key, secret)
 {}
 
@@ -4582,10 +4583,6 @@ void Params::flush_params()
 	}
 }
 
-bool Params::empty() const
-{
-	return this->param_map.empty();
-}
 
 //  ------------------------------ End | Params methods
 

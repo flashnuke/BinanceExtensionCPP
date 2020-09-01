@@ -691,7 +691,6 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 			ws.read(beast_buffer, ec);
 			if (ec)
 			{
-				std::cerr << ec;
 				if (!this->_reconnect_on_error)this->running_streams[stream_map_name] = 0; // to exit loop if not retry
 				break;
 			}

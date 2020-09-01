@@ -62,6 +62,13 @@ inline void ClientException::append_to_traceback(std::string&& loc)
 	this->traceback.push_back(std::move(loc));
 }
 
+// Params inline methods
+
+inline bool Params::empty() const
+{
+	return this->param_map.empty();
+}
+
 // Auth utils inline methods
 
 inline char binary_to_hex_digit(unsigned a)

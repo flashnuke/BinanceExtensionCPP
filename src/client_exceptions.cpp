@@ -75,7 +75,3 @@ MissingEndpoint::MissingEndpoint()
 CustomException::CustomException(const std::string error_msg)
 	: ClientException(error_msg)
 {};
-
-CustomException::CustomException(std::string&& error_msg)
-	: ClientException(std::move(error_msg))
-{};

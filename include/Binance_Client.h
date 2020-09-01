@@ -1,14 +1,16 @@
-// todo: better handle error codes api
-// todo: see where else to put inline + delete inline for crtp
+
+// 1. all CRTP v_ and v__ into private!!!
 
 
 // DOCs todos:
+
+// 3. example: custom stream
 // 4. custom requests, pass params into query
 // 5. I let passing empty or none params so the user can receive the error and see whats missing! better than runtime error
 // 8. I initialize up to Client() constructor with a reference of 'this' in order to gain access to Renew listen key
 // 9. ping listen key spot: if ping is empty, post req is sent
 // 10. explain how exceptions work
-// 11. example of handling 'BadRequest' where you retry sending the request
+// 11. example of handling 'BadRequest' where you retry sending the request. use a custom request~!!
 
 // First make everything for spot and then for futures
 
