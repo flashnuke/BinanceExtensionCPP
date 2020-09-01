@@ -33,9 +33,7 @@ In order to initialize a client that is not public, api-key and api-secret must 
 > FuturesClientUSDT(api_key, api_secret)
 > 
 <br />Futures clients may be set in testnet mode by using the method "set_testnet_mode(bool)". SpotClient has 'test_new_order' method but no testnet mode endpoints.
-- #### Exceptions
-	WIP
-    
+
 - #### CRTP implementation
 	The CRTP is implemented as follows:
     <br />
@@ -52,7 +50,9 @@ In order to initialize a client that is not public, api-key and api-secret must 
     As was mentioned earlier, unique endpoints are located as separate structs inside Client.
 	<br /> CRTP interface and implementations are separated inside `Binance_Client.cpp`. Generally speaking, implementations are marked by a `v_` prefix.
     <br /> Deeper implementations (i.e `Client` -> `FuturesClient` -> [`FuturesClientUSDT`, `FuturesClientCoin`]) include an additional underscore: `v__`.
-
+- #### Exceptions
+	WIP
+    
 - #### Notes
 		1. No copy assignment / constructor are implemented for Client classes. Each object has its own unique Session, WS, and running streams...
 		2. All unique endpoint structs require that the client object contains keys and is not a public client.
