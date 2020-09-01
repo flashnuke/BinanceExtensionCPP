@@ -9,7 +9,8 @@ No virtual classes/methods are used in this library.
 ## Documentation
 
 WIP
-# Optimizations
+
+### Optimizations
 For Microsoft compilers set the following flags for better runtime performance:
 * Optimization: /O2
 * Instrinsic functions: /Oi
