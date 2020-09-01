@@ -10,9 +10,9 @@ No virtual classes/methods are used in this library.
 ### General
 
 ### Exchange client
-#### Exceptions
+- #### Exceptions
 WIP
-#### CRTP implementation
+- #### CRTP implementation
 WIP
 
 ### REST client
