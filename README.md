@@ -1,3 +1,4 @@
+
 BinanceExtensionCPP
 =
 
@@ -21,7 +22,9 @@ In order to use this library, you must have all dependencies installed. Afterwar
 <br /> <br />
 <br />You must initialize a client object, which is one of the following: *[SpotClient, FuturesClientUSDT, FuturesClientCoin]*
 <br /> In order to use *[Wallet, FuturesWallet, SubAccount, MarginAccount, Savings, Mining]* endpoints, they should be initialized from within other Client classes, by passing the Client object to the constructor.					
-i.e: `SpotClient::Wallet my_wallet{ my_client_obj }`. 
+i.e:
+ >SpotClient::Wallet my_wallet{ my_client_obj }. 
+ 
 <br /> These endpoints each has their own dedicated struct inside 'Client' class.
 
 ## Exchange client
@@ -34,12 +37,12 @@ If the client is not public, api-key and api-secret must be passed in std::strin
 	The CRTP is implemented as follows:
     <br />
     <br />├── Client
-    <br />│        ├── SpotClient
-    <br />│        │
-    <br />│           └── FuturesClient
-    <br />│                │
-    <br />│                ├── FuturesClientUSDT
-    <br />│                └── FuturesClientCoin
+    <br />│        ├── SpotClient
+    <br />│        │
+    <br />│           └── FuturesClient
+    <br />│                │
+    <br />│                ├── FuturesClientUSDT
+    <br />│                └── FuturesClientCoin
     <br />
     <br /> 
     <br /> 
@@ -63,10 +66,19 @@ If the client is not public, api-key and api-secret must be passed in std::strin
    		 1. There are four curl handles that are alive throughout the entire life of a RestSession object, one for each request type: PUT, DELETE, POST, GET.
    		 2. In order to avoid race conditions by using the same handle at the same time for different requests, mutex is used.
 ## Websocket client
+Each time a client object is created, a websocket client is also instantiated. In fact, the websocket client accepts the Client object as an argument.
+
+<br /> The websocket client holds a map of all stream connection names and their current status. **symbol@stream_name** (i.e: btc@aggTrade). This is very crucial to know in order to be able to close a stream by using the `close_stream()` method.
+<br />Not all streams accept the same arguments list, but all of them accept an std::string buffer and a functor object to use as callback.
+
 - #### Callback functor
-	WIP
+	All streams accepts a reference to std::string buffer and a reference to a functor object. This is implemented using templates, therefore the template type of the stream, when called, should be the type of the functor object. 
+	>client_obj.stream_aggTrade<typename SomeFunctor\>(symbol, buff, functor_obj)
+
+	<br /> It would be good practice to set the buffer as a member of the functor object.
 - #### Stream Manager
-	WIP
+	The WebsocketClient class has a `stream_manager`, which is responsible for the stream connection. It is possible to set `reconnect_on_error` by using Client's `ws_auto_reconnect()` method, and also specify the number of attempts by using `set_max_reconnect_count()` method.
+<br />The `stream_manager` closes a stream when the stream status is set to zero by the `close_stream()` method, or if any other error was encountered (unless `reconnect_on_error` is true).
 - #### Notes
 		1. Default arguments are not allowed with threads. The argument must be specified
 		2. When passing a symbol as an argument to a stream starter, the symbol must be lower case.
