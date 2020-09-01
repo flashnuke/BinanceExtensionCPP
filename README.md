@@ -4,7 +4,7 @@ BinanceExtensionCPP
 # Intro 
 
 This library is an extension for the API of Binance. It is used to help write trading algorithms on Binance. 
-<br />The design is delibaretly attempting to reduce 'thinking' during runtime, by using clever methods such as CRTP and the 'Params' object; no virtual classes/methods are used in this library.
+<br />The design is delibaretly attempting to reduce 'thinking' during runtime, by using clever methods such as CRTP and the `Params` object; no virtual classes/methods are used in this library.
 <br /> More performance boosting features are planned to be added in the future. One of them is `constexpr` for string concatenation after the release of C++20.
 # Dependencies
 
