@@ -703,13 +703,14 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 			if (!this->_reconnect_on_error)
 			{
 				this->running_streams[stream_map_name] = 0; // to exit outer loop if not retry
-				ws.close(); // end stream if exception + reconnect = false
+				ws.close(); // close stream if exception + reconnect = false
 			}
 
 			BadStreamCallbackWS e{};
 			e.append_to_traceback(std::string(__FUNCTION__));
 			throw(e);
 		}
-	}
-	ws.close(); // end stream if outside loop
+	} 
+
+	ws.close(); // close stream if outside loop
 }
