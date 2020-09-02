@@ -6,7 +6,7 @@ BinanceExtensionCPP
 # Intro 
 
 This library is an extension for the API of Binance. It is designed for writing trading algorithms on Binance. 
-<br />The design is delibaretly attempting to reduce runtime execution, by using methods such as CRTP and the `Params` object; no virtual classes/methods are used in this library.
+<br />The design is delibaretly attempting to reduce execution time during runtime, by using methods such as CRTP and the `Params` object; no virtual classes/methods are used in this library.
 <br /> More performance boosting features are planned to be added in the future. One of them is `constexpr` for string concatenation after the release of C++20.
 # Dependencies
 
@@ -18,7 +18,7 @@ These 3 must be installed in order to use the library.
 
 
 # Documentation
-In order to use this library, you must have all dependencies installed. Only one included statement is required - `#include "include/Binance_Client.h"`, and add all content of `/src` directory should be added to the Source files. 
+In order to use this library, you must have all dependencies installed. Only one `#include` statement is required - `#include "include/Binance_Client.h"`, and add all content of `/src` directory should be added to the Source files. 
 <br />Note that `.inl` files are included inside the main header.
 <br /> <br />
 <br />You must initialize a `Client` object, which is one of the following: *[SpotClient, FuturesClientUSDT, FuturesClientCoin]*
