@@ -78,6 +78,7 @@ In order to initialize a client that is not public, api-key and api-secret must 
     <br />
     <br />The main idea is to `catch(ClientException& e)` in order handle any exception which is one of the aforementioned,
     since they are all derived. It is also possible to `catch()` a specific exception.
+    
 - #### Notes
 		1. No copy assignment / constructor are implemented for Client classes. Each object has its own unique Session, WS, and running streams...
 		2. All unique endpoint structs require that the client object contains keys and is not a public client.
