@@ -691,7 +691,7 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 			ws.read(beast_buffer, ec);
 			if (ec)
 			{
-				if (!this->_reconnect_on_error)this->running_streams[stream_map_name] = 0; // to exit loop if not retry
+				if (!this->_reconnect_on_error) this->running_streams[stream_map_name] = 0; // to exit loop if not retry
 				break;
 			}
 
@@ -703,6 +703,7 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 			if (!this->_reconnect_on_error)
 			{
 				this->running_streams[stream_map_name] = 0; // to exit outer loop if not retry
+				ws.close(); // end stream if exception + reconnect = false
 			}
 
 			BadStreamCallbackWS e{};
@@ -710,4 +711,5 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 			throw(e);
 		}
 	}
+	ws.close(); // end stream if outside loop
 }
