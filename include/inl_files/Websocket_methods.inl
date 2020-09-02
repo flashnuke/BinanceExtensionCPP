@@ -590,7 +590,7 @@ unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor, cons
 
 template <typename T>
 template <typename FT>
-unsigned int Client<T>::custom_stream(std::string stream_query, std::string buffer, FT functor, const bool ping_listen_key)
+unsigned int Client<T>::custom_stream(std::string stream_query, std::string& buffer, FT& functor, const bool ping_listen_key)
 {
 	try
 	{
