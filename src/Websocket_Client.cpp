@@ -1,7 +1,7 @@
 #include "../include/Binance_Client.h"
 
 template <typename T>
-WebsocketClient<T>::WebsocketClient(T& exchange_client, const std::string host, const unsigned int port)
+WebsocketClient<T>::WebsocketClient(T* exchange_client, const std::string host, const unsigned int port)
     : _host{ host }, _port{ std::to_string(port) }, _reconnect_on_error{ 0 }, exchange_client { exchange_client }, _max_reconnect_count{ 20 }
 {}
 
@@ -69,12 +69,12 @@ void WebsocketClient<T>::set_host_port(const std::string new_host, const unsigne
 template <typename T>
 WebsocketClient<T>::~WebsocketClient()
 {
+	this->exchange_client = nullptr;
     std::unordered_map<std::string, bool>::iterator stream_itr; // while status != 0: set 0 and delete thread pointer!
 
     for (stream_itr = this->running_streams.begin(); stream_itr != this->running_streams.end(); stream_itr++)
     {
-        (stream_itr->second) = 0; // set status to false to ensure closing streams
-
+        this->close_stream(stream_itr->first); // set status to false to ensure closing streams
     }
 }
 

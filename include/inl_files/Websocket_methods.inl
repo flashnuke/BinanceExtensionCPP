@@ -8,12 +8,13 @@ unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buf
 {
 	try
 	{
-		std::string stream_query = "/ws/" + this->margin_get_listen_key(isolated_margin_type);
+		std::string stream_name = this->margin_get_listen_key(isolated_margin_type);
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor, ping_listen_key);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -27,12 +28,13 @@ unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buf
 template <typename FT>
 unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
-	std::string stream_query = "/ws/" + this->get_listen_key();
+	std::string stream_name = this->get_listen_key();
+	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
 		this->_ws_client->close_stream(stream_query);
 	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor, ping_listen_key);
 	return this->_ws_client->running_streams[stream_query];
 
 }
@@ -40,12 +42,13 @@ unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor, c
 template <typename FT>
 unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
-	std::string stream_query = "/ws/" + symbol + '@' + "trade";
+	std::string stream_name = symbol + '@' + "trade";
+	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
 		this->_ws_client->close_stream(stream_query);
 	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 	return this->_ws_client->running_streams[stream_query];
 }
 
@@ -55,12 +58,13 @@ unsigned int FuturesClient<CT>::stream_markprice(const std::string& symbol, std:
 {
 	try
 	{
-		std::string stream_query = "/ws/" + symbol + '@' + "markPrice" + std::to_string(interval) + "ms";
+		std::string stream_name = symbol + '@' + "markPrice" + std::to_string(interval) + "ms";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -181,12 +185,13 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders(const std::string& sym
 {
 	try
 	{
-		std::string stream_query = "/ws/" + symbol + "@" + "forceOrder";
+		std::string stream_name = symbol + "@" + "forceOrder";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -202,12 +207,13 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffe
 {
 	try
 	{
-		std::string stream_query = "/ws/!forceOrder@arr";
+		std::string stream_name = "!forceOrder@arr";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -225,12 +231,13 @@ unsigned int FuturesClient<CT>::v_stream_userStream(std::string& buffer, FT& fun
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor)
 {
-	std::string stream_query = "/ws/" + symbol + '@' + "miniTicker";
+	std::string stream_name = symbol + '@' + "miniTicker";
+	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
 		this->_ws_client->close_stream(stream_query);
 	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 	return this->_ws_client->running_streams[stream_query];
 }
 
@@ -278,84 +285,91 @@ unsigned int FuturesClientUSDT::v_stream_kline_markprice(const std::string& symb
 template <typename FT>
 unsigned int FuturesClientUSDT::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
-	std::string stream_query = "/ws/" + this->get_listen_key();
+	std::string stream_name = this->get_listen_key();
+	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
 		this->_ws_client->close_stream(stream_query);
 	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 	return this->_ws_client->running_streams[stream_query];
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
-	std::string stream_query = "/ws/" + pair + "@" + "indexPrice" + "@" + std::to_string(interval) + "ms";
+	std::string stream_name = pair + "@" + "indexPrice" + "@" + std::to_string(interval) + "ms";
+	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
 		this->_ws_client->close_stream(stream_query);
 	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 	return this->_ws_client->running_streams[stream_query];
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
-	std::string stream_query = "/ws/" + pair + "@" + "markPrice" + "@" + std::to_string(interval) + "ms";
+	std::string stream_name = pair + "@" + "markPrice" + "@" + std::to_string(interval) + "ms";
+	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
 		this->_ws_client->close_stream(stream_query);
 	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 	return this->_ws_client->running_streams[stream_query];
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
 {
-	std::string stream_query = "/ws/" + pair_and_type + "@" + "continuousKline_" + (interval);
+	std::string stream_name = pair_and_type + "@" + "continuousKline_" + (interval);
+	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
 		this->_ws_client->close_stream(stream_query);
 	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 	return this->_ws_client->running_streams[stream_query];
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
 {
-	std::string stream_query = "/ws/" + pair + "@" + "indexPriceKline_" + (interval);
+	std::string stream_name = pair + "@" + "indexPriceKline_" + (interval);
+	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
 		this->_ws_client->close_stream(stream_query);
 	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 	return this->_ws_client->running_streams[stream_query];
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
-	std::string stream_query = "/ws/" + symbol + "@" + "markPriceKline_" + (interval);
+	std::string stream_name = symbol + "@" + "markPriceKline_" + (interval);
+	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
 		this->_ws_client->close_stream(stream_query);
 	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 	return this->_ws_client->running_streams[stream_query];
 }
 
 template <typename FT>
 unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
-	std::string stream_query = "/ws/" + this->get_listen_key();
+	std::string stream_name = this->get_listen_key();
+	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
 		this->_ws_client->close_stream(stream_query);
 	}
-	this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor, ping_listen_key);
 	return this->_ws_client->running_streams[stream_query];
 }
 
@@ -366,12 +380,13 @@ unsigned int  Client<T>::stream_aggTrade(const std::string& symbol, std::string&
 {
 	try
 	{
-		std::string stream_query = "/ws/" + symbol + '@' + "aggTrade";
+		std::string stream_name = symbol + '@' + "aggTrade";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -388,12 +403,13 @@ unsigned int Client<T>::stream_kline(const std::string& symbol, std::string& buf
 {
 	try
 	{
-		std::string stream_query = "/ws/" + symbol + '@' + "kline_" + interval;
+		std::string stream_name = symbol + '@' + "kline_" + interval;
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -409,12 +425,13 @@ unsigned int Client<T>::stream_ticker_ind_mini(const std::string& symbol, std::s
 {
 	try
 	{
-		std::string stream_query = "/ws/" + symbol + '@' + "miniTicker";
+		std::string stream_name = symbol + '@' + "miniTicker";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -430,12 +447,13 @@ unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
 {
 	try
 	{
-		std::string stream_query = "/ws/!miniTicker@arr";
+		std::string stream_name = "!miniTicker@arr";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -451,12 +469,13 @@ unsigned int Client<T>::stream_ticker_ind(const std::string& symbol, std::string
 {
 	try
 	{
-		std::string stream_query = "/ws/" + symbol + "@" + "ticker";
+		std::string stream_name = symbol + "@" + "ticker";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -472,12 +491,13 @@ unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
 {
 	try
 	{
-		std::string stream_query = "/ws/!ticker@arr";
+		std::string stream_name = "!ticker@arr";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -493,12 +513,13 @@ unsigned int Client<T>::stream_ticker_ind_book(const std::string& symbol, std::s
 {
 	try
 	{
-		std::string stream_query = "/ws/" + symbol + "@" + "bookTicker";
+		std::string stream_name = symbol + "@" + "bookTicker";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -514,12 +535,13 @@ unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
 {
 	try
 	{
-		std::string stream_query = "/ws/!bookTicker";
+		std::string stream_name = "!bookTicker";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -535,12 +557,13 @@ unsigned int Client<T>::stream_depth_partial(const std::string& symbol, std::str
 {
 	try
 	{
-		std::string stream_query = "/ws/" + symbol + "@" + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
+		std::string stream_name = symbol + "@" + "depth" + std::to_string(levels) + "@" + std::to_string(interval) + "ms";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -556,12 +579,13 @@ unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string
 {
 	try
 	{
-		std::string stream_query = "/ws/" + symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
+		std::string stream_name = symbol + '@' + "depth" + "@" + std::to_string(interval) + "ms";
+		std::string stream_query = "/ws/" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -590,16 +614,16 @@ unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor, cons
 
 template <typename T>
 template <typename FT>
-unsigned int Client<T>::custom_stream(std::string stream_query, std::string& buffer, FT& functor, const bool ping_listen_key)
+unsigned int Client<T>::custom_stream(const std::string stream_name, std::string& buffer, FT& functor, const bool ping_listen_key)
 {
 	try
 	{
-		stream_query = "/stream?streams=" + stream_query;
+		std::string stream_query = "/stream?streams=" + stream_name;
 		if (this->_ws_client->is_open(stream_query))
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_query, buffer, functor, ping_listen_key);
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor, ping_listen_key);
 		return this->_ws_client->running_streams[stream_query];
 
 	}
@@ -616,7 +640,7 @@ unsigned int Client<T>::custom_stream(std::string stream_query, std::string& buf
 
 template <typename T>
 template <class FT>
-void WebsocketClient<T>::_stream_manager(std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key)
+void WebsocketClient<T>::_stream_manager(std::string stream_map_name, const std::string stream_path, std::string& buf, FT& functor, const bool ping_listen_key)
 {
 	unsigned int reconnect_attempts = 0;
 	this->running_streams[stream_map_name] = 0; // init
@@ -624,7 +648,7 @@ void WebsocketClient<T>::_stream_manager(std::string stream_map_name, std::strin
 	{
 		try
 		{
-			this->_connect_to_endpoint<FT>(stream_map_name, buf, functor, ping_listen_key); // will not proceed unless connection is broken
+			this->_connect_to_endpoint<FT>(stream_map_name, stream_path, buf, functor, ping_listen_key); // will not proceed unless connection is broken
 		}
 
 		catch (ClientException e)
@@ -645,7 +669,7 @@ void WebsocketClient<T>::_stream_manager(std::string stream_map_name, std::strin
 
 template <typename T>
 template <class FT>
-void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key)
+void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name, const std::string stream_path, std::string& buf, FT& functor, const bool ping_listen_key)
 {
 	long long unsigned int last_keepalive{ 0 };
 
@@ -657,8 +681,7 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 	auto ep = net::connect(get_lowest_layer(ws), ex_client);
 	std::string full_host = this->_host + ':' + std::to_string(ep.port());
 	ws.next_layer().handshake(ssl::stream_base::client);
-	std::string handshake_endp = stream_map_name;
-	ws.handshake(full_host, handshake_endp);
+	ws.handshake(full_host, stream_path);
 
 	beast::error_code ec; // error code
 
@@ -681,9 +704,9 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 			if (ping_listen_key) // since const, no volatile?
 			{
 				long long unsigned int current_timestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-				if (current_timestamp - last_keepalive > this->exchange_client.refresh_listenkey_interval)
+				if (current_timestamp - last_keepalive > this->exchange_client->refresh_listenkey_interval)
 				{
-					this->exchange_client.ping_listen_key();
+					this->exchange_client->ping_listen_key();
 					last_keepalive = current_timestamp;
 				}
 			}
@@ -703,7 +726,16 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 			if (!this->_reconnect_on_error)
 			{
 				this->running_streams[stream_map_name] = 0; // to exit outer loop if not retry
-				ws.close(); // close stream if exception + reconnect = false
+				try
+				{
+					ws.close(beast::websocket::close_code::bad_payload, ec);
+				}
+				catch (...)
+				{
+					BadStreamCloseWS e{};
+					e.append_to_traceback(std::string(__FUNCTION__));
+					throw(e);
+				}
 			}
 
 			BadStreamCallbackWS e{};
@@ -711,6 +743,15 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 			throw(e);
 		}
 	} 
+	try
+	{
+		ws.close(beast::websocket::close_code::normal, ec);
+	}
+	catch (...)
+	{
+		BadStreamCloseWS e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 
-	ws.close(); // close stream if outside loop
 }

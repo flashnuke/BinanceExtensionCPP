@@ -1,5 +1,6 @@
 
 // 1. all CRTP v_ and v__ into private!!!
+// 2. what() only returns const char. msg_body will append each init()
 
 
 // DOCs todos:

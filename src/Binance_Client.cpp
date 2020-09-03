@@ -21,7 +21,7 @@ Client<T>::Client(T& exchange_client) : _public_client{ 1 }, refresh_listenkey_i
 	try
 	{
 		this->init_rest_session(); // important to init rest first - ws is dependant on it
-		this->_ws_client = new WebsocketClient<T>{ exchange_client, "", 0 };
+		this->_ws_client = new WebsocketClient<T>{ &exchange_client, "", 0 };
 		this->init_ws_session();
 	}
 	catch (ClientException e)
@@ -37,7 +37,7 @@ Client<T>::Client(T& exchange_client, const std::string key, const std::string s
 	try
 	{
 		this->init_rest_session();
-		this->_ws_client = new WebsocketClient<T>{exchange_client, "", 0 }; 
+		this->_ws_client = new WebsocketClient<T>{ &exchange_client, "", 0 }; 
 		this->init_ws_session();
 	}
 	catch (ClientException e)
@@ -46,7 +46,6 @@ Client<T>::Client(T& exchange_client, const std::string key, const std::string s
 		throw(e);
 	}
 };
-
 
 template <typename T>
 Client<T>::~Client()
@@ -2638,8 +2637,8 @@ SpotClient::SpotClient(const std::string key, const std::string secret)
 
 SpotClient::~SpotClient() 
 {
-	delete _rest_client;
-	delete _ws_client;
+	delete this->_ws_client;
+	delete this->_rest_client;
 };
 
 //  ------------------------------ End | SpotClient General methods - Infrastructure
@@ -3510,8 +3509,8 @@ FuturesClientUSDT::FuturesClientUSDT(const std::string key, const std::string se
 
 FuturesClientUSDT::~FuturesClientUSDT()
 {
-	delete _rest_client;
-	delete _ws_client;
+	delete this->_ws_client;
+	delete this->_rest_client;
 }
 
 void FuturesClientUSDT::v__init_ws_session()
@@ -3987,8 +3986,8 @@ FuturesClientCoin::FuturesClientCoin(const std::string key, const std::string se
 
 FuturesClientCoin::~FuturesClientCoin()
 {
-	delete _rest_client;
-	delete _ws_client;
+	delete this->_ws_client;
+	delete this->_rest_client;
 }
 
 void FuturesClientCoin::v__init_ws_session()
