@@ -8,17 +8,17 @@ class WebsocketClient
 private:
 	std::string _host; // not const because of testnet
 	std::string _port;
-	T exchange_client; // user client obj
+	T* exchange_client; // user client obj
 
 
 	template <typename FT>
-	void _connect_to_endpoint(const std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key); // todo: make stream map name const ref?
+	void _connect_to_endpoint(const std::string stream_map_name, const std::string stream_path, std::string& buf, FT& functor, const bool ping_listen_key);
 
 public:
 	unsigned int _max_reconnect_count;
 	bool _reconnect_on_error;
 
-	WebsocketClient(T& exchange_client, const std::string host, const unsigned int port);
+	WebsocketClient(T* exchange_client, const std::string host, const unsigned int port);
 
 	std::unordered_map<std::string, bool> running_streams; // will be a map, containing pairs of: <bool(status), ws_stream> 
 
@@ -27,7 +27,7 @@ public:
 	bool is_open(const std::string& stream_name) const;
 
 	template <typename FT>
-	void _stream_manager(std::string stream_map_name, std::string& buf, FT& functor, const bool ping_listen_key = 0);
+	void _stream_manager(std::string stream_map_name, const std::string stream_path, std::string& buf, FT& functor, const bool ping_listen_key = 0);
 
 	void _set_reconnect(const bool& reconnect);
 

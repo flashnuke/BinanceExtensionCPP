@@ -76,7 +76,7 @@ RestSession::RestSession() // except handles in rest_init exchange client level
 	if (!(this->_delete_handle)) throw("exc"); // handle exc
 
 
-	status = 1;
+	this->status = 1;
 }
 
 void RestSession::set_verbose(const long int state)

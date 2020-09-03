@@ -21,7 +21,7 @@ Client<T>::Client(T& exchange_client) : _public_client{ 1 }, refresh_listenkey_i
 	try
 	{
 		this->init_rest_session(); // important to init rest first - ws is dependant on it
-		this->_ws_client = new WebsocketClient<T>{ exchange_client, "", 0 };
+		this->_ws_client = new WebsocketClient<T>{ &exchange_client, "", 0 };
 		this->init_ws_session();
 	}
 	catch (ClientException e)
@@ -37,7 +37,7 @@ Client<T>::Client(T& exchange_client, const std::string key, const std::string s
 	try
 	{
 		this->init_rest_session();
-		this->_ws_client = new WebsocketClient<T>{exchange_client, "", 0 }; 
+		this->_ws_client = new WebsocketClient<T>{ &exchange_client, "", 0 }; 
 		this->init_ws_session();
 	}
 	catch (ClientException e)
@@ -46,7 +46,6 @@ Client<T>::Client(T& exchange_client, const std::string key, const std::string s
 		throw(e);
 	}
 };
-
 
 template <typename T>
 Client<T>::~Client()
@@ -2129,11 +2128,28 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Pa
 };
 
 template <typename T>
-std::string Client<T>::MarginAccount::margin_get_listen_key(const bool& isolated_margin_type)
+std::string Client<T>::MarginAccount::margin_get_listen_key()
 {
 	try
 	{
-		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+		std::string endpoint = "/sapi/v1/userDataStream";
+		std::string full_path = _BASE_REST_SPOT + endpoint;
+		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path);
+		return response["response"]["listenKey"].asString();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+template <typename T>
+std::string Client<T>::MarginAccount::margin_isolated_get_listen_key(const std::string symbol)
+{
+	try
+	{
+		std::string endpoint = "/sapi/v1/userDataStream/isolated?symbol=" + symbol;
 		std::string full_path = _BASE_REST_SPOT + endpoint;
 		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path);
 
@@ -2147,11 +2163,11 @@ std::string Client<T>::MarginAccount::margin_get_listen_key(const bool& isolated
 }
 
 template <typename T>
-Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
+Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& listen_key)
 {
 	try
 	{
-		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+		std::string endpoint = "/sapi/v1/userDataStream";
 		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
 		Json::Value response = listen_key.empty() ? (this->user_client->_rest_client)->_putreq(full_path) : (this->user_client->_rest_client)->_postreq(full_path);
 
@@ -2165,13 +2181,51 @@ Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& 
 }
 
 template <typename T>
-Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
+Json::Value Client<T>::MarginAccount::margin_isolated_ping_listen_key(const std::string& listen_key, const std::string symbol)
 {
 	try
 	{
-		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+		std::string endpoint = "/sapi/v1/userDataStream/isolated?symbol=" + symbol;
 		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
-		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path);
+		Json::Value response = listen_key.empty() ? (this->user_client->_rest_client)->_putreq(full_path) : (this->user_client->_rest_client)->_postreq(full_path);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+
+
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string& listen_key)
+{
+	try
+	{
+		std::string endpoint = "/sapi/v1/userDataStream";
+		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
+		Json::Value response = (this->user_client->_rest_client)->_deletereq(full_path);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_isolated_revoke_listen_key(const std::string& listen_key, const std::string symbol)
+{
+	try
+	{
+		std::string endpoint = "/sapi/v1/userDataStream/isolated?symbol=" + symbol;
+		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
+		Json::Value response = (this->user_client->_rest_client)->_deletereq(full_path);
 
 		return response;
 	}
@@ -2638,8 +2692,8 @@ SpotClient::SpotClient(const std::string key, const std::string secret)
 
 SpotClient::~SpotClient() 
 {
-	delete _rest_client;
-	delete _ws_client;
+	delete this->_ws_client;
+	delete this->_rest_client;
 };
 
 //  ------------------------------ End | SpotClient General methods - Infrastructure
@@ -3510,8 +3564,8 @@ FuturesClientUSDT::FuturesClientUSDT(const std::string key, const std::string se
 
 FuturesClientUSDT::~FuturesClientUSDT()
 {
-	delete _rest_client;
-	delete _ws_client;
+	delete this->_ws_client;
+	delete this->_rest_client;
 }
 
 void FuturesClientUSDT::v__init_ws_session()
@@ -3987,8 +4041,8 @@ FuturesClientCoin::FuturesClientCoin(const std::string key, const std::string se
 
 FuturesClientCoin::~FuturesClientCoin()
 {
-	delete _rest_client;
-	delete _ws_client;
+	delete this->_ws_client;
+	delete this->_rest_client;
 }
 
 void FuturesClientCoin::v__init_ws_session()

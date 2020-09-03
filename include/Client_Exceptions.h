@@ -1,7 +1,7 @@
 #ifndef CLIENT_EXCEPTIONS_H
 #define CLIENT_EXCEPTIONS_H
 
-class ClientException
+class ClientException : public std::exception
 {
 	std::string error_desc;
 	std::vector<std::string> traceback;

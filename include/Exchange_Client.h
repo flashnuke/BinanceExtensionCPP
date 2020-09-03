@@ -274,9 +274,13 @@ public:
 
 		template <typename FT>
 		unsigned int margin_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key = 0, const bool& isolated_margin_type = 0);
-		std::string margin_get_listen_key(const bool& isolated_margin_type = 0);
-		Json::Value margin_ping_listen_key(const std::string& listen_key = "", const bool& isolated_margin_type = 0);
-		Json::Value margin_revoke_listen_key(const std::string& listen_key, const bool& isolated_margin_type = 0);
+		std::string margin_get_listen_key();
+		std::string margin_isolated_get_listen_key(const std::string symbol);
+		Json::Value margin_ping_listen_key(const std::string& listen_key);
+		Json::Value margin_isolated_ping_listen_key(const std::string& listen_key, const std::string symbol);
+
+		Json::Value margin_revoke_listen_key(const std::string& listen_key);
+		Json::Value margin_isolated_revoke_listen_key(const std::string& listen_key, const std::string symbol);
 
 	};
 
@@ -325,7 +329,7 @@ public:
 	Json::Value custom_delete_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);
 
 	template <typename FT>
-	unsigned int custom_stream(std::string stream_query, std::string& buffer, FT& functor, const bool ping_listen_key = 0);
+	unsigned int custom_stream(const std::string stream_name, std::string& buffer, FT& functor, const bool ping_listen_key = 0);
 
 	RestSession* _rest_client = nullptr; // todo: move init
 	WebsocketClient<T>* _ws_client = nullptr; // todo: move init, leave decl
