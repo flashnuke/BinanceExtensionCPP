@@ -2128,11 +2128,28 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Pa
 };
 
 template <typename T>
-std::string Client<T>::MarginAccount::margin_get_listen_key(const bool& isolated_margin_type)
+std::string Client<T>::MarginAccount::margin_get_listen_key()
 {
 	try
 	{
-		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+		std::string endpoint = "/sapi/v1/userDataStream";
+		std::string full_path = _BASE_REST_SPOT + endpoint;
+		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path);
+		return response["response"]["listenKey"].asString();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+template <typename T>
+std::string Client<T>::MarginAccount::margin_isolated_get_listen_key(const std::string symbol)
+{
+	try
+	{
+		std::string endpoint = "/sapi/v1/userDataStream/isolated?symbol=" + symbol;
 		std::string full_path = _BASE_REST_SPOT + endpoint;
 		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path);
 
@@ -2146,11 +2163,11 @@ std::string Client<T>::MarginAccount::margin_get_listen_key(const bool& isolated
 }
 
 template <typename T>
-Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
+Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& listen_key)
 {
 	try
 	{
-		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+		std::string endpoint = "/sapi/v1/userDataStream";
 		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
 		Json::Value response = listen_key.empty() ? (this->user_client->_rest_client)->_putreq(full_path) : (this->user_client->_rest_client)->_postreq(full_path);
 
@@ -2164,13 +2181,51 @@ Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& 
 }
 
 template <typename T>
-Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string& listen_key, const bool& isolated_margin_type)
+Json::Value Client<T>::MarginAccount::margin_isolated_ping_listen_key(const std::string& listen_key, const std::string symbol)
 {
 	try
 	{
-		std::string endpoint = isolated_margin_type ? "/sapi/v1/userDataStream/isolated" : "/sapi/v1/userDataStream";
+		std::string endpoint = "/sapi/v1/userDataStream/isolated?symbol=" + symbol;
 		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
-		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path);
+		Json::Value response = listen_key.empty() ? (this->user_client->_rest_client)->_putreq(full_path) : (this->user_client->_rest_client)->_postreq(full_path);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+
+
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string& listen_key)
+{
+	try
+	{
+		std::string endpoint = "/sapi/v1/userDataStream";
+		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
+		Json::Value response = (this->user_client->_rest_client)->_deletereq(full_path);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_isolated_revoke_listen_key(const std::string& listen_key, const std::string symbol)
+{
+	try
+	{
+		std::string endpoint = "/sapi/v1/userDataStream/isolated?symbol=" + symbol;
+		std::string full_path = _BASE_REST_SPOT + endpoint + "?listenKey=" + listen_key;
+		Json::Value response = (this->user_client->_rest_client)->_deletereq(full_path);
 
 		return response;
 	}
