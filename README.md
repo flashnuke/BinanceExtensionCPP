@@ -82,6 +82,7 @@ In order to initialize a client that is not public, api-key and api-secret must 
 - #### Notes
 		1. No copy assignment / constructor are implemented for Client classes. Each object has its own unique Session, WS, and running streams...
 		2. All unique endpoint structs require that the client object contains keys and is not a public client.
+		3. `ClientException` derives from `std::exception` therefore `catch(std::exception)` would also work.
 
 ## REST client
 All REST request methods take a pointer to a `Params` object. This object holds the parameters that would be generated to a query string and sent as the request body.
