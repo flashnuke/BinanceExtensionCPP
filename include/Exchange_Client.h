@@ -344,17 +344,9 @@ class FuturesClient : public Client<FuturesClient<CT>>
 {
 private:
 	void v_init_ws_session();
-
-
-public:
-	friend Client<FuturesClient<CT>>;
-	bool _testnet_mode;
-
-	FuturesClient(CT& exchange_client);
-	FuturesClient(CT& exchange_client, const std::string key, const std::string secret);
-
-	void set_testnet_mode(const bool& status);
-	bool get_testnet_mode();
+	std::string v_get_listen_key();
+	Json::Value v_ping_listen_key(const std::string& listen_key);
+	Json::Value v_revoke_listen_key(const std::string& listen_key);
 
 
 	// ------------------- crtp for all (spot + coin/usdt)
@@ -387,6 +379,21 @@ public:
 	Json::Value v_account_info(const Params* params_ptr);
 	Json::Value v_account_trades_list(const Params* params_ptr);
 
+	// -- Global that are going deeper to USDT and COIN
+
+	template <typename FT>
+	unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor);
+
+public:
+	friend Client<FuturesClient<CT>>;
+	bool _testnet_mode;
+
+	FuturesClient(CT& exchange_client);
+	FuturesClient(CT& exchange_client, const std::string key, const std::string secret);
+
+	void set_testnet_mode(const bool& status);
+	bool get_testnet_mode();
+
 	// -- unique to future endpoints
 
 	Json::Value change_position_mode(const Params* params_ptr);
@@ -409,13 +416,7 @@ public:
 
 	Json::Value pos_adl_quantile_est(const Params* params_ptr = nullptr); // todo: define, default param
 
-	// global for 'futures' methods. note: base path is spot
-
-
-
 	// -------------------  inter-future crtp ONLY
-
-	// todo: exception for bad_endpoint or nonexisting
 
 	 // market Data
 
@@ -434,16 +435,6 @@ public:
 	Json::Value funding_rate_history(const Params* params_ptr);
 
 	// WS Streams
-
-// -- Global that are going deeper to USDT and COIN
-
-	template <typename FT>
-	unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor);
-
-
-	// -- going deeper...
-
-	// todo: define global for both
 
 	template <typename FT>
 	unsigned int stream_markprice(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval = 1000);
@@ -475,13 +466,7 @@ public:
 	template <typename FT>
 	unsigned int v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
 
-	std::string v_get_listen_key(); 
-	Json::Value v_ping_listen_key(const std::string& listen_key);
-	Json::Value v_revoke_listen_key(const std::string& listen_key);
 
-
-
-	// end CRTP
 
 	// endpoints are same for both wallet types below
 
@@ -498,14 +483,9 @@ public:
 
 class FuturesClientUSDT : public FuturesClient<FuturesClientUSDT>
 {
-public:
-	friend FuturesClient;
-
-	FuturesClientUSDT();
-	FuturesClientUSDT(const std::string key, const std::string secret);
+private:
 	void v__init_ws_session();
 	void v_set_testnet_mode(const bool& status);
-
 
 	// up to Client level
 
@@ -571,16 +551,12 @@ public:
 
 	// -- unique to USDT endpoint
 
-	Json::Value v_pos_adl_quantile_est(const Params* params_ptr); 
+	Json::Value v_pos_adl_quantile_est(const Params* params_ptr);
 
 
 	// WS Streams
 
 	// -- Global that are going deeper to USDT and COIN
-
-
-
-	// -- going deeper...
 
 
 	template <typename FT>
@@ -608,6 +584,11 @@ public:
 	Json::Value v__ping_listen_key();
 	Json::Value v__revoke_listen_key();
 
+public:
+	friend FuturesClient;
+
+	FuturesClientUSDT();
+	FuturesClientUSDT(const std::string key, const std::string secret);
 
 	~FuturesClientUSDT();
 };
@@ -615,11 +596,7 @@ public:
 
 class FuturesClientCoin : public FuturesClient<FuturesClientCoin>
 {
-public:
-	friend FuturesClient;
-
-	FuturesClientCoin();
-	FuturesClientCoin(const std::string key, const std::string secret);
+private:
 	void v__init_ws_session();
 	void v_set_testnet_mode(const bool& status);
 
@@ -656,7 +633,7 @@ public:
 
 	// trading endpoints
 
-// -- mutual with spot
+	// -- mutual with spot
 
 	Json::Value v__new_order(const Params* params_ptr);
 	Json::Value v__cancel_order(const Params* params_ptr);
@@ -719,6 +696,12 @@ public:
 	Json::Value v__ping_listen_key();
 	Json::Value v__revoke_listen_key();
 
+public:
+	friend FuturesClient;
+
+	FuturesClientCoin();
+	FuturesClientCoin(const std::string key, const std::string secret);
+	
 	~FuturesClientCoin();
 };
 
@@ -769,7 +752,7 @@ private:
 	// WS Streams
 
 	template <typename FT>
-	unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor); // todo: only spot
+	unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor);
 
 
 	// crtp infrastructure start
@@ -783,7 +766,7 @@ private:
 	Json::Value v_revoke_listen_key(const std::string& listen_key);
 
 
-	// crtp infrastructure end , todo: make this more organized ofc
+	// crtp infrastructure end
 
 
 
