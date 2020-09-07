@@ -391,7 +391,7 @@ public:
 	FuturesClient(CT& exchange_client);
 	FuturesClient(CT& exchange_client, const std::string key, const std::string secret);
 
-	void set_testnet_mode(const bool& status);
+	void set_testnet_mode(const bool status);
 	bool get_testnet_mode();
 
 	// -- unique to future endpoints
@@ -485,7 +485,7 @@ class FuturesClientUSDT : public FuturesClient<FuturesClientUSDT>
 {
 private:
 	void v__init_ws_session();
-	void v_set_testnet_mode(const bool& status);
+	void v_set_testnet_mode(const bool status);
 
 	// up to Client level
 
@@ -598,7 +598,7 @@ class FuturesClientCoin : public FuturesClient<FuturesClientCoin>
 {
 private:
 	void v__init_ws_session();
-	void v_set_testnet_mode(const bool& status);
+	void v_set_testnet_mode(const bool status);
 
 
 	// up to Client level

@@ -563,10 +563,8 @@ std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sig
 {
 	try
 	{
-		std::string query;
+		std::string query{};
 		bool no_params{ 1 };
-
-
 		if (params_ptr && (!params_ptr->empty())) // if ptr passed and it's not empty
 		{
 			no_params = 0;
@@ -584,7 +582,7 @@ std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sig
 		if (sign_query)
 		{
 			unsigned long long timestamp = local_timestamp();
-			query = no_params ? "timestamp=" : "&timestamp=";
+			query = no_params ? "timestamp=" : query + "&timestamp=";
 
 			query += std::to_string(timestamp);
 
@@ -3573,7 +3571,7 @@ void FuturesClientUSDT::v__init_ws_session()
 	this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
 }
 
-void FuturesClientUSDT::v_set_testnet_mode(const bool& status)
+void FuturesClientUSDT::v_set_testnet_mode(const bool status)
 {
 	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT_TESTNET, _WS_PORT_FUTURES);
 	else this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
@@ -3751,12 +3749,13 @@ Json::Value FuturesClientUSDT::v_funding_rate_history(const Params* params_ptr)
 
 // -- Up to 'Client' Level
 
-
+#include <iostream> // delete me
 Json::Value FuturesClientUSDT::v__new_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/order" + query);
+	std::cout << full_path; // delete me 
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
 	return response;
@@ -4052,7 +4051,7 @@ void FuturesClientCoin::v__init_ws_session()
 
 }
 
-void FuturesClientCoin::v_set_testnet_mode(const bool& status)
+void FuturesClientCoin::v_set_testnet_mode(const bool status)
 {
 	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN_TESTNET, _WS_PORT_FUTURES);
 	else this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN, _WS_PORT_FUTURES);

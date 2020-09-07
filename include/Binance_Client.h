@@ -1,8 +1,4 @@
 
-// DOCs todos:
-
-// 11. example of handling 'BadRequest' where you retry sending the request. use a custom request~!!
-
 #ifndef BINANCE_CLIENT_H
 #define BINANCE_CLIENT_H
 
