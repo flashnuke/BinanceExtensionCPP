@@ -606,21 +606,6 @@ std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sig
 	}
 }
 
-template <typename T>
-bool Client<T>::exchange_status() // todo: is this abstract?
-{
-	try
-	{ 
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
-		return this->_rest_client->_getreq(full_path)["response"]["status"].asBool();
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
 
 //  ------------------------------ End | Client General methods - Infrastructure
 
@@ -663,6 +648,22 @@ Client<T>::Wallet::~Wallet()
 }
 
 // ------ Endpoint methods
+
+
+template <typename T>
+bool Client<T>::Wallet::exchange_status() 
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
+		return user_client->_rest_client->_getreq(full_path)["response"]["status"].asBool();
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 
 template <typename T>
@@ -4511,14 +4512,6 @@ Json::Value FuturesClientCoin::v_funding_rate_history(const Params* params_ptr)
 }
 
 //  ------------------------------ End | FuturesClientCoin CRTP methods - Unique Endpoints
-
-//  ------------------------------ Start | FuturesClientCoin CRTP methods - WS Streams
-
-// -- Global (up to Client level)
-// todo: if testnet
-
-
-//  ------------------------------ End | FuturesClientCoin CRTP methods - WS Streams
 
 
 // =======================================================================================================

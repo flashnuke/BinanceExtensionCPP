@@ -103,7 +103,7 @@ public:
 	unsigned int stream_aggTrade(const std::string& symbol, std::string& buffer, FT& functor);
 
 	template <typename FT>
-	unsigned int stream_Trade(const std::string& symbol, std::string& buffer, FT& functor); // todo: only for spot
+	unsigned int stream_Trade(const std::string& symbol, std::string& buffer, FT& functor);
 
 	template <typename FT>
 	unsigned int stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h");
@@ -127,7 +127,7 @@ public:
 	unsigned int stream_ticker_all_book(std::string& buffer, FT& functor);
 
 	template <typename FT>
-	unsigned int stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int levels = 5, const unsigned int interval = 100); // todo: different intervals for different fronts
+	unsigned int stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int levels = 5, const unsigned int interval = 100);
 
 	template <typename FT>
 	unsigned int stream_depth_diff(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int interval = 100);
@@ -154,7 +154,6 @@ public:
 
 	// Global requests (wallet, account etc)
 
-	bool exchange_status();
 
 	struct Wallet
 	{
@@ -163,6 +162,7 @@ public:
 		explicit Wallet(const Client<T>& client);
 		~Wallet();
 
+		bool exchange_status();
 		Json::Value get_all_coins(const Params* params_ptr = nullptr);
 		Json::Value daily_snapshot(const Params* params_ptr);
 		Json::Value fast_withdraw_switch(const bool& state);
@@ -331,8 +331,8 @@ public:
 	template <typename FT>
 	unsigned int custom_stream(const std::string stream_name, std::string& buffer, FT& functor, const bool ping_listen_key = 0);
 
-	RestSession* _rest_client = nullptr; // todo: move init
-	WebsocketClient<T>* _ws_client = nullptr; // todo: move init, leave decl
+	RestSession* _rest_client = nullptr; 
+	WebsocketClient<T>* _ws_client = nullptr; 
 
 	~Client();
 
@@ -353,7 +353,7 @@ private:
 
 	// market data
 
-	bool v_ping_client();  // todo: define lower levels
+	bool v_ping_client();  
 	unsigned long long v_exchange_time();
 	Json::Value v_exchange_info();
 	Json::Value v_order_book(const Params* params_ptr);
@@ -414,15 +414,15 @@ public:
 
 	// -- unique to USDT endpoint
 
-	Json::Value pos_adl_quantile_est(const Params* params_ptr = nullptr); // todo: define, default param
+	Json::Value pos_adl_quantile_est(const Params* params_ptr = nullptr); 
 
 	// -------------------  inter-future crtp ONLY
 
 	 // market Data
 
-	Json::Value mark_price(const Params* params_ptr = nullptr); // todo: define, crtp? default param
-	Json::Value public_liquidation_orders(const Params* params_ptr); // todo: define, crtp?
-	Json::Value open_interest(const Params* params_ptr); // todo: define, crtp?
+	Json::Value mark_price(const Params* params_ptr = nullptr);
+	Json::Value public_liquidation_orders(const Params* params_ptr);
+	Json::Value open_interest(const Params* params_ptr); 
 
 
 	// note that the following four might be only for coin margined market data
