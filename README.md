@@ -125,6 +125,7 @@ Each time a client object is created, a websocket client is also instantiated. I
 - #### Notes
 		1. Default arguments are not allowed with threads. The argument must be specified
 		2. When passing a symbol as an argument to a stream starter, the symbol must be lower case.
+		3. Passing an `std::string` format to `set_param` method is quicker, because conversion-to-string is required.
 
 ### Optimizations
 For Microsoft compilers set the following flags for better runtime performance:
