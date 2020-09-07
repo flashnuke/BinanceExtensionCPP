@@ -148,6 +148,7 @@ For Microsoft compilers set the following flags for better runtime performance:
 # Lined up
 * constexpr for endpoints + api base after the release of c++20 (constexpr support for std::string)
 
+- Latest `Change Log` update: `2020-09-03`
 
 # Links
 * [CRTP Method - Info](https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern)
