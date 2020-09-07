@@ -3749,13 +3749,11 @@ Json::Value FuturesClientUSDT::v_funding_rate_history(const Params* params_ptr)
 
 // -- Up to 'Client' Level
 
-#include <iostream> // delete me
 Json::Value FuturesClientUSDT::v__new_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/order" + query);
-	std::cout << full_path; // delete me 
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
 	return response;
