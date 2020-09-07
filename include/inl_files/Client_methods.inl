@@ -41,7 +41,7 @@ inline void Client<T>::set_max_reconnect_count(const unsigned int val)
 // FuturesClient inline methods
 
 template <typename CT>
-inline void FuturesClient<CT>::set_testnet_mode(const bool& status)
+inline void FuturesClient<CT>::set_testnet_mode(const bool status)
 {
 	return static_cast<CT*>(this)->v_set_testnet_mode(status);
 }
