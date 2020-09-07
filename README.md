@@ -137,10 +137,12 @@ For Microsoft compilers set the following flags for better runtime performance:
 * Frame pointers: /Oy (if available)
 
 # Examples
-* orderbook_manager.cpp = Connecting to a symbol orderbook and fetching live data + getting initial snap via REST (not thread-safe).
-* custom_get_request.cpp = Sending a user custom request.
-* place_test_order_spot = Placing a test order for SpotClient.
-* Place_testnet_order_futures = Using 'testnet_mode' to place a test order for FuturesClient.
+* `orderbook_manager.cpp` = Connecting to a symbol orderbook and fetching live data + getting initial snap via REST (not thread-safe).
+* `custom_get_request.cpp` = Sending a user custom request.
+* `place_test_order_spot.cpp` = Placing a test order for SpotClient.
+* `place_testnet_order_futures.cpp` = Using 'testnet_mode' to place a test order for FuturesClient.
+* `client_wallet_methods.cpp` = Initializing a 'Wallet' objects (Similar for `MarginAccount`, `FuturesWallet`, `SubAccount`, `Savings`, `Mining`)
+* `custom_ws_stream.cpp` = Starting a custom stream
 
 
 # Lined up
