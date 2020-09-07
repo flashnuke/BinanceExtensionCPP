@@ -1286,7 +1286,43 @@ Json::Value Client<T>::SubAccount::transfer_master_to_subaccount(const Params* p
 	{
 		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/transfer.html";
 		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::futures_transfer_master_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/internalTransfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::futures_transfer_master_to_subaccount(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/internalTransfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
 		return response;
 	}
@@ -1303,6 +1339,24 @@ Json::Value Client<T>::SubAccount::get_subaccount_balances(const Params* params_
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/assets.html";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+template <typename T>
+Json::Value Client<T>::SubAccount::get_subaccount_balances_summary(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/spotSummary";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 

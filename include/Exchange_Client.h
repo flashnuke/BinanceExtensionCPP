@@ -214,7 +214,11 @@ public:
 		Json::Value transfer_master_history(const Params* params_ptr);
 		Json::Value transfer_master_to_subaccount(const Params* params_ptr);
 
+		Json::Value futures_transfer_master_history(const Params* params_ptr);
+		Json::Value futures_transfer_master_to_subaccount(const Params* params_ptr);
+
 		Json::Value get_subaccount_balances(const Params* params_ptr);
+		Json::Value get_subaccount_balances_summary(const Params* params_ptr);
 		Json::Value get_subaccount_deposit_address(const Params* params_ptr);
 		Json::Value get_subaccount_deposit_history(const Params* params_ptr);
 		Json::Value get_subaccount_future_margin_status(const Params* params_ptr = nullptr);
