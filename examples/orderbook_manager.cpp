@@ -4,10 +4,6 @@
 #include <map>
 #include <iomanip>
 
-// todo: define and declare separately
-// todo: get initial snap as private method
-
-
 
 class OrderbookManager
 {
