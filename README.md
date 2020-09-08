@@ -10,9 +10,9 @@ This library is an extension for the API of Binance. It is designed for writing 
 <br /> More performance boosting features are planned to be added in the future. One of them is `constexpr` for string concatenation after the release of C++20.
 # Dependencies
 
-	1. JsonCPP (latest version tested: jsoncpp 1.9.3) https://github.com/open-source-parsers/jsoncpp
-	2. CURL (latest version tested: curl 7.72.0) https://curl.haxx.se
-	3. Boost/Beast websockets (latest version tested: boost-1.73.0) https://github.com/boostorg/beast
+	1. [JsonCPP](https://github.com/open-source-parsers/jsoncpp) (latest version tested: jsoncpp 1.9.3) 
+	2. [CURL](https://curl.haxx.se) (latest version tested: curl 7.72.0) 
+	3. [Boost/Beast websockets](https://github.com/boostorg/beast) (latest version tested: boost-1.73.0) 
 
 These 3 must be installed in order to use the library.
 
