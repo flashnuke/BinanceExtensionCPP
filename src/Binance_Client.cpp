@@ -15,6 +15,10 @@ const std::string _WS_BASE_SPOT{ "stream.binance.com" };
 const unsigned int _WS_PORT_SPOT{ 9443 };
 const unsigned int _WS_PORT_FUTURES{ 443 };
 
+/**
+	An abstract constructor - called by the CRTP lower classes
+	Public Client
+*/
 template<typename T>
 Client<T>::Client(T& exchange_client) : _public_client{ 1 }, refresh_listenkey_interval{ 1800 }
 {
@@ -31,6 +35,12 @@ Client<T>::Client(T& exchange_client) : _public_client{ 1 }, refresh_listenkey_i
 	}
 };
 
+/**
+	An abstract constructor - called by the CRTP lower classes
+	Private Client
+	@param key - an API key string
+	@param secret - an API secret string
+*/
 template<typename T>
 Client<T>::Client(T& exchange_client, const std::string key, const std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, refresh_listenkey_interval{ 1800 }
 {
@@ -47,6 +57,9 @@ Client<T>::Client(T& exchange_client, const std::string key, const std::string s
 	}
 };
 
+/**
+	The destructor - no dynamic memory is used
+*/
 template <typename T>
 Client<T>::~Client()
 {};
@@ -56,7 +69,9 @@ Client<T>::~Client()
 
 //  ------------------------------ Start | Client CRTP methods - Infrastructure
 
-
+/**
+	Initialize a websocket session
+*/
 template<typename T>
 void Client<T>::init_ws_session()
 {
@@ -71,6 +86,10 @@ void Client<T>::init_ws_session()
 	}
 }
 
+/**
+	Get a listen key from the exchange
+	@return a string representing the listen key
+*/
 template<typename T>
 std::string Client<T>::get_listen_key()
 {
@@ -85,7 +104,11 @@ std::string Client<T>::get_listen_key()
 	}
 }
 	
-
+/**
+	Ping the exchange with an existing listen key
+	@param listen_key - a string representing the listen key
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::ping_listen_key(const std::string& listen_key) 
 {
@@ -100,6 +123,11 @@ Json::Value Client<T>::ping_listen_key(const std::string& listen_key)
 	}
 }
 
+/**
+	Revoke an existing listen key
+	@param listen_key - a string of the key to be revoked
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::revoke_listen_key(const std::string& listen_key)
 {
@@ -119,6 +147,10 @@ Json::Value Client<T>::revoke_listen_key(const std::string& listen_key)
 
 //  ------------------------------ Start | Client CRTP methods - Market Data Endpoints 
 
+/**
+	Get an epoch timestamp of th exchange time
+	@return unsigned long long representing the epoch time
+*/
 template<typename T>
 unsigned long long Client<T>::exchange_time()
 {
@@ -133,6 +165,10 @@ unsigned long long Client<T>::exchange_time()
 	}
 }
 
+/**
+	Ping the exchange
+	@return a boolean representing success or failure
+*/
 template<typename T>
 bool Client<T>::ping_client() 
 {
@@ -147,6 +183,10 @@ bool Client<T>::ping_client()
 	}
 }
 
+/**
+	Get exchange info
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::exchange_info()
 {
@@ -161,6 +201,11 @@ Json::Value Client<T>::exchange_info()
 	}
 }
 
+/**
+	Get order book
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::order_book(const Params* params_ptr) 
 {
@@ -175,6 +220,11 @@ Json::Value Client<T>::order_book(const Params* params_ptr)
 	}
 }
 
+/**
+	Get recent public trades
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::public_trades_recent(const Params* params_ptr)
 {
@@ -189,6 +239,11 @@ Json::Value Client<T>::public_trades_recent(const Params* params_ptr)
 	}
 }
 
+/**
+	Get historical public trades
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::public_trades_historical(const Params* params_ptr) 
 {
@@ -203,6 +258,11 @@ Json::Value Client<T>::public_trades_historical(const Params* params_ptr)
 	}
 }
 
+/**
+	Get aggregated public trades
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::public_trades_agg(const Params* params_ptr) 
 {
@@ -217,6 +277,11 @@ Json::Value Client<T>::public_trades_agg(const Params* params_ptr)
 	}
 }
 
+/**
+	Get historical candlesticks data
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::klines(const Params* params_ptr)
 {
@@ -231,6 +296,11 @@ Json::Value Client<T>::klines(const Params* params_ptr)
 	}
 }
 
+/**
+	Get daily ticker statistics
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::daily_ticker_stats(const Params* params_ptr)
 {
@@ -245,6 +315,11 @@ Json::Value Client<T>::daily_ticker_stats(const Params* params_ptr)
 	}
 }
 
+/**
+	Get individual ticker statistics
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::get_ticker(const Params* params_ptr)
 {
@@ -259,6 +334,11 @@ Json::Value Client<T>::get_ticker(const Params* params_ptr)
 	}
 }
 
+/**
+	Get orderbook ticker statistics
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::get_order_book_ticker(const Params* params_ptr) 
 {
@@ -278,6 +358,11 @@ Json::Value Client<T>::get_order_book_ticker(const Params* params_ptr)
 
 //  ------------------------------ Start | Client CRTP methods - Trade Endpoints
 
+/**
+	Place a new order - testing
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::test_new_order(const Params* params_ptr) 
 {
@@ -292,6 +377,11 @@ Json::Value Client<T>::test_new_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Place a new order
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::new_order(const Params* params_ptr) 
 {
@@ -306,6 +396,11 @@ Json::Value Client<T>::new_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Cancel an order
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::cancel_order(const Params* params_ptr) 
 {
@@ -320,6 +415,11 @@ Json::Value Client<T>::cancel_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Cancel all orders
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::cancel_all_orders(const Params* params_ptr) 
 {
@@ -334,6 +434,11 @@ Json::Value Client<T>::cancel_all_orders(const Params* params_ptr)
 	}
 }
 
+/**
+	Query an order
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::query_order(const Params* params_ptr) 
 {
@@ -348,6 +453,11 @@ Json::Value Client<T>::query_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Get open orders
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::open_orders(const Params* params_ptr) 
 {
@@ -362,6 +472,11 @@ Json::Value Client<T>::open_orders(const Params* params_ptr)
 	}
 }
 
+/**
+	Get all orders
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::all_orders(const Params* params_ptr) 
 {
@@ -376,6 +491,11 @@ Json::Value Client<T>::all_orders(const Params* params_ptr)
 	}
 }
 
+/**
+	Get account info
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::account_info(const Params* params_ptr) 
 {
@@ -390,6 +510,11 @@ Json::Value Client<T>::account_info(const Params* params_ptr)
 	}
 }
 
+/**
+	Get account trades list
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::account_trades_list(const Params* params_ptr) 
 {
@@ -410,6 +535,13 @@ Json::Value Client<T>::account_trades_list(const Params* params_ptr)
 //  ------------------------------ Start | Client global + CRTP methods - WS Streams
 
 
+/**
+	Open trade stream
+	@param symbol - a string reference of the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return the json returned by the request
+*/
 template<typename T>
 template <typename FT>
 unsigned int  Client<T>::stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
@@ -432,7 +564,10 @@ unsigned int  Client<T>::stream_Trade(const std::string& symbol, std::string& bu
 //  ------------------------------ Start | Client General methods - Infrastructure
 
 
-
+/**
+	Initialize a rest session
+	@return bool value for success (pings the exchange to determine success)
+*/
 template <typename T>
 bool Client<T>::init_rest_session()
 {
