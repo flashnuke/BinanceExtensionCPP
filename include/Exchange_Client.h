@@ -478,8 +478,6 @@ public:
 	Json::Value top_long_short_ratio(const Params* params_ptr, bool accounts = 0);
 	Json::Value global_long_short_ratio(const Params* params_ptr);
 	Json::Value taker_long_short_ratio(const Params* params_ptr);
-	Json::Value basis_data(const Params* params_ptr);
-
 
 	~FuturesClient();
 };
