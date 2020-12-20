@@ -1819,6 +1819,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_deposit_history(const Params* 
 	}
 };
 
+/**
+	Get Sub-account's Status on Margin/Futures(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_future_margin_status(const Params* params_ptr)
 {
@@ -1837,6 +1842,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_future_margin_status(const Par
 	}
 };
 
+/**
+	Enable Margin for Sub-account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::enable_subaccount_margin(const Params* params_ptr)
 {
@@ -1855,6 +1865,11 @@ Json::Value Client<T>::SubAccount::enable_subaccount_margin(const Params* params
 	}
 };
 
+/**
+	Get Detail on Sub-account's Margin Account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_margin_status(const Params* params_ptr)
 {
@@ -1873,6 +1888,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_margin_status(const Params* pa
 	}
 };
 
+/**
+	Get Summary of Sub-account's Margin Account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_margin_summary(const Params* params_ptr)
 {
@@ -1891,6 +1911,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_margin_summary(const Params* p
 	}
 };
 
+/**
+	Enable Futures for Sub-account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::enable_subaccount_futures(const Params* params_ptr)
 {
@@ -1909,6 +1934,11 @@ Json::Value Client<T>::SubAccount::enable_subaccount_futures(const Params* param
 	}
 };
 
+/**
+	Get Detail on Sub-account's Futures Account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_futures_status(const Params* params_ptr)
 {
@@ -1927,6 +1957,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_futures_status(const Params* p
 	}
 };
 
+/**
+	Get Summary of Sub-account's Futures Account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_futures_summary(const Params* params_ptr)
 {
@@ -1945,6 +1980,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_futures_summary(const Params* 
 	}
 };
 
+/**
+	Get Futures Postion-Risk of Sub-account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_futures_positionrisk(const Params* params_ptr)
 {
@@ -1963,6 +2003,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_futures_positionrisk(const Par
 	}
 };
 
+/**
+	Futures Transfer for Sub-account(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_to_subaccount_futures(const Params* params_ptr)
 {
@@ -1981,6 +2026,11 @@ Json::Value Client<T>::SubAccount::transfer_to_subaccount_futures(const Params* 
 	}
 };
 
+/**
+	Margin Transfer for Sub-account(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_to_subaccount_margin(const Params* params_ptr)
 {
@@ -1999,6 +2049,11 @@ Json::Value Client<T>::SubAccount::transfer_to_subaccount_margin(const Params* p
 	}
 };
 
+/**
+	Transfer to Sub-account of Same Master(For Sub-account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_subaccount_to_subaccount(const Params* params_ptr)
 {
@@ -2017,6 +2072,11 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_to_subaccount(const Param
 	}
 };
 
+/**
+	Transfer to Master(For Sub-account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_subaccount_to_master(const Params* params_ptr)
 {
@@ -2035,6 +2095,11 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_to_master(const Params* p
 	}
 };
 
+/**
+	Sub-account Transfer History (For Sub-account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_subaccount_history(const Params* params_ptr)
 {
@@ -2059,6 +2124,11 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_history(const Params* par
 
 //  ------------------------------ Start | Client MarginAccount - User MarginAccount Endpoints
 
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
 template <typename T>
 Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -2071,6 +2141,10 @@ Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
 	};
 }
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
 template <typename T>
 Client<T>::MarginAccount::MarginAccount(const Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -2083,6 +2157,11 @@ Client<T>::MarginAccount::MarginAccount(const Client<T>& client_obj)
 	};
 }
 
+/**
+	Destructor
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
 template <typename T>
 Client<T>::MarginAccount::~MarginAccount()
 {
@@ -2091,7 +2170,11 @@ Client<T>::MarginAccount::~MarginAccount()
 
 // ------ Endpoint methods
 
-
+/**
+	Cross Margin Account Transfer
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_transfer(const Params* params_ptr)
 {
@@ -2110,6 +2193,11 @@ Json::Value Client<T>::MarginAccount::margin_transfer(const Params* params_ptr)
 	}
 };
 
+/**
+	Margin Account Borrow - apply for a loan
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_borrow(const Params* params_ptr)
 {
@@ -2128,6 +2216,11 @@ Json::Value Client<T>::MarginAccount::margin_borrow(const Params* params_ptr)
 	}
 };
 
+/**
+	Margin Account Repay - Repay loan for margin account
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_repay(const Params* params_ptr)
 {
@@ -2146,6 +2239,11 @@ Json::Value Client<T>::MarginAccount::margin_repay(const Params* params_ptr)
 	}
 };
 
+/**
+	Query Margin Asset
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_asset_query(const Params* params_ptr)
 {
@@ -2164,6 +2262,11 @@ Json::Value Client<T>::MarginAccount::margin_asset_query(const Params* params_pt
 	}
 };
 
+/**
+	Query Cross Margin Pair
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_pair_query(const Params* params_ptr)
 {
@@ -2182,6 +2285,11 @@ Json::Value Client<T>::MarginAccount::margin_pair_query(const Params* params_ptr
 	}
 };
 
+/**
+	Get All Margin Assets 
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_all_assets_query()
 {
@@ -2199,6 +2307,11 @@ Json::Value Client<T>::MarginAccount::margin_all_assets_query()
 	}
 };
 
+/**
+	Get All Cross Margin Pairs 
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_all_pairs_query()
 {
@@ -2216,6 +2329,11 @@ Json::Value Client<T>::MarginAccount::margin_all_pairs_query()
 	}
 };
 
+/**
+	Query Margin PriceIndex
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_price_index(const Params* params_ptr)
 {
@@ -2234,6 +2352,11 @@ Json::Value Client<T>::MarginAccount::margin_price_index(const Params* params_pt
 	}
 };
 
+/**
+	Margin Account New Order - Post a new order for margin account
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_new_order(const Params* params_ptr)
 {
@@ -2252,6 +2375,11 @@ Json::Value Client<T>::MarginAccount::margin_new_order(const Params* params_ptr)
 	}
 };
 
+/**
+	Margin Account Cancel Order - Cancel an active order for margin account
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_cancel_order(const Params* params_ptr)
 {
@@ -2270,6 +2398,15 @@ Json::Value Client<T>::MarginAccount::margin_cancel_order(const Params* params_p
 	}
 };
 
+/**
+	Get Cross Margin Transfer History
+	*Response in descending order
+	*Returns data for last 7 days by default
+	*Set archived to true to query data from 6 months ago
+	
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_transfer_history(const Params* params_ptr)
 {
@@ -2288,6 +2425,16 @@ Json::Value Client<T>::MarginAccount::margin_transfer_history(const Params* para
 	}
 };
 
+/**
+	Query Loan Record
+	*txId or startTime must be sent. txId takes precedence.
+	*Response in descending order
+	*If isolatedSymbol is not sent, crossed margin data will be returned
+	*Set archived to true to query data from 6 months ago
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_loan_record(const Params* params_ptr)
 {
@@ -2306,6 +2453,16 @@ Json::Value Client<T>::MarginAccount::margin_loan_record(const Params* params_pt
 	}
 };
 
+/**
+	Query Repay Record
+	*txId or startTime must be sent. txId takes precedence.
+	*Response in descending order
+	*If isolatedSymbol is not sent, crossed margin data will be returned
+	*Set archived to true to query data from 6 months ago
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_repay_record(const Params* params_ptr)
 {
@@ -2324,6 +2481,20 @@ Json::Value Client<T>::MarginAccount::margin_repay_record(const Params* params_p
 	}
 };
 
+/**
+	Get Interest History
+	*Response in descending order
+	*If isolatedSymbol is not sent, crossed margin data will be returned
+	*Set archived to true to query data from 6 months ago
+	*type in response has 4 enums:
+		**PERIODIC interest charged per hour
+		**ON_BORROW first interest charged on borrow
+		**PERIODIC_CONVERTED interest charged per hour converted into BNB
+		**ON_BORROW_CONVERTED first interest charged on borrow converted into BNB
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_interest_history(const Params* params_ptr)
 {
@@ -2342,6 +2513,11 @@ Json::Value Client<T>::MarginAccount::margin_interest_history(const Params* para
 	}
 };
 
+/**
+	Get Force Liquidation Record
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_liquidations_record(const Params* params_ptr)
 {
@@ -2360,6 +2536,11 @@ Json::Value Client<T>::MarginAccount::margin_liquidations_record(const Params* p
 	}
 };
 
+/**
+	Query Cross Margin Account Details
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_info(const Params* params_ptr)
 {
@@ -2378,6 +2559,14 @@ Json::Value Client<T>::MarginAccount::margin_account_info(const Params* params_p
 	}
 };
 
+/**
+	Query Margin Account's Order
+	*Either orderId or origClientOrderId must be sent.
+	*For some historical orders cummulativeQuoteQty will be < 0, meaning the data is not available at this time
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_order(const Params* params_ptr)
 {
@@ -2396,6 +2585,15 @@ Json::Value Client<T>::MarginAccount::margin_account_order(const Params* params_
 	}
 };
 
+/**
+	Query Margin Account's Open Orders
+	*If the symbol is not sent, orders for all symbols will be returned in an array.
+	*When all symbols are returned, the number of requests counted against the rate limiter is equal to the number of symbols currently trading on the exchange.
+	*If isIsolated ="TRUE", symbol must be sent.
+	
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_open_orders(const Params* params_ptr)
 {
@@ -2414,6 +2612,14 @@ Json::Value Client<T>::MarginAccount::margin_account_open_orders(const Params* p
 	}
 };
 
+/**
+	Query Margin Account's Open Orders
+	*If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
+	*For some historical orders cummulativeQuoteQty will be < 0, meaning the data is not available at this time.
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_all_orders(const Params* params_ptr)
 {
@@ -2432,6 +2638,13 @@ Json::Value Client<T>::MarginAccount::margin_account_all_orders(const Params* pa
 	}
 };
 
+/**
+	Query Margin Account's Trade List
+	*If fromId is set, it will get trades >= that fromId. Otherwise most recent trades are returned.
+	
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_trades_list(const Params* params_ptr)
 {
@@ -2450,6 +2663,14 @@ Json::Value Client<T>::MarginAccount::margin_account_trades_list(const Params* p
 	}
 };
 
+/**
+	Query Max Borrow
+	*If isolatedSymbol is not sent, crossed margin data will be sent.
+	*borrowLimit is also available from https://www.binance.com/en/margin-fee
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_max_borrow(const Params* params_ptr)
 {
@@ -2468,6 +2689,13 @@ Json::Value Client<T>::MarginAccount::margin_max_borrow(const Params* params_ptr
 	}
 };
 
+/**
+	Query Max Transfer-Out Amount
+	*If isolatedSymbol is not sent, crossed margin data will be sent.
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_max_transfer(const Params* params_ptr)
 {
@@ -2486,6 +2714,12 @@ Json::Value Client<T>::MarginAccount::margin_max_transfer(const Params* params_p
 	}
 };
 
+/**
+	Isolated Margin Account Transfer
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_create(const Params* params_ptr)
 {
@@ -2504,6 +2738,12 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_create(const Params
 	}
 };
 
+/**
+	Get Isolated Margin Transfer
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_transfer(const Params* params_ptr)
 {
@@ -2522,6 +2762,12 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_transfer(const Para
 	}
 };
 
+/**
+	Get Isolated Margin Transfer History
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_transfer_history(const Params* params_ptr)
 {
@@ -2540,6 +2786,14 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_transfer_history(co
 	}
 };
 
+/**
+	Query Isolated Margin Account Info
+	*If "symbols" is not sent, all isolated assets will be returned.
+	*If "symbols" is sent, only the isolated assets of the sent symbols will be returned.
+	
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_account_info(const Params* params_ptr)
 {
@@ -2558,6 +2812,12 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_account_info(const 
 	}
 };
 
+/**
+	Query Isolated Margin Symbol 
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol(const Params* params_ptr)
 {
@@ -2576,6 +2836,12 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol(const Params
 	}
 };
 
+/**
+	Get All Isolated Margin Symbol
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Params* params_ptr)
 {
@@ -2594,6 +2860,10 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Pa
 	}
 };
 
+/**
+	Create a ListenKey - Margin
+	@return the ListenKey as std::string
+*/
 template <typename T>
 std::string Client<T>::MarginAccount::margin_get_listen_key()
 {
@@ -2611,6 +2881,11 @@ std::string Client<T>::MarginAccount::margin_get_listen_key()
 	}
 }
 
+/**
+	Create a ListenKey - Isolated Margin
+	@param symbol - the symbol
+	@return the ListenKey as std::string
+*/
 template <typename T>
 std::string Client<T>::MarginAccount::margin_isolated_get_listen_key(const std::string symbol)
 {
@@ -2629,6 +2904,11 @@ std::string Client<T>::MarginAccount::margin_isolated_get_listen_key(const std::
 	}
 }
 
+/**
+	Ping/Keep-alive a Listen Key - Margin
+	@param listen_key - the ListenKey
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& listen_key)
 {
@@ -2647,6 +2927,11 @@ Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& 
 	}
 }
 
+/**
+	Ping/Keep-alive a Listen Key - Isolated Margin
+	@param listen_key - the ListenKey
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_ping_listen_key(const std::string& listen_key, const std::string symbol)
 {
@@ -2665,8 +2950,11 @@ Json::Value Client<T>::MarginAccount::margin_isolated_ping_listen_key(const std:
 	}
 }
 
-
-
+/**
+	Revoke a Listen Key - Margin
+	@param listen_key - the ListenKey
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string& listen_key)
 {
@@ -2685,6 +2973,12 @@ Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string
 	}
 }
 
+/**
+	Revoke a Listen Key - Isolated Margin
+	@param listen_key - the ListenKey
+	@param symbol - the symbol
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_revoke_listen_key(const std::string& listen_key, const std::string symbol)
 {
