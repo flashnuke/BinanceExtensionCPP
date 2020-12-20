@@ -593,6 +593,14 @@ bool Client<T>::init_rest_session()
 
 }
 
+/**
+	Send a custom GET request
+	@param base - base URL of request path
+	@param endpoint - endpoint of request path
+	@param params_ptr - a pointer to the request Params object
+	@bool signature - a bool for whether to sign the request or not
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::custom_get_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
@@ -609,6 +617,14 @@ Json::Value Client<T>::custom_get_req(const std::string& base, const std::string
 	}
 }
 
+/**
+	Send a custom POST request
+	@param base - base URL of request path
+	@param endpoint - endpoint of request path
+	@param params_ptr - a pointer to the request Params object
+	@bool signature - a bool for whether to sign the request or not
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::custom_post_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
@@ -625,6 +641,14 @@ Json::Value Client<T>::custom_post_req(const std::string& base, const std::strin
 	}
 }
 
+/**
+	Send a custom PUT request
+	@param base - base URL of request path
+	@param endpoint - endpoint of request path
+	@param params_ptr - a pointer to the request Params object
+	@bool signature - a bool for whether to sign the request or not
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::custom_put_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
@@ -641,6 +665,14 @@ Json::Value Client<T>::custom_put_req(const std::string& base, const std::string
 }
 }
 
+/**
+	Send a custom DELETE request
+	@param base - base URL of request path
+	@param endpoint - endpoint of request path
+	@param params_ptr - a pointer to the request Params object
+	@bool signature - a bool for whether to sign the request or not
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::custom_delete_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
@@ -657,6 +689,11 @@ Json::Value Client<T>::custom_delete_req(const std::string& base, const std::str
 	}
 }
 
+/**
+	Set headers for REST session
+	@param rest_client - a pointer to the RestSession object
+	@return bool - return true if success
+*/
 template <typename T>
 bool Client<T>::set_headers(RestSession* rest_client)
 {
@@ -671,7 +708,7 @@ bool Client<T>::set_headers(RestSession* rest_client)
 	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
 	curl_easy_setopt((rest_client->_delete_handle), CURLOPT_HTTPHEADER, auth_headers);
 
-	return 0;
+	return 1;
 	}
 	catch (ClientException e)
 	{
@@ -682,10 +719,15 @@ bool Client<T>::set_headers(RestSession* rest_client)
 	{
 		BadSetupHeadersREST e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}; 
 
 }
 
+/**
+	Set verbose state for REST session (prints more info regarding requests)
+	@param state - a bool for enabling (1) or disabling (0)
+*/
 template <typename T>
 void Client<T>::rest_set_verbose(const bool& state)
 {
@@ -693,6 +735,12 @@ void Client<T>::rest_set_verbose(const bool& state)
 	else this->_rest_client->set_verbose(0);
 }
 
+/**
+	Generate a REST request query
+	@param params_ptr - a pointer to the request Params object
+	@param sign_query - a bool for whether to sign the request or not
+	@return string - the query generated
+*/
 template <typename T>
 std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sign_query) const
 {
@@ -752,6 +800,11 @@ std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sig
 
 // ------ Class methods
 
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
 template <typename T>
 Client<T>::Wallet::Wallet(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -764,6 +817,10 @@ Client<T>::Wallet::Wallet(Client<T>& client_obj)
 	};
 }
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
 template <typename T>
 Client<T>::Wallet::Wallet(const Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -776,6 +833,11 @@ Client<T>::Wallet::Wallet(const Client<T>& client_obj)
 	};
 }
 
+/**
+	A destructor
+	since 'user_client' is a reference to an exchange client outside the class
+	it should be set to nullptr prior deletion
+*/
 template <typename T>
 Client<T>::Wallet::~Wallet()
 {
@@ -785,6 +847,10 @@ Client<T>::Wallet::~Wallet()
 // ------ Endpoint methods
 
 
+/**
+	Get exchange status
+	@return bool - 1 for active, 0 for inactive
+*/
 template <typename T>
 bool Client<T>::Wallet::exchange_status() 
 {
@@ -800,7 +866,11 @@ bool Client<T>::Wallet::exchange_status()
 	}
 }
 
-
+/**
+	Get all coins
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::get_all_coins(const Params* params_ptr)
 {
@@ -819,6 +889,11 @@ Json::Value Client<T>::Wallet::get_all_coins(const Params* params_ptr)
 	}
 };
 
+/**
+	Get a daily wallet snapshot
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::daily_snapshot(const Params* params_ptr)
 {
@@ -838,6 +913,11 @@ Json::Value Client<T>::Wallet::daily_snapshot(const Params* params_ptr)
 	}
 };
 
+/**
+	Turn on / off fast withdrawals
+	@param state - 1 to enable, 0 to disable
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::fast_withdraw_switch(const bool& state)
 {
@@ -858,6 +938,12 @@ Json::Value Client<T>::Wallet::fast_withdraw_switch(const bool& state)
 	}
 };
 
+/**
+	Submit a withdraw request
+	@param params_ptr - a pointer to the request Params object
+	@param SAPI - a bool for whether to use SAPI or WAPI endpoint
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::withdraw_balances(const Params* params_ptr, const bool& SAPI)
 {
@@ -877,6 +963,12 @@ Json::Value Client<T>::Wallet::withdraw_balances(const Params* params_ptr, const
 	}
 };
 
+/**
+	Fetch deposit history
+	@param params_ptr - a pointer to the request Params object
+	@param network - a bool for whether to use an endpoint that support network
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::deposit_history(const Params* params_ptr, const bool& network)
 {
@@ -896,6 +988,12 @@ Json::Value Client<T>::Wallet::deposit_history(const Params* params_ptr, const b
 	}
 };
 
+/**
+	Fetch withdraw history
+	@param params_ptr - a pointer to the request Params object
+	@param network - a bool for whether to fetch with network
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::withdraw_history(const Params* params_ptr, const bool& network)
 {
@@ -915,6 +1013,12 @@ Json::Value Client<T>::Wallet::withdraw_history(const Params* params_ptr, const 
 	}
 };
 
+/**
+	Fetch deposit address 
+	@param params_ptr - a pointer to the request Params object
+	@param network - a bool for whether to fetch with network
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::deposit_address(const Params* params_ptr, const bool& network)
 {
@@ -934,6 +1038,11 @@ Json::Value Client<T>::Wallet::deposit_address(const Params* params_ptr, const b
 	}
 };
 
+/**
+	Fetch account status detail
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::account_status(const Params* params_ptr)
 {
@@ -952,6 +1061,11 @@ Json::Value Client<T>::Wallet::account_status(const Params* params_ptr)
 	}
 };
 
+/**
+	Fetch account api trading status detail
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::account_status_api(const Params* params_ptr)
 {
@@ -970,6 +1084,11 @@ Json::Value Client<T>::Wallet::account_status_api(const Params* params_ptr)
 	}
 };
 
+/**
+	Fetch small amounts of assets exchanged BNB records
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::dust_log(const Params* params_ptr)
 {
@@ -988,6 +1107,11 @@ Json::Value Client<T>::Wallet::dust_log(const Params* params_ptr)
 	}
 };
 
+/**
+	Convert dust assets to BNB
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::dust_transfer(const Params* params_ptr)
 {
@@ -1006,6 +1130,11 @@ Json::Value Client<T>::Wallet::dust_transfer(const Params* params_ptr)
 	}
 };
 
+/**
+	Query asset dividend record
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::asset_dividend_records(const Params* params_ptr)
 {
@@ -1024,6 +1153,11 @@ Json::Value Client<T>::Wallet::asset_dividend_records(const Params* params_ptr)
 	}
 };
 
+/**
+	Fetch details of assets supported on Binance
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::asset_details(const Params* params_ptr)
 {
@@ -1042,6 +1176,11 @@ Json::Value Client<T>::Wallet::asset_details(const Params* params_ptr)
 	}
 };
 
+/**
+	Fetch trade fee, values in percentage
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::trading_fees(const Params* params_ptr)
 {
@@ -1069,6 +1208,11 @@ Json::Value Client<T>::Wallet::trading_fees(const Params* params_ptr)
 
 // ------ Class methods
 
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
 template <typename T>
 Client<T>::FuturesWallet::FuturesWallet(Client<T>& client_obj)
 	: user_client{ &client_obj }
@@ -1081,6 +1225,10 @@ Client<T>::FuturesWallet::FuturesWallet(Client<T>& client_obj)
 	};
 }
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
 template <typename T>
 Client<T>::FuturesWallet::FuturesWallet(const Client<T>& client_obj)
 	: user_client{ &client_obj }
@@ -1093,6 +1241,11 @@ Client<T>::FuturesWallet::FuturesWallet(const Client<T>& client_obj)
 	};
 }
 
+/**
+	Destructor 
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
 template <typename T>
 Client<T>::FuturesWallet::~FuturesWallet()
 {
@@ -1102,6 +1255,11 @@ Client<T>::FuturesWallet::~FuturesWallet()
 // ------ Endpoint methods
 
 
+/**
+	Execute transfer between spot account and futures account
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::futures_transfer(const Params* params_ptr)
 {
@@ -1120,6 +1278,11 @@ Json::Value Client<T>::FuturesWallet::futures_transfer(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Future Account Transaction History List
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::futures_transfer_history(const Params* params_ptr)
 {
@@ -1138,6 +1301,11 @@ Json::Value Client<T>::FuturesWallet::futures_transfer_history(const Params* par
 	}
 }
 
+/**
+	Borrow For Cross-Collateral
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_borrow(const Params* params_ptr)
 {
@@ -1156,6 +1324,11 @@ Json::Value Client<T>::FuturesWallet::collateral_borrow(const Params* params_ptr
 	}
 }
 
+/**
+	Get Cross-Collateral Borrow History
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_borrow_history(const Params* params_ptr)
 {
@@ -1174,6 +1347,11 @@ Json::Value Client<T>::FuturesWallet::collateral_borrow_history(const Params* pa
 	}
 }
 
+/**
+	Repay For Cross-Collateral 
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_repay(const Params* params_ptr)
 {
@@ -1192,6 +1370,11 @@ Json::Value Client<T>::FuturesWallet::collateral_repay(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Cross-Collateral Repayment History 
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_repay_history(const Params* params_ptr)
 {
@@ -1210,6 +1393,11 @@ Json::Value Client<T>::FuturesWallet::collateral_repay_history(const Params* par
 	}
 }
 
+/**
+	Get Cross-Collateral Wallet 
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_wallet(const Params* params_ptr)
 {
@@ -1228,6 +1416,12 @@ Json::Value Client<T>::FuturesWallet::collateral_wallet(const Params* params_ptr
 	}
 }
 
+/**
+	Get Cross-Collateral Information
+	all collateral data will be returned if collateralCoin is not sent
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_info(const Params* params_ptr)
 {
@@ -1246,6 +1440,11 @@ Json::Value Client<T>::FuturesWallet::collateral_info(const Params* params_ptr)
 	}
 }
 
+/**
+	Calculate Rate After Adjust Cross-Collateral LTV
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(const Params* params_ptr)
 {
@@ -1264,6 +1463,11 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(const Params* 
 	}
 }
 
+/**
+	Get Max Amount for Adjust Cross-Collateral LTV
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(const Params* params_ptr)
 {
@@ -1282,6 +1486,11 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(const Params* pa
 	}
 }
 
+/**
+	Adjust Cross-Collateral LTV
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust(const Params* params_ptr)
 {
@@ -1300,6 +1509,11 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust(const Params* params_ptr
 	}
 }
 
+/**
+	Get Adjust Cross-Collateral LTV History
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust_history(const Params* params_ptr)
 {
@@ -1318,6 +1532,11 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_history(const Params* pa
 	}
 }
 
+/**
+	Get Cross-Collateral Liquidation History
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_liquidation_history(const Params* params_ptr)
 {
@@ -1346,6 +1565,11 @@ Json::Value Client<T>::FuturesWallet::collateral_liquidation_history(const Param
 
 // ------ Class methods
 
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
 template <typename T>
 Client<T>::SubAccount::SubAccount(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -1358,6 +1582,10 @@ Client<T>::SubAccount::SubAccount(Client<T>& client_obj)
 	};
 }
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
 template <typename T>
 Client<T>::SubAccount::SubAccount(const Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -1370,6 +1598,11 @@ Client<T>::SubAccount::SubAccount(const Client<T>& client_obj)
 	};
 }
 
+/**
+	Destructor
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
 template <typename T>
 Client<T>::SubAccount::~SubAccount()
 {
@@ -1378,6 +1611,12 @@ Client<T>::SubAccount::~SubAccount()
 
 // ------ Endpoint methods
 
+
+/**
+	Query Sub-account List(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_all_subaccounts(const Params* params_ptr)
 {
@@ -1396,6 +1635,11 @@ Json::Value Client<T>::SubAccount::get_all_subaccounts(const Params* params_ptr)
 	}
 };
 
+/**
+	Query Sub-account Spot Asset Transfer History(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_master_history(const Params* params_ptr)
 {
@@ -1414,6 +1658,11 @@ Json::Value Client<T>::SubAccount::transfer_master_history(const Params* params_
 	}
 };
 
+/**
+	Sub-account Spot Asset Transfer(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_master_to_subaccount(const Params* params_ptr)
 {
@@ -1432,6 +1681,11 @@ Json::Value Client<T>::SubAccount::transfer_master_to_subaccount(const Params* p
 	}
 };
 
+/**
+	Query Sub-account Futures Asset Transfer History(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::futures_transfer_master_history(const Params* params_ptr)
 {
@@ -1450,6 +1704,11 @@ Json::Value Client<T>::SubAccount::futures_transfer_master_history(const Params*
 	}
 };
 
+/**
+	Sub-account Futures Asset Transfer(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::futures_transfer_master_to_subaccount(const Params* params_ptr)
 {
@@ -1468,6 +1727,11 @@ Json::Value Client<T>::SubAccount::futures_transfer_master_to_subaccount(const P
 	}
 };
 
+/**
+	Query Sub-account Assets(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_balances(const Params* params_ptr)
 {
@@ -1486,6 +1750,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_balances(const Params* params_
 	}
 };
 
+/**
+	Query Sub-account Spot Assets Summary (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_balances_summary(const Params* params_ptr)
 {
@@ -1504,6 +1773,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_balances_summary(const Params*
 	}
 };
 
+/**
+	Get Sub-account Deposit Address (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_deposit_address(const Params* params_ptr)
 {
@@ -1522,6 +1796,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_deposit_address(const Params* 
 	}
 };
 
+/**
+	Get Sub-account Deposit History (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_deposit_history(const Params* params_ptr)
 {
