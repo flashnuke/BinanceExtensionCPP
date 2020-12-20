@@ -4780,25 +4780,45 @@ Json::Value FuturesClient<CT>::taker_long_short_ratio(const Params* params_ptr)
 //  ------------------------------ Start | FuturesClientUSDT General methods - Infrastructure
 
 
+/**
+	A constructor - called directly by the user
+	Public client
+*/
 FuturesClientUSDT::FuturesClientUSDT()
 	: FuturesClient(*this)
 {};
 
+/**
+	A constructor - called directly by the user
+	Private client
+	@param key - API key
+	@param secret - API secret
+*/
 FuturesClientUSDT::FuturesClientUSDT(const std::string key, const std::string secret)
 	: FuturesClient(*this, key, secret)
 {}
 
+/**
+	Destructor
+	Delete Websocket and REST sessions
+*/
 FuturesClientUSDT::~FuturesClientUSDT()
 {
 	delete this->_ws_client;
 	delete this->_rest_client;
 }
 
+/**
+	CRTP of v_init_ws_session()
+*/
 void FuturesClientUSDT::v__init_ws_session()
 {
 	this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
 }
 
+/**
+	CRTP of set_testnet_mode()
+*/
 void FuturesClientUSDT::v_set_testnet_mode(const bool status)
 {
 	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT_TESTNET, _WS_PORT_FUTURES);
@@ -4809,6 +4829,9 @@ void FuturesClientUSDT::v_set_testnet_mode(const bool status)
 
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - Market Data Implementations
 
+/**
+	CRTP of v_ping_client()
+*/
 bool FuturesClientUSDT::v__ping_client()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -4817,6 +4840,9 @@ bool FuturesClientUSDT::v__ping_client()
 	return (ping_response != Json::nullValue);
 }
 
+/**
+	CRTP of v_exchange_time()
+*/
 unsigned long long FuturesClientUSDT::v__exchange_time()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -4826,6 +4852,9 @@ unsigned long long FuturesClientUSDT::v__exchange_time()
 	return std::atoll(ex_time.c_str());
 }
 
+/**
+	CRTP of v_exchange_info()
+*/
 Json::Value FuturesClientUSDT::v__exchange_info()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -4834,6 +4863,9 @@ Json::Value FuturesClientUSDT::v__exchange_info()
 	return response;
 }
 
+/**
+	CRTP of v_order_book()
+*/
 Json::Value FuturesClientUSDT::v__order_book(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4843,6 +4875,9 @@ Json::Value FuturesClientUSDT::v__order_book(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_recent()
+*/
 Json::Value FuturesClientUSDT::v__public_trades_recent(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4852,6 +4887,9 @@ Json::Value FuturesClientUSDT::v__public_trades_recent(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_historical()
+*/
 Json::Value FuturesClientUSDT::v__public_trades_historical(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4861,6 +4899,9 @@ Json::Value FuturesClientUSDT::v__public_trades_historical(const Params* params_
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_agg()
+*/
 Json::Value FuturesClientUSDT::v__public_trades_agg(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4870,6 +4911,9 @@ Json::Value FuturesClientUSDT::v__public_trades_agg(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_klines()
+*/
 Json::Value FuturesClientUSDT::v__klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4879,6 +4923,9 @@ Json::Value FuturesClientUSDT::v__klines(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_daily_ticker_stats()
+*/
 Json::Value FuturesClientUSDT::v__daily_ticker_stats(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4888,6 +4935,9 @@ Json::Value FuturesClientUSDT::v__daily_ticker_stats(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_get_ticker()
+*/
 Json::Value FuturesClientUSDT::v__get_ticker(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4897,6 +4947,9 @@ Json::Value FuturesClientUSDT::v__get_ticker(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_get_order_book_ticker()
+*/
 Json::Value FuturesClientUSDT::v__get_order_book_ticker(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4911,6 +4964,9 @@ Json::Value FuturesClientUSDT::v__get_order_book_ticker(const Params* params_ptr
 
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - Unique Endpoints
 
+/**
+	CRTP of mark_price()
+*/
 Json::Value FuturesClientUSDT::v_mark_price(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4920,6 +4976,9 @@ Json::Value FuturesClientUSDT::v_mark_price(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of public_liquidation_orders()
+*/
 Json::Value FuturesClientUSDT::v_public_liquidation_orders(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4928,6 +4987,10 @@ Json::Value FuturesClientUSDT::v_public_liquidation_orders(const Params* params_
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
+
+/**
+	CRTP of open_interest()
+*/
 Json::Value FuturesClientUSDT::v_open_interest(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4939,18 +5002,29 @@ Json::Value FuturesClientUSDT::v_open_interest(const Params* params_ptr)
 
 // ~~~ Do not exist for this client
 
+/**
+	CRTP of continues_klines() - MISSING ENDPOINT
+*/
 Json::Value FuturesClientUSDT::v_continues_klines(const Params* params_ptr)
 {
 	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
+
+/**
+	CRTP of index_klines() - MISSING ENDPOINT
+*/
 Json::Value FuturesClientUSDT::v_index_klines(const Params* params_ptr)
 {
 	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
+
+/**
+	CRTP of mark_klines() - MISSING ENDPOINT
+*/
 Json::Value FuturesClientUSDT::v_mark_klines(const Params* params_ptr)
 {
 	MissingEndpoint e{};
@@ -4961,6 +5035,9 @@ Json::Value FuturesClientUSDT::v_mark_klines(const Params* params_ptr)
 
 // ~~~ Unique for this Client 
 
+/**
+	CRTP of funding_rate_history() - Unique for USDT margined client
+*/
 Json::Value FuturesClientUSDT::v_funding_rate_history(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4977,6 +5054,9 @@ Json::Value FuturesClientUSDT::v_funding_rate_history(const Params* params_ptr)
 
 // -- Up to 'Client' Level
 
+/**
+	CRTP of v_new_order()
+*/
 Json::Value FuturesClientUSDT::v__new_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4987,6 +5067,9 @@ Json::Value FuturesClientUSDT::v__new_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_cancel_order()
+*/
 Json::Value FuturesClientUSDT::v__cancel_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4997,6 +5080,9 @@ Json::Value FuturesClientUSDT::v__cancel_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_cancel_all_orders()
+*/
 Json::Value FuturesClientUSDT::v__cancel_all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5007,7 +5093,9 @@ Json::Value FuturesClientUSDT::v__cancel_all_orders(const Params* params_ptr)
 	return response;
 }
 
-
+/**
+	CRTP of v_query_order()
+*/
 Json::Value FuturesClientUSDT::v__query_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5018,6 +5106,9 @@ Json::Value FuturesClientUSDT::v__query_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_open_orders()
+*/
 Json::Value FuturesClientUSDT::v__open_orders(const Params* params_ptr)
 {
 
@@ -5029,6 +5120,9 @@ Json::Value FuturesClientUSDT::v__open_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_all_orders()
+*/
 Json::Value FuturesClientUSDT::v__all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5039,6 +5133,9 @@ Json::Value FuturesClientUSDT::v__all_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_account_info()
+*/
 Json::Value FuturesClientUSDT::v__account_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5049,6 +5146,9 @@ Json::Value FuturesClientUSDT::v__account_info(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_account_trades_list()
+*/
 Json::Value FuturesClientUSDT::v__account_trades_list(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5061,7 +5161,9 @@ Json::Value FuturesClientUSDT::v__account_trades_list(const Params* params_ptr)
 
 // -- Up to 'FuturesClient' (this) Level
 
-
+/**
+	CRTP of change_position_mode()
+*/
 Json::Value FuturesClientUSDT::v_change_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5072,6 +5174,9 @@ Json::Value FuturesClientUSDT::v_change_position_mode(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_position_mode()
+*/
 Json::Value FuturesClientUSDT::v_get_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5082,6 +5187,9 @@ Json::Value FuturesClientUSDT::v_get_position_mode(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of batch_orders()
+*/
 Json::Value FuturesClientUSDT::v_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5092,6 +5200,9 @@ Json::Value FuturesClientUSDT::v_batch_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of cancel_batch_orders()
+*/
 Json::Value FuturesClientUSDT::v_cancel_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5102,6 +5213,9 @@ Json::Value FuturesClientUSDT::v_cancel_batch_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of cancel_all_orders_timer()
+*/
 Json::Value FuturesClientUSDT::v_cancel_all_orders_timer(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5112,6 +5226,9 @@ Json::Value FuturesClientUSDT::v_cancel_all_orders_timer(const Params* params_pt
 	return response;
 }
 
+/**
+	CRTP of query_open_order()
+*/
 Json::Value FuturesClientUSDT::v_query_open_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5122,6 +5239,9 @@ Json::Value FuturesClientUSDT::v_query_open_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of account_balances()
+*/
 Json::Value FuturesClientUSDT::v_account_balances(const Params* params_ptr)
 {
 
@@ -5133,6 +5253,9 @@ Json::Value FuturesClientUSDT::v_account_balances(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_leverage()
+*/
 Json::Value FuturesClientUSDT::v_change_leverage(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5143,6 +5266,9 @@ Json::Value FuturesClientUSDT::v_change_leverage(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_margin_type()
+*/
 Json::Value FuturesClientUSDT::v_change_margin_type(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5153,6 +5279,9 @@ Json::Value FuturesClientUSDT::v_change_margin_type(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_position_margin()
+*/
 Json::Value FuturesClientUSDT::v_change_position_margin(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5163,6 +5292,9 @@ Json::Value FuturesClientUSDT::v_change_position_margin(const Params* params_ptr
 	return response;
 }
 
+/**
+	CRTP of change_position_margin_history()
+*/
 Json::Value FuturesClientUSDT::v_change_position_margin_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5173,6 +5305,9 @@ Json::Value FuturesClientUSDT::v_change_position_margin_history(const Params* pa
 	return response;
 }
 
+/**
+	CRTP of position_info()
+*/
 Json::Value FuturesClientUSDT::v_position_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5183,6 +5318,9 @@ Json::Value FuturesClientUSDT::v_position_info(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_income_history()
+*/
 Json::Value FuturesClientUSDT::v_get_income_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5193,6 +5331,9 @@ Json::Value FuturesClientUSDT::v_get_income_history(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_leverage_bracket()
+*/
 Json::Value FuturesClientUSDT::v_get_leverage_bracket(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5203,6 +5344,9 @@ Json::Value FuturesClientUSDT::v_get_leverage_bracket(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of pos_adl_quantile_est()
+*/
 Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5217,7 +5361,9 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
 
-
+/**
+	CRTP of v_get_listen_key()
+*/
 std::string FuturesClientUSDT::v__get_listen_key()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -5227,6 +5373,9 @@ std::string FuturesClientUSDT::v__get_listen_key()
 	return response["response"]["listenKey"].asString();
 }
 
+/**
+	CRTP of v_ping_listen_key()
+*/
 Json::Value FuturesClientUSDT::v__ping_listen_key()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -5237,6 +5386,9 @@ Json::Value FuturesClientUSDT::v__ping_listen_key()
 	return response;
 }
 
+/**
+	CRTP of v_revoke_listen_key()
+*/
 Json::Value FuturesClientUSDT::v__revoke_listen_key()
 {
 
@@ -5256,20 +5408,38 @@ Json::Value FuturesClientUSDT::v__revoke_listen_key()
 
 //  ------------------------------ Start | FuturesClientCoin General methods - Infrastructure
 
+
+/**
+	A constructor - called directly by the user
+	Public client
+*/
 FuturesClientCoin::FuturesClientCoin()
 	: FuturesClient(*this)
 {};
 
+/**
+	A constructor - called directly by the user
+	Private client
+	@param key - API key
+	@param secret - API secret
+*/
 FuturesClientCoin::FuturesClientCoin(const std::string key, const std::string secret)
 	: FuturesClient(*this, key, secret)
 {}
 
+/**
+	Destructor
+	Delete Websocket and REST sessions
+*/
 FuturesClientCoin::~FuturesClientCoin()
 {
 	delete this->_ws_client;
 	delete this->_rest_client;
 }
 
+/**
+	CRTP of v_init_ws_session()
+*/
 void FuturesClientCoin::v__init_ws_session()
 {
 
@@ -5277,6 +5447,9 @@ void FuturesClientCoin::v__init_ws_session()
 
 }
 
+/**
+	CRTP of set_testnet_mode()
+*/
 void FuturesClientCoin::v_set_testnet_mode(const bool status)
 {
 	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN_TESTNET, _WS_PORT_FUTURES);
@@ -5288,6 +5461,9 @@ void FuturesClientCoin::v_set_testnet_mode(const bool status)
 
 //  ------------------------------ Start | FuturesClientCoin CRTP methods - Market Data Implementations
 
+/**
+	CRTP of v_ping_client()
+*/
 bool FuturesClientCoin::v__ping_client()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -5296,6 +5472,9 @@ bool FuturesClientCoin::v__ping_client()
 	return (ping_response != Json::nullValue);
 }
 
+/**
+	CRTP of v_exchange_time()
+*/
 unsigned long long FuturesClientCoin::v__exchange_time()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -5305,6 +5484,9 @@ unsigned long long FuturesClientCoin::v__exchange_time()
 	return std::atoll(ex_time.c_str());
 }
 
+/**
+	CRTP of v_exchange_info()
+*/
 Json::Value FuturesClientCoin::v__exchange_info()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -5313,6 +5495,9 @@ Json::Value FuturesClientCoin::v__exchange_info()
 	return response;
 }
 
+/**
+	CRTP of v_order_book()
+*/
 Json::Value FuturesClientCoin::v__order_book(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -5322,6 +5507,9 @@ Json::Value FuturesClientCoin::v__order_book(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_recent()
+*/
 Json::Value FuturesClientCoin::v__public_trades_recent(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -5331,6 +5519,9 @@ Json::Value FuturesClientCoin::v__public_trades_recent(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_historical()
+*/
 Json::Value FuturesClientCoin::v__public_trades_historical(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -5340,6 +5531,9 @@ Json::Value FuturesClientCoin::v__public_trades_historical(const Params* params_
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_agg()
+*/
 Json::Value FuturesClientCoin::v__public_trades_agg(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -5349,6 +5543,9 @@ Json::Value FuturesClientCoin::v__public_trades_agg(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_klines()
+*/
 Json::Value FuturesClientCoin::v__klines(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -5358,6 +5555,9 @@ Json::Value FuturesClientCoin::v__klines(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_daily_ticker_stats()
+*/
 Json::Value FuturesClientCoin::v__daily_ticker_stats(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -5367,6 +5567,9 @@ Json::Value FuturesClientCoin::v__daily_ticker_stats(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_get_ticker()
+*/
 Json::Value FuturesClientCoin::v__get_ticker(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -5376,6 +5579,9 @@ Json::Value FuturesClientCoin::v__get_ticker(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_get_order_book_ticker()
+*/
 Json::Value FuturesClientCoin::v__get_order_book_ticker(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -5393,6 +5599,9 @@ Json::Value FuturesClientCoin::v__get_order_book_ticker(const Params* params_ptr
 // -- Up to 'Client' Level
 
 
+/**
+	CRTP of v_new_order()
+*/
 Json::Value FuturesClientCoin::v__new_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5403,6 +5612,9 @@ Json::Value FuturesClientCoin::v__new_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_cancel_order()
+*/
 Json::Value FuturesClientCoin::v__cancel_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5413,6 +5625,9 @@ Json::Value FuturesClientCoin::v__cancel_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_cancel_all_orders()
+*/
 Json::Value FuturesClientCoin::v__cancel_all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5423,6 +5638,9 @@ Json::Value FuturesClientCoin::v__cancel_all_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_query_order()
+*/
 Json::Value FuturesClientCoin::v__query_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5433,6 +5651,9 @@ Json::Value FuturesClientCoin::v__query_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_open_orders()
+*/
 Json::Value FuturesClientCoin::v__open_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5443,6 +5664,9 @@ Json::Value FuturesClientCoin::v__open_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_all_orders()
+*/
 Json::Value FuturesClientCoin::v__all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5453,6 +5677,9 @@ Json::Value FuturesClientCoin::v__all_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_account_info()
+*/
 Json::Value FuturesClientCoin::v__account_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5463,6 +5690,9 @@ Json::Value FuturesClientCoin::v__account_info(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_account_trades_list()
+*/
 Json::Value FuturesClientCoin::v__account_trades_list(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5476,6 +5706,9 @@ Json::Value FuturesClientCoin::v__account_trades_list(const Params* params_ptr)
 // -- Up to 'FuturesClient' (this) Level
 
 
+/**
+	CRTP of change_position_mode()
+*/
 Json::Value FuturesClientCoin::v_change_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5486,7 +5719,9 @@ Json::Value FuturesClientCoin::v_change_position_mode(const Params* params_ptr)
 	return response;
 }
 
-
+/**
+	CRTP of get_position_mode()
+*/
 Json::Value FuturesClientCoin::v_get_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5497,6 +5732,9 @@ Json::Value FuturesClientCoin::v_get_position_mode(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of batch_orders()
+*/
 Json::Value FuturesClientCoin::v_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5507,6 +5745,9 @@ Json::Value FuturesClientCoin::v_batch_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of cancel_batch_orders()
+*/
 Json::Value FuturesClientCoin::v_cancel_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5517,6 +5758,9 @@ Json::Value FuturesClientCoin::v_cancel_batch_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of cancel_all_orders_timer()
+*/
 Json::Value FuturesClientCoin::v_cancel_all_orders_timer(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5527,6 +5771,9 @@ Json::Value FuturesClientCoin::v_cancel_all_orders_timer(const Params* params_pt
 	return response;
 }
 
+/**
+	CRTP of query_open_order()
+*/
 Json::Value FuturesClientCoin::v_query_open_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5537,6 +5784,9 @@ Json::Value FuturesClientCoin::v_query_open_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of account_balances()
+*/
 Json::Value FuturesClientCoin::v_account_balances(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5547,6 +5797,9 @@ Json::Value FuturesClientCoin::v_account_balances(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_leverage()
+*/
 Json::Value FuturesClientCoin::v_change_leverage(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5557,6 +5810,9 @@ Json::Value FuturesClientCoin::v_change_leverage(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_margin_type()
+*/
 Json::Value FuturesClientCoin::v_change_margin_type(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5567,6 +5823,9 @@ Json::Value FuturesClientCoin::v_change_margin_type(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_position_margin()
+*/
 Json::Value FuturesClientCoin::v_change_position_margin(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5577,6 +5836,9 @@ Json::Value FuturesClientCoin::v_change_position_margin(const Params* params_ptr
 	return response;
 }
 
+/**
+	CRTP of change_position_margin_history()
+*/
 Json::Value FuturesClientCoin::v_change_position_margin_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5587,6 +5849,9 @@ Json::Value FuturesClientCoin::v_change_position_margin_history(const Params* pa
 	return response;
 }
 
+/**
+	CRTP of position_info()
+*/
 Json::Value FuturesClientCoin::v_position_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5597,6 +5862,9 @@ Json::Value FuturesClientCoin::v_position_info(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_income_history()
+*/
 Json::Value FuturesClientCoin::v_get_income_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5607,6 +5875,9 @@ Json::Value FuturesClientCoin::v_get_income_history(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_leverage_bracket()
+*/
 Json::Value FuturesClientCoin::v_get_leverage_bracket(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -5617,6 +5888,9 @@ Json::Value FuturesClientCoin::v_get_leverage_bracket(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of pos_adl_quantile_est()
+*/
 Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 {
 	MissingEndpoint e{};
@@ -5629,6 +5903,9 @@ Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
 
 
+/**
+	CRTP of stream_markprice_all()
+*/
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor) // here
 {
@@ -5637,7 +5914,9 @@ unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol
 	throw(e);
 }
 
-
+/**
+	CRTP of v_get_listen_key()
+*/
 std::string FuturesClientCoin::v__get_listen_key()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -5647,6 +5926,9 @@ std::string FuturesClientCoin::v__get_listen_key()
 	return response["response"]["listenKey"].asString();
 }
 
+/**
+	CRTP of v_ping_listen_key()
+*/
 Json::Value FuturesClientCoin::v__ping_listen_key()
 {
 	// no signature is needed here
@@ -5658,6 +5940,9 @@ Json::Value FuturesClientCoin::v__ping_listen_key()
 	return response;
 }
 
+/**
+	CRTP of v_revoke_listen_key()
+*/
 Json::Value FuturesClientCoin::v__revoke_listen_key()
 {
 	// no signature is needed here
@@ -5674,6 +5959,9 @@ Json::Value FuturesClientCoin::v__revoke_listen_key()
 
 //  ------------------------------ Start | FuturesClientCoin CRTP methods - Unique Endpoints
 
+/**
+	CRTP of mark_price()
+*/
 Json::Value FuturesClientCoin::v_mark_price(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -5683,6 +5971,9 @@ Json::Value FuturesClientCoin::v_mark_price(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of public_liquidation_orders()
+*/
 Json::Value FuturesClientCoin::v_public_liquidation_orders(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -5691,6 +5982,10 @@ Json::Value FuturesClientCoin::v_public_liquidation_orders(const Params* params_
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
+
+/**
+	CRTP of open_interest()
+*/
 Json::Value FuturesClientCoin::v_open_interest(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -5703,6 +5998,10 @@ Json::Value FuturesClientCoin::v_open_interest(const Params* params_ptr)
 
 // ~~~ Unique for this Client 
 
+
+/**
+	CRTP of continues_klines() - Unique for Coin Margined client
+*/
 Json::Value FuturesClientCoin::v_continues_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -5711,6 +6010,10 @@ Json::Value FuturesClientCoin::v_continues_klines(const Params* params_ptr)
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
+
+/**
+	CRTP of index_klines() - Unique for Coin Margined client
+*/
 Json::Value FuturesClientCoin::v_index_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -5719,6 +6022,10 @@ Json::Value FuturesClientCoin::v_index_klines(const Params* params_ptr)
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
+
+/**
+	CRTP of mark_klines() - Unique for Coin Margined client
+*/
 Json::Value FuturesClientCoin::v_mark_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -5731,6 +6038,10 @@ Json::Value FuturesClientCoin::v_mark_klines(const Params* params_ptr)
 
 // ~~~ Don't exist for this client
 
+
+/**
+	CRTP of funding_rate_history() - Missing endpoint for this client
+*/
 Json::Value FuturesClientCoin::v_funding_rate_history(const Params* params_ptr)
 {
 	MissingEndpoint e{};
@@ -5746,10 +6057,16 @@ Json::Value FuturesClientCoin::v_funding_rate_history(const Params* params_ptr)
 
 //  ------------------------------ Start | Params methods
 
+/**
+	Default constructor
+*/
 Params::Params()
 	: default_recv{ 0 }, default_recv_amt{ 0 }
 {};
 
+/**
+	Copy constructor
+*/
 Params::Params(Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
@@ -5757,6 +6074,9 @@ Params::Params(Params& params_obj)
 	this->default_recv_amt = params_obj.default_recv_amt;
 }
 
+/**
+	Copy constructor (constant)
+*/
 Params::Params(const Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
@@ -5764,6 +6084,9 @@ Params::Params(const Params& params_obj)
 	this->default_recv_amt = params_obj.default_recv_amt;
 }
 
+/**
+	Copy assignment
+*/
 Params& Params::operator=(Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
@@ -5773,6 +6096,9 @@ Params& Params::operator=(Params& params_obj)
 	return *this;
 }
 
+/**
+	Copy assignment (constant)
+*/
 Params& Params::operator=(const Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
@@ -5782,6 +6108,9 @@ Params& Params::operator=(const Params& params_obj)
 	return *this;
 }
 
+/**
+	Move assignment
+*/
 Params& Params::operator=(Params&& params_obj)
 {
 	this->param_map = std::move(params_obj.param_map);
@@ -5791,29 +6120,57 @@ Params& Params::operator=(Params&& params_obj)
 	return *this;
 }
 
+/**
+	Set a new parameter
+	@typename PT - Type of value
+	@param key - name of parameter
+	@param value - value of parameter to set
+*/
 template <typename PT>
 void Params::set_param(const std::string& key, const PT& value)
 {
 	param_map[key] = std::to_string(value);
 }
+
+/**
+	Set a new parameter - type of value = std::string
+	@param key - name of parameter
+	@param value - value of parameter to set
+*/
 template <> // do not call to_string on a string
 void Params::set_param<std::string>(const std::string& key, const std::string& value)
 {
 	param_map[key] = value;
 }
 
+/**
+	Set a new parameter
+	@typename PT - Type of value
+	@param key - name of parameter
+	@param value - value of parameter to set (Move)
+*/
 template <typename PT>
 void Params::set_param(const std::string& key, PT&& value)
 {
 	param_map[key] = std::to_string(std::move(value));
 }
+
+/**
+	Set a new parameter - type of value = std::string
+	@param key - name of parameter
+	@param value - value of parameter to set (Move)
+*/
 template <>
 void Params::set_param<std::string>(const std::string& key, std::string&& value)
 {
 	param_map[key] = std::move(value);
 }
 
-
+/**
+	Delete a parameter
+	@param key - name of parameter
+	@return - bool for success
+*/
 bool Params::delete_param(const std::string& key)
 {
 	std::unordered_map<std::string, std::string>::iterator itr;
@@ -5829,6 +6186,11 @@ bool Params::delete_param(const std::string& key)
 	return 0;
 }
 
+/**
+	Set a default RecvWindow value
+	@param set_always - a bool for whether to keep after flush
+	@param recv_val - recvWindow value
+*/
 void Params::set_recv(const bool& set_always, const unsigned int& recv_val)
 {
 	this->default_recv = set_always;
@@ -5845,6 +6207,10 @@ void Params::set_recv(const bool& set_always, const unsigned int& recv_val)
 
 }
 
+/**
+	Flush params - erase all keys
+	if default recvWindow is set, it will be kept
+*/
 void Params::flush_params()
 {
 	this->param_map.clear();
