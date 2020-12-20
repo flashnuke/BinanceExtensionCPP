@@ -15,6 +15,10 @@ const std::string _WS_BASE_SPOT{ "stream.binance.com" };
 const unsigned int _WS_PORT_SPOT{ 9443 };
 const unsigned int _WS_PORT_FUTURES{ 443 };
 
+/**
+	An abstract constructor - called by the CRTP lower classes
+	Public Client
+*/
 template<typename T>
 Client<T>::Client(T& exchange_client) : _public_client{ 1 }, refresh_listenkey_interval{ 1800 }
 {
@@ -31,6 +35,12 @@ Client<T>::Client(T& exchange_client) : _public_client{ 1 }, refresh_listenkey_i
 	}
 };
 
+/**
+	An abstract constructor - called by the CRTP lower classes
+	Private Client
+	@param key - an API key string
+	@param secret - an API secret string
+*/
 template<typename T>
 Client<T>::Client(T& exchange_client, const std::string key, const std::string secret) : _public_client{ 0 }, _api_key{ key }, _api_secret{ secret }, refresh_listenkey_interval{ 1800 }
 {
@@ -47,6 +57,9 @@ Client<T>::Client(T& exchange_client, const std::string key, const std::string s
 	}
 };
 
+/**
+	The destructor - no dynamic memory is used
+*/
 template <typename T>
 Client<T>::~Client()
 {};
@@ -56,7 +69,9 @@ Client<T>::~Client()
 
 //  ------------------------------ Start | Client CRTP methods - Infrastructure
 
-
+/**
+	Initialize a websocket session
+*/
 template<typename T>
 void Client<T>::init_ws_session()
 {
@@ -71,6 +86,10 @@ void Client<T>::init_ws_session()
 	}
 }
 
+/**
+	Get a listen key from the exchange
+	@return a string representing the listen key
+*/
 template<typename T>
 std::string Client<T>::get_listen_key()
 {
@@ -85,7 +104,11 @@ std::string Client<T>::get_listen_key()
 	}
 }
 	
-
+/**
+	Ping the exchange with an existing listen key
+	@param listen_key - a string representing the listen key
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::ping_listen_key(const std::string& listen_key) 
 {
@@ -100,6 +123,11 @@ Json::Value Client<T>::ping_listen_key(const std::string& listen_key)
 	}
 }
 
+/**
+	Revoke an existing listen key
+	@param listen_key - a string of the key to be revoked
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::revoke_listen_key(const std::string& listen_key)
 {
@@ -119,6 +147,10 @@ Json::Value Client<T>::revoke_listen_key(const std::string& listen_key)
 
 //  ------------------------------ Start | Client CRTP methods - Market Data Endpoints 
 
+/**
+	Get an epoch timestamp of th exchange time
+	@return unsigned long long representing the epoch time
+*/
 template<typename T>
 unsigned long long Client<T>::exchange_time()
 {
@@ -133,6 +165,10 @@ unsigned long long Client<T>::exchange_time()
 	}
 }
 
+/**
+	Ping the exchange
+	@return a boolean representing success or failure
+*/
 template<typename T>
 bool Client<T>::ping_client() 
 {
@@ -147,6 +183,10 @@ bool Client<T>::ping_client()
 	}
 }
 
+/**
+	Get exchange info
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::exchange_info()
 {
@@ -161,6 +201,11 @@ Json::Value Client<T>::exchange_info()
 	}
 }
 
+/**
+	Get order book
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::order_book(const Params* params_ptr) 
 {
@@ -175,6 +220,11 @@ Json::Value Client<T>::order_book(const Params* params_ptr)
 	}
 }
 
+/**
+	Get recent public trades
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::public_trades_recent(const Params* params_ptr)
 {
@@ -189,6 +239,11 @@ Json::Value Client<T>::public_trades_recent(const Params* params_ptr)
 	}
 }
 
+/**
+	Get historical public trades
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::public_trades_historical(const Params* params_ptr) 
 {
@@ -203,6 +258,11 @@ Json::Value Client<T>::public_trades_historical(const Params* params_ptr)
 	}
 }
 
+/**
+	Get aggregated public trades
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::public_trades_agg(const Params* params_ptr) 
 {
@@ -217,6 +277,11 @@ Json::Value Client<T>::public_trades_agg(const Params* params_ptr)
 	}
 }
 
+/**
+	Get historical candlesticks data
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::klines(const Params* params_ptr)
 {
@@ -231,6 +296,11 @@ Json::Value Client<T>::klines(const Params* params_ptr)
 	}
 }
 
+/**
+	Get daily ticker statistics
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::daily_ticker_stats(const Params* params_ptr)
 {
@@ -245,6 +315,11 @@ Json::Value Client<T>::daily_ticker_stats(const Params* params_ptr)
 	}
 }
 
+/**
+	Get individual ticker statistics
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::get_ticker(const Params* params_ptr)
 {
@@ -259,6 +334,11 @@ Json::Value Client<T>::get_ticker(const Params* params_ptr)
 	}
 }
 
+/**
+	Get orderbook ticker statistics
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::get_order_book_ticker(const Params* params_ptr) 
 {
@@ -278,6 +358,11 @@ Json::Value Client<T>::get_order_book_ticker(const Params* params_ptr)
 
 //  ------------------------------ Start | Client CRTP methods - Trade Endpoints
 
+/**
+	Place a new order - testing
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::test_new_order(const Params* params_ptr) 
 {
@@ -292,6 +377,11 @@ Json::Value Client<T>::test_new_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Place a new order
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::new_order(const Params* params_ptr) 
 {
@@ -306,6 +396,11 @@ Json::Value Client<T>::new_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Cancel an order
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::cancel_order(const Params* params_ptr) 
 {
@@ -320,6 +415,11 @@ Json::Value Client<T>::cancel_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Cancel all orders
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::cancel_all_orders(const Params* params_ptr) 
 {
@@ -334,6 +434,11 @@ Json::Value Client<T>::cancel_all_orders(const Params* params_ptr)
 	}
 }
 
+/**
+	Query an order
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::query_order(const Params* params_ptr) 
 {
@@ -348,6 +453,11 @@ Json::Value Client<T>::query_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Get open orders
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::open_orders(const Params* params_ptr) 
 {
@@ -362,6 +472,11 @@ Json::Value Client<T>::open_orders(const Params* params_ptr)
 	}
 }
 
+/**
+	Get all orders
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::all_orders(const Params* params_ptr) 
 {
@@ -376,6 +491,11 @@ Json::Value Client<T>::all_orders(const Params* params_ptr)
 	}
 }
 
+/**
+	Get account info
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::account_info(const Params* params_ptr) 
 {
@@ -390,6 +510,11 @@ Json::Value Client<T>::account_info(const Params* params_ptr)
 	}
 }
 
+/**
+	Get account trades list
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template<typename T>
 Json::Value Client<T>::account_trades_list(const Params* params_ptr) 
 {
@@ -410,6 +535,13 @@ Json::Value Client<T>::account_trades_list(const Params* params_ptr)
 //  ------------------------------ Start | Client global + CRTP methods - WS Streams
 
 
+/**
+	Open trade stream
+	@param symbol - a string reference of the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return the json returned by the request
+*/
 template<typename T>
 template <typename FT>
 unsigned int  Client<T>::stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
@@ -432,7 +564,10 @@ unsigned int  Client<T>::stream_Trade(const std::string& symbol, std::string& bu
 //  ------------------------------ Start | Client General methods - Infrastructure
 
 
-
+/**
+	Initialize a rest session
+	@return bool value for success (pings the exchange to determine success)
+*/
 template <typename T>
 bool Client<T>::init_rest_session()
 {
@@ -458,6 +593,14 @@ bool Client<T>::init_rest_session()
 
 }
 
+/**
+	Send a custom GET request
+	@param base - base URL of request path
+	@param endpoint - endpoint of request path
+	@param params_ptr - a pointer to the request Params object
+	@bool signature - a bool for whether to sign the request or not
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::custom_get_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
@@ -474,6 +617,14 @@ Json::Value Client<T>::custom_get_req(const std::string& base, const std::string
 	}
 }
 
+/**
+	Send a custom POST request
+	@param base - base URL of request path
+	@param endpoint - endpoint of request path
+	@param params_ptr - a pointer to the request Params object
+	@bool signature - a bool for whether to sign the request or not
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::custom_post_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
@@ -490,6 +641,14 @@ Json::Value Client<T>::custom_post_req(const std::string& base, const std::strin
 	}
 }
 
+/**
+	Send a custom PUT request
+	@param base - base URL of request path
+	@param endpoint - endpoint of request path
+	@param params_ptr - a pointer to the request Params object
+	@bool signature - a bool for whether to sign the request or not
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::custom_put_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
@@ -506,6 +665,14 @@ Json::Value Client<T>::custom_put_req(const std::string& base, const std::string
 }
 }
 
+/**
+	Send a custom DELETE request
+	@param base - base URL of request path
+	@param endpoint - endpoint of request path
+	@param params_ptr - a pointer to the request Params object
+	@bool signature - a bool for whether to sign the request or not
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::custom_delete_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
 {
@@ -522,6 +689,11 @@ Json::Value Client<T>::custom_delete_req(const std::string& base, const std::str
 	}
 }
 
+/**
+	Set headers for REST session
+	@param rest_client - a pointer to the RestSession object
+	@return bool - return true if success
+*/
 template <typename T>
 bool Client<T>::set_headers(RestSession* rest_client)
 {
@@ -536,7 +708,7 @@ bool Client<T>::set_headers(RestSession* rest_client)
 	curl_easy_setopt((rest_client->_put_handle), CURLOPT_HTTPHEADER, auth_headers);
 	curl_easy_setopt((rest_client->_delete_handle), CURLOPT_HTTPHEADER, auth_headers);
 
-	return 0;
+	return 1;
 	}
 	catch (ClientException e)
 	{
@@ -547,10 +719,15 @@ bool Client<T>::set_headers(RestSession* rest_client)
 	{
 		BadSetupHeadersREST e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}; 
 
 }
 
+/**
+	Set verbose state for REST session (prints more info regarding requests)
+	@param state - a bool for enabling (1) or disabling (0)
+*/
 template <typename T>
 void Client<T>::rest_set_verbose(const bool& state)
 {
@@ -558,6 +735,12 @@ void Client<T>::rest_set_verbose(const bool& state)
 	else this->_rest_client->set_verbose(0);
 }
 
+/**
+	Generate a REST request query
+	@param params_ptr - a pointer to the request Params object
+	@param sign_query - a bool for whether to sign the request or not
+	@return string - the query generated
+*/
 template <typename T>
 std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sign_query) const
 {
@@ -617,6 +800,11 @@ std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sig
 
 // ------ Class methods
 
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
 template <typename T>
 Client<T>::Wallet::Wallet(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -629,6 +817,10 @@ Client<T>::Wallet::Wallet(Client<T>& client_obj)
 	};
 }
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
 template <typename T>
 Client<T>::Wallet::Wallet(const Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -641,6 +833,11 @@ Client<T>::Wallet::Wallet(const Client<T>& client_obj)
 	};
 }
 
+/**
+	A destructor
+	since 'user_client' is a reference to an exchange client outside the class
+	it should be set to nullptr prior deletion
+*/
 template <typename T>
 Client<T>::Wallet::~Wallet()
 {
@@ -650,6 +847,10 @@ Client<T>::Wallet::~Wallet()
 // ------ Endpoint methods
 
 
+/**
+	Get exchange status
+	@return bool - 1 for active, 0 for inactive
+*/
 template <typename T>
 bool Client<T>::Wallet::exchange_status() 
 {
@@ -665,7 +866,11 @@ bool Client<T>::Wallet::exchange_status()
 	}
 }
 
-
+/**
+	Get all coins
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::get_all_coins(const Params* params_ptr)
 {
@@ -684,6 +889,11 @@ Json::Value Client<T>::Wallet::get_all_coins(const Params* params_ptr)
 	}
 };
 
+/**
+	Get a daily wallet snapshot
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::daily_snapshot(const Params* params_ptr)
 {
@@ -703,6 +913,11 @@ Json::Value Client<T>::Wallet::daily_snapshot(const Params* params_ptr)
 	}
 };
 
+/**
+	Turn on / off fast withdrawals
+	@param state - 1 to enable, 0 to disable
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::fast_withdraw_switch(const bool& state)
 {
@@ -723,6 +938,12 @@ Json::Value Client<T>::Wallet::fast_withdraw_switch(const bool& state)
 	}
 };
 
+/**
+	Submit a withdraw request
+	@param params_ptr - a pointer to the request Params object
+	@param SAPI - a bool for whether to use SAPI or WAPI endpoint
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::withdraw_balances(const Params* params_ptr, const bool& SAPI)
 {
@@ -742,6 +963,12 @@ Json::Value Client<T>::Wallet::withdraw_balances(const Params* params_ptr, const
 	}
 };
 
+/**
+	Fetch deposit history
+	@param params_ptr - a pointer to the request Params object
+	@param network - a bool for whether to use an endpoint that support network
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::deposit_history(const Params* params_ptr, const bool& network)
 {
@@ -761,6 +988,12 @@ Json::Value Client<T>::Wallet::deposit_history(const Params* params_ptr, const b
 	}
 };
 
+/**
+	Fetch withdraw history
+	@param params_ptr - a pointer to the request Params object
+	@param network - a bool for whether to fetch with network
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::withdraw_history(const Params* params_ptr, const bool& network)
 {
@@ -780,6 +1013,12 @@ Json::Value Client<T>::Wallet::withdraw_history(const Params* params_ptr, const 
 	}
 };
 
+/**
+	Fetch deposit address 
+	@param params_ptr - a pointer to the request Params object
+	@param network - a bool for whether to fetch with network
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::deposit_address(const Params* params_ptr, const bool& network)
 {
@@ -799,6 +1038,11 @@ Json::Value Client<T>::Wallet::deposit_address(const Params* params_ptr, const b
 	}
 };
 
+/**
+	Fetch account status detail
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::account_status(const Params* params_ptr)
 {
@@ -817,6 +1061,11 @@ Json::Value Client<T>::Wallet::account_status(const Params* params_ptr)
 	}
 };
 
+/**
+	Fetch account api trading status detail
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::account_status_api(const Params* params_ptr)
 {
@@ -835,6 +1084,11 @@ Json::Value Client<T>::Wallet::account_status_api(const Params* params_ptr)
 	}
 };
 
+/**
+	Fetch small amounts of assets exchanged BNB records
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::dust_log(const Params* params_ptr)
 {
@@ -853,6 +1107,11 @@ Json::Value Client<T>::Wallet::dust_log(const Params* params_ptr)
 	}
 };
 
+/**
+	Convert dust assets to BNB
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::dust_transfer(const Params* params_ptr)
 {
@@ -871,6 +1130,11 @@ Json::Value Client<T>::Wallet::dust_transfer(const Params* params_ptr)
 	}
 };
 
+/**
+	Query asset dividend record
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::asset_dividend_records(const Params* params_ptr)
 {
@@ -889,6 +1153,11 @@ Json::Value Client<T>::Wallet::asset_dividend_records(const Params* params_ptr)
 	}
 };
 
+/**
+	Fetch details of assets supported on Binance
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::asset_details(const Params* params_ptr)
 {
@@ -907,6 +1176,11 @@ Json::Value Client<T>::Wallet::asset_details(const Params* params_ptr)
 	}
 };
 
+/**
+	Fetch trade fee, values in percentage
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Wallet::trading_fees(const Params* params_ptr)
 {
@@ -934,6 +1208,11 @@ Json::Value Client<T>::Wallet::trading_fees(const Params* params_ptr)
 
 // ------ Class methods
 
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
 template <typename T>
 Client<T>::FuturesWallet::FuturesWallet(Client<T>& client_obj)
 	: user_client{ &client_obj }
@@ -946,6 +1225,10 @@ Client<T>::FuturesWallet::FuturesWallet(Client<T>& client_obj)
 	};
 }
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
 template <typename T>
 Client<T>::FuturesWallet::FuturesWallet(const Client<T>& client_obj)
 	: user_client{ &client_obj }
@@ -958,6 +1241,11 @@ Client<T>::FuturesWallet::FuturesWallet(const Client<T>& client_obj)
 	};
 }
 
+/**
+	Destructor 
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
 template <typename T>
 Client<T>::FuturesWallet::~FuturesWallet()
 {
@@ -967,6 +1255,11 @@ Client<T>::FuturesWallet::~FuturesWallet()
 // ------ Endpoint methods
 
 
+/**
+	Execute transfer between spot account and futures account
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::futures_transfer(const Params* params_ptr)
 {
@@ -985,6 +1278,11 @@ Json::Value Client<T>::FuturesWallet::futures_transfer(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Future Account Transaction History List
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::futures_transfer_history(const Params* params_ptr)
 {
@@ -1003,6 +1301,11 @@ Json::Value Client<T>::FuturesWallet::futures_transfer_history(const Params* par
 	}
 }
 
+/**
+	Borrow For Cross-Collateral
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_borrow(const Params* params_ptr)
 {
@@ -1021,6 +1324,11 @@ Json::Value Client<T>::FuturesWallet::collateral_borrow(const Params* params_ptr
 	}
 }
 
+/**
+	Get Cross-Collateral Borrow History
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_borrow_history(const Params* params_ptr)
 {
@@ -1039,6 +1347,11 @@ Json::Value Client<T>::FuturesWallet::collateral_borrow_history(const Params* pa
 	}
 }
 
+/**
+	Repay For Cross-Collateral 
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_repay(const Params* params_ptr)
 {
@@ -1057,6 +1370,11 @@ Json::Value Client<T>::FuturesWallet::collateral_repay(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Cross-Collateral Repayment History 
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_repay_history(const Params* params_ptr)
 {
@@ -1075,6 +1393,11 @@ Json::Value Client<T>::FuturesWallet::collateral_repay_history(const Params* par
 	}
 }
 
+/**
+	Get Cross-Collateral Wallet 
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_wallet(const Params* params_ptr)
 {
@@ -1093,6 +1416,12 @@ Json::Value Client<T>::FuturesWallet::collateral_wallet(const Params* params_ptr
 	}
 }
 
+/**
+	Get Cross-Collateral Information
+	all collateral data will be returned if collateralCoin is not sent
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_info(const Params* params_ptr)
 {
@@ -1111,6 +1440,11 @@ Json::Value Client<T>::FuturesWallet::collateral_info(const Params* params_ptr)
 	}
 }
 
+/**
+	Calculate Rate After Adjust Cross-Collateral LTV
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(const Params* params_ptr)
 {
@@ -1129,6 +1463,11 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(const Params* 
 	}
 }
 
+/**
+	Get Max Amount for Adjust Cross-Collateral LTV
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(const Params* params_ptr)
 {
@@ -1147,6 +1486,11 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(const Params* pa
 	}
 }
 
+/**
+	Adjust Cross-Collateral LTV
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust(const Params* params_ptr)
 {
@@ -1165,6 +1509,11 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust(const Params* params_ptr
 	}
 }
 
+/**
+	Get Adjust Cross-Collateral LTV History
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_adjust_history(const Params* params_ptr)
 {
@@ -1183,6 +1532,11 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_history(const Params* pa
 	}
 }
 
+/**
+	Get Cross-Collateral Liquidation History
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::FuturesWallet::collateral_liquidation_history(const Params* params_ptr)
 {
@@ -1211,6 +1565,11 @@ Json::Value Client<T>::FuturesWallet::collateral_liquidation_history(const Param
 
 // ------ Class methods
 
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
 template <typename T>
 Client<T>::SubAccount::SubAccount(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -1223,6 +1582,10 @@ Client<T>::SubAccount::SubAccount(Client<T>& client_obj)
 	};
 }
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
 template <typename T>
 Client<T>::SubAccount::SubAccount(const Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -1235,6 +1598,11 @@ Client<T>::SubAccount::SubAccount(const Client<T>& client_obj)
 	};
 }
 
+/**
+	Destructor
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
 template <typename T>
 Client<T>::SubAccount::~SubAccount()
 {
@@ -1243,6 +1611,12 @@ Client<T>::SubAccount::~SubAccount()
 
 // ------ Endpoint methods
 
+
+/**
+	Query Sub-account List(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_all_subaccounts(const Params* params_ptr)
 {
@@ -1261,6 +1635,11 @@ Json::Value Client<T>::SubAccount::get_all_subaccounts(const Params* params_ptr)
 	}
 };
 
+/**
+	Query Sub-account Spot Asset Transfer History(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_master_history(const Params* params_ptr)
 {
@@ -1279,6 +1658,11 @@ Json::Value Client<T>::SubAccount::transfer_master_history(const Params* params_
 	}
 };
 
+/**
+	Sub-account Spot Asset Transfer(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_master_to_subaccount(const Params* params_ptr)
 {
@@ -1297,6 +1681,11 @@ Json::Value Client<T>::SubAccount::transfer_master_to_subaccount(const Params* p
 	}
 };
 
+/**
+	Query Sub-account Futures Asset Transfer History(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::futures_transfer_master_history(const Params* params_ptr)
 {
@@ -1315,6 +1704,11 @@ Json::Value Client<T>::SubAccount::futures_transfer_master_history(const Params*
 	}
 };
 
+/**
+	Sub-account Futures Asset Transfer(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::futures_transfer_master_to_subaccount(const Params* params_ptr)
 {
@@ -1333,6 +1727,11 @@ Json::Value Client<T>::SubAccount::futures_transfer_master_to_subaccount(const P
 	}
 };
 
+/**
+	Query Sub-account Assets(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_balances(const Params* params_ptr)
 {
@@ -1351,6 +1750,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_balances(const Params* params_
 	}
 };
 
+/**
+	Query Sub-account Spot Assets Summary (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_balances_summary(const Params* params_ptr)
 {
@@ -1369,6 +1773,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_balances_summary(const Params*
 	}
 };
 
+/**
+	Get Sub-account Deposit Address (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_deposit_address(const Params* params_ptr)
 {
@@ -1387,6 +1796,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_deposit_address(const Params* 
 	}
 };
 
+/**
+	Get Sub-account Deposit History (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_deposit_history(const Params* params_ptr)
 {
@@ -1405,6 +1819,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_deposit_history(const Params* 
 	}
 };
 
+/**
+	Get Sub-account's Status on Margin/Futures(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_future_margin_status(const Params* params_ptr)
 {
@@ -1423,6 +1842,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_future_margin_status(const Par
 	}
 };
 
+/**
+	Enable Margin for Sub-account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::enable_subaccount_margin(const Params* params_ptr)
 {
@@ -1441,6 +1865,11 @@ Json::Value Client<T>::SubAccount::enable_subaccount_margin(const Params* params
 	}
 };
 
+/**
+	Get Detail on Sub-account's Margin Account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_margin_status(const Params* params_ptr)
 {
@@ -1459,6 +1888,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_margin_status(const Params* pa
 	}
 };
 
+/**
+	Get Summary of Sub-account's Margin Account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_margin_summary(const Params* params_ptr)
 {
@@ -1477,6 +1911,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_margin_summary(const Params* p
 	}
 };
 
+/**
+	Enable Futures for Sub-account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::enable_subaccount_futures(const Params* params_ptr)
 {
@@ -1495,6 +1934,11 @@ Json::Value Client<T>::SubAccount::enable_subaccount_futures(const Params* param
 	}
 };
 
+/**
+	Get Detail on Sub-account's Futures Account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_futures_status(const Params* params_ptr)
 {
@@ -1513,6 +1957,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_futures_status(const Params* p
 	}
 };
 
+/**
+	Get Summary of Sub-account's Futures Account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_futures_summary(const Params* params_ptr)
 {
@@ -1531,6 +1980,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_futures_summary(const Params* 
 	}
 };
 
+/**
+	Get Futures Postion-Risk of Sub-account (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::get_subaccount_futures_positionrisk(const Params* params_ptr)
 {
@@ -1549,6 +2003,11 @@ Json::Value Client<T>::SubAccount::get_subaccount_futures_positionrisk(const Par
 	}
 };
 
+/**
+	Futures Transfer for Sub-account(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_to_subaccount_futures(const Params* params_ptr)
 {
@@ -1567,6 +2026,11 @@ Json::Value Client<T>::SubAccount::transfer_to_subaccount_futures(const Params* 
 	}
 };
 
+/**
+	Margin Transfer for Sub-account(For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_to_subaccount_margin(const Params* params_ptr)
 {
@@ -1585,6 +2049,11 @@ Json::Value Client<T>::SubAccount::transfer_to_subaccount_margin(const Params* p
 	}
 };
 
+/**
+	Transfer to Sub-account of Same Master(For Sub-account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_subaccount_to_subaccount(const Params* params_ptr)
 {
@@ -1603,6 +2072,11 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_to_subaccount(const Param
 	}
 };
 
+/**
+	Transfer to Master(For Sub-account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_subaccount_to_master(const Params* params_ptr)
 {
@@ -1621,6 +2095,11 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_to_master(const Params* p
 	}
 };
 
+/**
+	Sub-account Transfer History (For Sub-account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::SubAccount::transfer_subaccount_history(const Params* params_ptr)
 {
@@ -1645,6 +2124,11 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_history(const Params* par
 
 //  ------------------------------ Start | Client MarginAccount - User MarginAccount Endpoints
 
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
 template <typename T>
 Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -1657,6 +2141,10 @@ Client<T>::MarginAccount::MarginAccount(Client<T>& client_obj)
 	};
 }
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
 template <typename T>
 Client<T>::MarginAccount::MarginAccount(const Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -1669,6 +2157,11 @@ Client<T>::MarginAccount::MarginAccount(const Client<T>& client_obj)
 	};
 }
 
+/**
+	Destructor
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
 template <typename T>
 Client<T>::MarginAccount::~MarginAccount()
 {
@@ -1677,7 +2170,11 @@ Client<T>::MarginAccount::~MarginAccount()
 
 // ------ Endpoint methods
 
-
+/**
+	Cross Margin Account Transfer
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_transfer(const Params* params_ptr)
 {
@@ -1696,6 +2193,11 @@ Json::Value Client<T>::MarginAccount::margin_transfer(const Params* params_ptr)
 	}
 };
 
+/**
+	Margin Account Borrow - apply for a loan
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_borrow(const Params* params_ptr)
 {
@@ -1714,6 +2216,11 @@ Json::Value Client<T>::MarginAccount::margin_borrow(const Params* params_ptr)
 	}
 };
 
+/**
+	Margin Account Repay - Repay loan for margin account
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_repay(const Params* params_ptr)
 {
@@ -1732,6 +2239,11 @@ Json::Value Client<T>::MarginAccount::margin_repay(const Params* params_ptr)
 	}
 };
 
+/**
+	Query Margin Asset
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_asset_query(const Params* params_ptr)
 {
@@ -1750,6 +2262,11 @@ Json::Value Client<T>::MarginAccount::margin_asset_query(const Params* params_pt
 	}
 };
 
+/**
+	Query Cross Margin Pair
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_pair_query(const Params* params_ptr)
 {
@@ -1768,6 +2285,11 @@ Json::Value Client<T>::MarginAccount::margin_pair_query(const Params* params_ptr
 	}
 };
 
+/**
+	Get All Margin Assets 
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_all_assets_query()
 {
@@ -1785,6 +2307,11 @@ Json::Value Client<T>::MarginAccount::margin_all_assets_query()
 	}
 };
 
+/**
+	Get All Cross Margin Pairs 
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_all_pairs_query()
 {
@@ -1802,6 +2329,11 @@ Json::Value Client<T>::MarginAccount::margin_all_pairs_query()
 	}
 };
 
+/**
+	Query Margin PriceIndex
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_price_index(const Params* params_ptr)
 {
@@ -1820,6 +2352,11 @@ Json::Value Client<T>::MarginAccount::margin_price_index(const Params* params_pt
 	}
 };
 
+/**
+	Margin Account New Order - Post a new order for margin account
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_new_order(const Params* params_ptr)
 {
@@ -1838,6 +2375,11 @@ Json::Value Client<T>::MarginAccount::margin_new_order(const Params* params_ptr)
 	}
 };
 
+/**
+	Margin Account Cancel Order - Cancel an active order for margin account
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_cancel_order(const Params* params_ptr)
 {
@@ -1856,6 +2398,15 @@ Json::Value Client<T>::MarginAccount::margin_cancel_order(const Params* params_p
 	}
 };
 
+/**
+	Get Cross Margin Transfer History
+	*Response in descending order
+	*Returns data for last 7 days by default
+	*Set archived to true to query data from 6 months ago
+	
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_transfer_history(const Params* params_ptr)
 {
@@ -1874,6 +2425,16 @@ Json::Value Client<T>::MarginAccount::margin_transfer_history(const Params* para
 	}
 };
 
+/**
+	Query Loan Record
+	*txId or startTime must be sent. txId takes precedence.
+	*Response in descending order
+	*If isolatedSymbol is not sent, crossed margin data will be returned
+	*Set archived to true to query data from 6 months ago
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_loan_record(const Params* params_ptr)
 {
@@ -1892,6 +2453,16 @@ Json::Value Client<T>::MarginAccount::margin_loan_record(const Params* params_pt
 	}
 };
 
+/**
+	Query Repay Record
+	*txId or startTime must be sent. txId takes precedence.
+	*Response in descending order
+	*If isolatedSymbol is not sent, crossed margin data will be returned
+	*Set archived to true to query data from 6 months ago
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_repay_record(const Params* params_ptr)
 {
@@ -1910,6 +2481,20 @@ Json::Value Client<T>::MarginAccount::margin_repay_record(const Params* params_p
 	}
 };
 
+/**
+	Get Interest History
+	*Response in descending order
+	*If isolatedSymbol is not sent, crossed margin data will be returned
+	*Set archived to true to query data from 6 months ago
+	*type in response has 4 enums:
+		**PERIODIC interest charged per hour
+		**ON_BORROW first interest charged on borrow
+		**PERIODIC_CONVERTED interest charged per hour converted into BNB
+		**ON_BORROW_CONVERTED first interest charged on borrow converted into BNB
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_interest_history(const Params* params_ptr)
 {
@@ -1928,6 +2513,11 @@ Json::Value Client<T>::MarginAccount::margin_interest_history(const Params* para
 	}
 };
 
+/**
+	Get Force Liquidation Record
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_liquidations_record(const Params* params_ptr)
 {
@@ -1946,6 +2536,11 @@ Json::Value Client<T>::MarginAccount::margin_liquidations_record(const Params* p
 	}
 };
 
+/**
+	Query Cross Margin Account Details
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_info(const Params* params_ptr)
 {
@@ -1964,6 +2559,14 @@ Json::Value Client<T>::MarginAccount::margin_account_info(const Params* params_p
 	}
 };
 
+/**
+	Query Margin Account's Order
+	*Either orderId or origClientOrderId must be sent.
+	*For some historical orders cummulativeQuoteQty will be < 0, meaning the data is not available at this time
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_order(const Params* params_ptr)
 {
@@ -1982,6 +2585,15 @@ Json::Value Client<T>::MarginAccount::margin_account_order(const Params* params_
 	}
 };
 
+/**
+	Query Margin Account's Open Orders
+	*If the symbol is not sent, orders for all symbols will be returned in an array.
+	*When all symbols are returned, the number of requests counted against the rate limiter is equal to the number of symbols currently trading on the exchange.
+	*If isIsolated ="TRUE", symbol must be sent.
+	
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_open_orders(const Params* params_ptr)
 {
@@ -2000,6 +2612,14 @@ Json::Value Client<T>::MarginAccount::margin_account_open_orders(const Params* p
 	}
 };
 
+/**
+	Query Margin Account's Open Orders
+	*If orderId is set, it will get orders >= that orderId. Otherwise most recent orders are returned.
+	*For some historical orders cummulativeQuoteQty will be < 0, meaning the data is not available at this time.
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_all_orders(const Params* params_ptr)
 {
@@ -2018,6 +2638,13 @@ Json::Value Client<T>::MarginAccount::margin_account_all_orders(const Params* pa
 	}
 };
 
+/**
+	Query Margin Account's Trade List
+	*If fromId is set, it will get trades >= that fromId. Otherwise most recent trades are returned.
+	
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_account_trades_list(const Params* params_ptr)
 {
@@ -2036,6 +2663,14 @@ Json::Value Client<T>::MarginAccount::margin_account_trades_list(const Params* p
 	}
 };
 
+/**
+	Query Max Borrow
+	*If isolatedSymbol is not sent, crossed margin data will be sent.
+	*borrowLimit is also available from https://www.binance.com/en/margin-fee
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_max_borrow(const Params* params_ptr)
 {
@@ -2054,6 +2689,13 @@ Json::Value Client<T>::MarginAccount::margin_max_borrow(const Params* params_ptr
 	}
 };
 
+/**
+	Query Max Transfer-Out Amount
+	*If isolatedSymbol is not sent, crossed margin data will be sent.
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_max_transfer(const Params* params_ptr)
 {
@@ -2072,6 +2714,12 @@ Json::Value Client<T>::MarginAccount::margin_max_transfer(const Params* params_p
 	}
 };
 
+/**
+	Isolated Margin Account Transfer
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_create(const Params* params_ptr)
 {
@@ -2090,6 +2738,12 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_create(const Params
 	}
 };
 
+/**
+	Get Isolated Margin Transfer
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_transfer(const Params* params_ptr)
 {
@@ -2108,6 +2762,12 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_transfer(const Para
 	}
 };
 
+/**
+	Get Isolated Margin Transfer History
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_transfer_history(const Params* params_ptr)
 {
@@ -2126,6 +2786,14 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_transfer_history(co
 	}
 };
 
+/**
+	Query Isolated Margin Account Info
+	*If "symbols" is not sent, all isolated assets will be returned.
+	*If "symbols" is sent, only the isolated assets of the sent symbols will be returned.
+	
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_account_info(const Params* params_ptr)
 {
@@ -2144,6 +2812,12 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_account_info(const 
 	}
 };
 
+/**
+	Query Isolated Margin Symbol 
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol(const Params* params_ptr)
 {
@@ -2162,6 +2836,12 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol(const Params
 	}
 };
 
+/**
+	Get All Isolated Margin Symbol
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Params* params_ptr)
 {
@@ -2180,6 +2860,10 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Pa
 	}
 };
 
+/**
+	Create a ListenKey - Margin
+	@return the ListenKey as std::string
+*/
 template <typename T>
 std::string Client<T>::MarginAccount::margin_get_listen_key()
 {
@@ -2197,6 +2881,11 @@ std::string Client<T>::MarginAccount::margin_get_listen_key()
 	}
 }
 
+/**
+	Create a ListenKey - Isolated Margin
+	@param symbol - the symbol
+	@return the ListenKey as std::string
+*/
 template <typename T>
 std::string Client<T>::MarginAccount::margin_isolated_get_listen_key(const std::string symbol)
 {
@@ -2215,6 +2904,11 @@ std::string Client<T>::MarginAccount::margin_isolated_get_listen_key(const std::
 	}
 }
 
+/**
+	Ping/Keep-alive a Listen Key - Margin
+	@param listen_key - the ListenKey
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& listen_key)
 {
@@ -2233,6 +2927,11 @@ Json::Value Client<T>::MarginAccount::margin_ping_listen_key(const std::string& 
 	}
 }
 
+/**
+	Ping/Keep-alive a Listen Key - Isolated Margin
+	@param listen_key - the ListenKey
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_ping_listen_key(const std::string& listen_key, const std::string symbol)
 {
@@ -2251,8 +2950,11 @@ Json::Value Client<T>::MarginAccount::margin_isolated_ping_listen_key(const std:
 	}
 }
 
-
-
+/**
+	Revoke a Listen Key - Margin
+	@param listen_key - the ListenKey
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string& listen_key)
 {
@@ -2271,6 +2973,12 @@ Json::Value Client<T>::MarginAccount::margin_revoke_listen_key(const std::string
 	}
 }
 
+/**
+	Revoke a Listen Key - Isolated Margin
+	@param listen_key - the ListenKey
+	@param symbol - the symbol
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::MarginAccount::margin_isolated_revoke_listen_key(const std::string& listen_key, const std::string symbol)
 {
@@ -2295,6 +3003,10 @@ Json::Value Client<T>::MarginAccount::margin_isolated_revoke_listen_key(const st
 
 //  ------------------------------ Start | Client Savings - User Savings Endpoints
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
 template <typename T>
 Client<T>::Savings::Savings(Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -2307,6 +3019,10 @@ Client<T>::Savings::Savings(Client<T>& client_obj)
 	}; 
 }
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
 template <typename T>
 Client<T>::Savings::Savings(const Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -2319,6 +3035,11 @@ Client<T>::Savings::Savings(const Client<T>& client_obj)
 	};
 }
 
+/**
+	Destructor
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
 template <typename T>
 Client<T>::Savings::~Savings()
 {
@@ -2327,7 +3048,11 @@ Client<T>::Savings::~Savings()
 
 // ------ Endpoint methods
 
-
+/**
+	Get Flexible Product List 
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::get_product_list_flexible(const Params* params_ptr)
 {
@@ -2346,6 +3071,11 @@ Json::Value Client<T>::Savings::get_product_list_flexible(const Params* params_p
 	}
 };
 
+/**
+	Get Left Daily Purchase Quota of Flexible Product
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::get_product_daily_quota_purchase_flexible(const Params* params_ptr)
 {
@@ -2364,6 +3094,11 @@ Json::Value Client<T>::Savings::get_product_daily_quota_purchase_flexible(const 
 	}
 };
 
+/**
+	Purchase Flexible Product
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::purchase_product_flexible(const Params* params_ptr)
 {
@@ -2382,6 +3117,11 @@ Json::Value Client<T>::Savings::purchase_product_flexible(const Params* params_p
 	}
 };
 
+/**
+	Get Left Daily Redemption Quota of Flexible Product
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::get_product_daily_quota_redemption_flexible(const Params* params_ptr)
 {
@@ -2400,6 +3140,11 @@ Json::Value Client<T>::Savings::get_product_daily_quota_redemption_flexible(cons
 	}
 };
 
+/**
+	Redeem Flexible Product
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::redeem_product_flexible(const Params* params_ptr)
 {
@@ -2418,6 +3163,11 @@ Json::Value Client<T>::Savings::redeem_product_flexible(const Params* params_ptr
 	}
 };
 
+/**
+	Get Flexible Product Position
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::get_product_position_flexible(const Params* params_ptr)
 {
@@ -2436,6 +3186,11 @@ Json::Value Client<T>::Savings::get_product_position_flexible(const Params* para
 	}
 };
 
+/**
+	Get Fixed and Activity Project List
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::get_product_list_fixed(const Params* params_ptr)
 {
@@ -2454,6 +3209,11 @@ Json::Value Client<T>::Savings::get_product_list_fixed(const Params* params_ptr)
 	}
 };
 
+/**
+	Purchase Fixed/Activity Project
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::purchase_product_fixed(const Params* params_ptr)
 {
@@ -2472,6 +3232,11 @@ Json::Value Client<T>::Savings::purchase_product_fixed(const Params* params_ptr)
 	}
 };
 
+/**
+	Get Fixed/Activity Project Position
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::get_product_position_fixed(const Params* params_ptr)
 {
@@ -2490,6 +3255,11 @@ Json::Value Client<T>::Savings::get_product_position_fixed(const Params* params_
 	}
 };
 
+/**
+	Lending Account
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::lending_account(const Params* params_ptr)
 {
@@ -2508,6 +3278,11 @@ Json::Value Client<T>::Savings::lending_account(const Params* params_ptr)
 	}
 };
 
+/**
+	Get Purchase Record
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::get_purchase_record(const Params* params_ptr)
 {
@@ -2526,6 +3301,11 @@ Json::Value Client<T>::Savings::get_purchase_record(const Params* params_ptr)
 	}
 };
 
+/**
+	Get Redemption Record
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::get_redemption_record(const Params* params_ptr)
 {
@@ -2544,6 +3324,11 @@ Json::Value Client<T>::Savings::get_redemption_record(const Params* params_ptr)
 	}
 };
 
+/**
+	Get Interest History
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Savings::get_interest_history(const Params* params_ptr)
 {
@@ -2569,9 +3354,14 @@ Json::Value Client<T>::Savings::get_interest_history(const Params* params_ptr)
 
 //  ------------------------------ Start | Client Mining - User Mining Endpoints
 
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
 template <typename T>
 Client<T>::Mining::Mining(Client<T>& client_obj)
-	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
+	: user_client{ &client_obj }
 {
 	if (user_client->_public_client)
 	{
@@ -2581,6 +3371,10 @@ Client<T>::Mining::Mining(Client<T>& client_obj)
 	}; 
 }
 
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
 template <typename T>
 Client<T>::Mining::Mining(const Client<T>& client_obj)
 	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
@@ -2593,6 +3387,11 @@ Client<T>::Mining::Mining(const Client<T>& client_obj)
 	};
 }
 
+/**
+	Destructor
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
 template <typename T>
 Client<T>::Mining::~Mining()
 {
@@ -2601,7 +3400,10 @@ Client<T>::Mining::~Mining()
 
 // ------ Endpoint methods
 
-
+/**
+	Acquiring Algorithm
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Mining::algo_list()
 {
@@ -2619,6 +3421,10 @@ Json::Value Client<T>::Mining::algo_list()
 	}
 };
 
+/**
+	Acquiring CoinName
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Mining::coin_list()
 {
@@ -2636,6 +3442,11 @@ Json::Value Client<T>::Mining::coin_list()
 	}
 };
 
+/**
+	Request for Detail Miner List
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Mining::get_miner_list_detail(const Params* params_ptr)
 {
@@ -2654,6 +3465,11 @@ Json::Value Client<T>::Mining::get_miner_list_detail(const Params* params_ptr)
 	}
 };
 
+/**
+	Request for Miner List 
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Mining::get_miner_list(const Params* params_ptr)
 {
@@ -2672,6 +3488,11 @@ Json::Value Client<T>::Mining::get_miner_list(const Params* params_ptr)
 	}
 };
 
+/**
+	Revenue List
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Mining::revenue_list(const Params* params_ptr)
 {
@@ -2690,6 +3511,11 @@ Json::Value Client<T>::Mining::revenue_list(const Params* params_ptr)
 	}
 };
 
+/**
+	Statistic List 
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Mining::statistic_list(const Params* params_ptr)
 {
@@ -2708,6 +3534,11 @@ Json::Value Client<T>::Mining::statistic_list(const Params* params_ptr)
 	}
 };
 
+/**
+	Account List
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename T>
 Json::Value Client<T>::Mining::account_list(const Params* params_ptr)
 {
@@ -2735,14 +3566,27 @@ Json::Value Client<T>::Mining::account_list(const Params* params_ptr)
 
 //  ------------------------------ Start | SpotClient General methods - Infrastructure
 
+/**
+	A constructor - called directly by the user
+	Public client
+*/
 SpotClient::SpotClient() : Client(*this)
 {};
 
+/**
+	A constructor - called directly by the user
+	Private client
+	@param key - API key
+	@param secret - API secret
+*/
 SpotClient::SpotClient(const std::string key, const std::string secret)
 	: Client(*this, key, secret)
 {}
 
-
+/**
+	Destructor
+	delete Websocket and REST sessions
+*/
 SpotClient::~SpotClient() 
 {
 	delete this->_ws_client;
@@ -2753,12 +3597,19 @@ SpotClient::~SpotClient()
 
 //  ------------------------------ Start | SpotClient CRTP methods - Client infrastructure
 
+/**
+	Initialize a Websocket session
+*/
 void SpotClient::v_init_ws_session()
 {
 
 	this->_ws_client->set_host_port(_WS_BASE_SPOT, _WS_PORT_SPOT);
 }
 
+/**
+	Create a ListenKey
+	@return an std::string representing the ListenKey
+*/
 std::string SpotClient::v_get_listen_key()
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/userDataStream";
@@ -2767,6 +3618,11 @@ std::string SpotClient::v_get_listen_key()
 	return response["response"]["listenKey"].asString();
 }
 
+/**
+	Ping/Keep-alive a ListenKey
+	@param listen_key - the listen_key
+	@return json returned by the request
+*/
 Json::Value SpotClient::v_ping_listen_key(const std::string& listen_key)
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/userDataStream" + "?listenKey=" + listen_key;
@@ -2775,6 +3631,11 @@ Json::Value SpotClient::v_ping_listen_key(const std::string& listen_key)
 	return response;
 }
 
+/**
+	Revoke a ListenKey
+	@param listen_key - the listen_key
+	@return json returned by the request
+*/
 Json::Value SpotClient::v_revoke_listen_key(const std::string& listen_key)
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/userDataStream" + "?listenKey=" + listen_key;
@@ -2787,6 +3648,9 @@ Json::Value SpotClient::v_revoke_listen_key(const std::string& listen_key)
 
 //  ------------------------------ Start | SpotClient CRTP methods - Market Data Implementations
 
+/**
+	CRTP of ping_client()
+*/
 bool SpotClient::v_ping_client()
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/ping";
@@ -2794,6 +3658,9 @@ bool SpotClient::v_ping_client()
 	return (ping_response != Json::nullValue);
 }
 
+/**
+	CRTP of exchange_time()
+*/
 unsigned long long SpotClient::v_exchange_time()
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/time";
@@ -2801,6 +3668,10 @@ unsigned long long SpotClient::v_exchange_time()
 
 	return std::atoll(ex_time.c_str());
 }
+
+/**
+	CRTP of exchange_info()
+*/
 Json::Value SpotClient::v_exchange_info() 
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v1/exchangeInfo";
@@ -2808,6 +3679,9 @@ Json::Value SpotClient::v_exchange_info()
 	return response;
 }
 
+/**
+	CRTP of order_book()
+*/
 Json::Value SpotClient::v_order_book(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -2816,6 +3690,9 @@ Json::Value SpotClient::v_order_book(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of public_trades_recent()
+*/
 Json::Value SpotClient::v_public_trades_recent(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -2824,6 +3701,9 @@ Json::Value SpotClient::v_public_trades_recent(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of public_trades_historical()
+*/
 Json::Value SpotClient::v_public_trades_historical(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -2832,6 +3712,9 @@ Json::Value SpotClient::v_public_trades_historical(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of public_trades_agg()
+*/
 Json::Value SpotClient::v_public_trades_agg(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -2840,6 +3723,9 @@ Json::Value SpotClient::v_public_trades_agg(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of klines()
+*/
 Json::Value SpotClient::v_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -2848,6 +3734,9 @@ Json::Value SpotClient::v_klines(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of daily_ticker_stats()
+*/
 Json::Value SpotClient::v_daily_ticker_stats(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -2856,6 +3745,9 @@ Json::Value SpotClient::v_daily_ticker_stats(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_ticker()
+*/
 Json::Value SpotClient::v_get_ticker(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -2864,6 +3756,9 @@ Json::Value SpotClient::v_get_ticker(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_order_book_ticker()
+*/
 Json::Value SpotClient::v_get_order_book_ticker(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -2871,6 +3766,7 @@ Json::Value SpotClient::v_get_order_book_ticker(const Params* params_ptr)
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
+
 
 //  ------------------------------ End | SpotClient CRTP methods - Market Data Implementations
 
@@ -2880,6 +3776,9 @@ Json::Value SpotClient::v_get_order_book_ticker(const Params* params_ptr)
 
 // -- Up to 'Client' Level
 
+/**
+	CRTP of test_new_order()
+*/
 Json::Value SpotClient::v_test_new_order(const Params* params_ptr)
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/order/test";
@@ -2889,6 +3788,9 @@ Json::Value SpotClient::v_test_new_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of new_order()
+*/
 Json::Value SpotClient::v_new_order(const Params* params_ptr)
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/order";
@@ -2898,6 +3800,9 @@ Json::Value SpotClient::v_new_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of cancel_order()
+*/
 Json::Value SpotClient::v_cancel_order(const Params* params_ptr)
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/order";
@@ -2907,6 +3812,9 @@ Json::Value SpotClient::v_cancel_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of cancel_all_orders()
+*/
 Json::Value SpotClient::v_cancel_all_orders(const Params* params_ptr)
 {
 	std::string full_path = _BASE_REST_SPOT + "api/v3/openOrders";
@@ -2916,6 +3824,9 @@ Json::Value SpotClient::v_cancel_all_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of query_order()
+*/
 Json::Value SpotClient::v_query_order(const Params* params_ptr)
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/order";
@@ -2925,6 +3836,9 @@ Json::Value SpotClient::v_query_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of open_orders()
+*/
 Json::Value SpotClient::v_open_orders(const Params* params_ptr)
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/openOrders";
@@ -2934,6 +3848,9 @@ Json::Value SpotClient::v_open_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of all_orders()
+*/
 Json::Value SpotClient::v_all_orders(const Params* params_ptr)
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/allOrders";
@@ -2943,6 +3860,9 @@ Json::Value SpotClient::v_all_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of account_info()
+*/
 Json::Value SpotClient::v_account_info(const Params* params_ptr)
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/account";
@@ -2952,6 +3872,9 @@ Json::Value SpotClient::v_account_info(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of account_trades_list()
+*/
 Json::Value SpotClient::v_account_trades_list(const Params* params_ptr)
 {
 	std::string full_path = _BASE_REST_SPOT + "/api/v3/myTrades";
@@ -2965,6 +3888,11 @@ Json::Value SpotClient::v_account_trades_list(const Params* params_ptr)
 
 //  ------------------------------ Start | SpotClient General methods - Trade Implementations 
 
+/**
+	Send in a new OCO
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 Json::Value SpotClient::oco_new_order(const Params* params_ptr)
 {
 	try
@@ -2983,6 +3911,11 @@ Json::Value SpotClient::oco_new_order(const Params* params_ptr)
 
 }
 
+/**
+	Cancel OCO
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 Json::Value SpotClient::oco_cancel_order(const Params* params_ptr)
 {
 	try
@@ -3000,6 +3933,11 @@ Json::Value SpotClient::oco_cancel_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Query OCO - Retrieves a specific OCO based on provided optional parameters
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 Json::Value SpotClient::oco_query_order(const Params* params_ptr)
 {
 	try
@@ -3017,6 +3955,11 @@ Json::Value SpotClient::oco_query_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Query all OCO - Retrieves all OCO based on provided optional parameters
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 Json::Value SpotClient::oco_all_orders(const Params* params_ptr)
 {
 	try
@@ -3034,6 +3977,11 @@ Json::Value SpotClient::oco_all_orders(const Params* params_ptr)
 	}
 }
 
+/**
+	Query Open OCO 
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 Json::Value SpotClient::oco_open_orders(const Params* params_ptr)
 {
 	try
@@ -3066,17 +4014,29 @@ Json::Value SpotClient::oco_open_orders(const Params* params_ptr)
 
 //  ------------------------------ Start | FuturesClient General methods - Infrastructure
 
+/**
+	A constructor - called directly by the user
+	Public client - testnet disabled by default
+*/
 template <typename CT>
 FuturesClient<CT>::FuturesClient(CT& exchange_client)
 	: Client<FuturesClient<CT>>(*this), _testnet_mode{ 0 }
 {};
 
-
+/**
+	A constructor - called directly by the user
+	Private client - testnet disabled by default
+	@param key - API key
+	@param secret - API secret
+*/
 template <typename CT>
 FuturesClient<CT>::FuturesClient(CT& exchange_client, std::string key, std::string secret)
 	: Client<FuturesClient<CT>>(*this, key, secret), _testnet_mode{ 0 }
 {}
 
+/**
+	Destructor
+*/
 template <typename CT>
 FuturesClient<CT>::~FuturesClient()
 {}
@@ -3088,45 +4048,79 @@ FuturesClient<CT>::~FuturesClient()
 //  ------------------------------ Start | FuturesClient CRTP methods - Client infrastructure
 
 
+/**
+	CRTP of init_ws_session()
+*/
 template <typename CT>
 void FuturesClient<CT>::v_init_ws_session() { static_cast<CT*>(this)->v__init_ws_session(); }
-
-
 
 //  ------------------------------ End | FuturesClient CRTP methods - Client infrastructure
 
 //  ------------------------------ Start | FuturesClient CRTP methods - Market Data Implementations
 
+/**
+	CRTP of exchange_time()
+*/
 template<typename CT>
 unsigned long long FuturesClient<CT>::v_exchange_time() { return static_cast<CT*>(this)->v__exchange_time(); }
 
+/**
+	CRTP of ping_client()
+*/
 template<typename CT>
 bool FuturesClient<CT>::v_ping_client() { return static_cast<CT*>(this)->v__ping_client(); }
 
+/**
+	CRTP of exchange_info()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_exchange_info() { return static_cast<CT*>(this)->v__exchange_info(); }
 
+/**
+	CRTP of order_book()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_order_book(const Params* params_ptr) { return static_cast<CT*>(this)->v__order_book(params_ptr); }
 
+/**
+	CRTP of trades_recent()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_public_trades_recent(const Params* params_ptr) { return static_cast<CT*>(this)->v__public_trades_recent(params_ptr); }
 
+/**
+	CRTP of public_trades_historical()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_public_trades_historical(const Params* params_ptr) { return static_cast<CT*>(this)->v__public_trades_historical(params_ptr); }
 
+/**
+	CRTP of public_trades_agg()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_public_trades_agg(const Params* params_ptr) { return static_cast<CT*>(this)->v__public_trades_agg(params_ptr); }
 
+/**
+	CRTP of klines()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_klines(const Params* params_ptr) { return static_cast<CT*>(this)->v__klines(params_ptr); }
 
+/**
+	CRTP of daily_ticker_stats()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_daily_ticker_stats(const Params* params_ptr) { return static_cast<CT*>(this)->v__daily_ticker_stats(params_ptr); }
 
+/**
+	CRTP of get_ticker()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_get_ticker(const Params* params_ptr) { return static_cast<CT*>(this)->v__get_ticker(params_ptr); }
 
+/**
+	CRTP of get_order_book_ticker()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_get_order_book_ticker(const Params* params_ptr) { return static_cast<CT*>(this)->v__get_order_book_ticker(params_ptr); }
 
@@ -3135,6 +4129,11 @@ Json::Value FuturesClient<CT>::v_get_order_book_ticker(const Params* params_ptr)
 
 //  ------------------------------ Start | FuturesClient CRTP methods - Unique Endpoints
 
+/**
+	Get Mark Price - Mark Price and Funding Rate
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::mark_price(const Params* params_ptr) 
 { 
@@ -3149,6 +4148,11 @@ Json::Value FuturesClient<CT>::mark_price(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Public Liquidation Orders
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::public_liquidation_orders(const Params* params_ptr) 
 {
@@ -3163,6 +4167,11 @@ Json::Value FuturesClient<CT>::public_liquidation_orders(const Params* params_pt
 	}
 }
 
+/**
+	Open Interest - Get present open interest of a specific symbol
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::open_interest(const Params* params_ptr) 
 {
@@ -3177,6 +4186,13 @@ Json::Value FuturesClient<CT>::open_interest(const Params* params_ptr)
 	}
 }
 
+/**
+	Continues Contract Kline/Candlestick Data
+	*If startTime and endTime are not sent, the most recent klines are returned
+	* 
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::continues_klines(const Params* params_ptr) 
 {
@@ -3191,6 +4207,11 @@ Json::Value FuturesClient<CT>::continues_klines(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Index Klines
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::index_klines(const Params* params_ptr)
 {
@@ -3205,6 +4226,11 @@ Json::Value FuturesClient<CT>::index_klines(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Mark Klines
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::mark_klines(const Params* params_ptr)
 {
@@ -3219,6 +4245,14 @@ Json::Value FuturesClient<CT>::mark_klines(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Funding Rate History
+	*If startTime and endTime are not sent, the most recent limit datas are returned.
+	*If the number of data between startTime and endTime is larger than limit, return as startTime + limit.
+
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::funding_rate_history(const Params* params_ptr)
 {
@@ -3240,6 +4274,9 @@ Json::Value FuturesClient<CT>::funding_rate_history(const Params* params_ptr)
 
 // -- Up to 'Client' Level
 
+/**
+	CRTP of test_new_order()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_test_new_order(const Params* params_ptr)
 { 
@@ -3249,32 +4286,61 @@ Json::Value FuturesClient<CT>::v_test_new_order(const Params* params_ptr)
 	throw(e);
 }
 
+/**
+	CRTP of new_order()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_new_order(const Params* params_ptr) { return static_cast<CT*>(this)->v__new_order(params_ptr); }
 
+/**
+	CRTP of cancel_order()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_cancel_order(const Params* params_ptr) { return static_cast<CT*>(this)->v__cancel_order(params_ptr); }
 
+/**
+	CRTP of cancel_all_orders()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_cancel_all_orders(const Params* params_ptr) { return static_cast<CT*>(this)->v__cancel_all_orders(params_ptr); }
 
+/**
+	CRTP of query_order()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_query_order(const Params* params_ptr) { return static_cast<CT*>(this)->v__query_order(params_ptr); }
 
+/**
+	CRTP of open_orders()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_open_orders(const Params* params_ptr) { return static_cast<CT*>(this)->v__open_orders(params_ptr); }
 
+/**
+	CRTP of all_orders()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_all_orders(const Params* params_ptr) { return static_cast<CT*>(this)->v__all_orders(params_ptr); }
 
+/**
+	CRTP of account_info()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_account_info(const Params* params_ptr) { return static_cast<CT*>(this)->v__account_info(params_ptr); }
 
+/**
+	CRTP of account_trades_list()
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::v_account_trades_list(const Params* params_ptr) { return static_cast<CT*>(this)->v__account_trades_list(params_ptr); }
 
 // -- Up to 'FuturesClient' (this) Level
 
+/**
+	Change Position Mode - Change user's position mode (Hedge Mode or One-way Mode ) on EVERY symbol
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::change_position_mode(const Params* params_ptr) 
 {
@@ -3289,6 +4355,11 @@ Json::Value FuturesClient<CT>::change_position_mode(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Position Mode - Get user's position mode (Hedge Mode or One-way Mode ) on EVERY symbol
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::get_position_mode(const Params* params_ptr)
 {
@@ -3303,6 +4374,11 @@ Json::Value FuturesClient<CT>::get_position_mode(const Params* params_ptr)
 	}
 }
 
+/**
+	Place Multiple Orders
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::batch_orders(const Params* params_ptr) 
 {
@@ -3317,6 +4393,11 @@ Json::Value FuturesClient<CT>::batch_orders(const Params* params_ptr)
 	}
 }
 
+/**
+	Cancel Multiple Orders - Cancel all open orders of the specified symbol at the end of the specified countdown.
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::cancel_batch_orders(const Params* params_ptr)
 {
@@ -3331,6 +4412,22 @@ Json::Value FuturesClient<CT>::cancel_batch_orders(const Params* params_ptr)
 	}
 }
 
+/**
+	Auto-Cancel All Open Orders - Cancel all open orders of the specified symbol at the end of the specified countdown.
+	*This rest endpoint means to ensure your open orders are canceled in case of an outage.
+	 The endpoint should be called repeatedly as heartbeats so that the existing countdown time can be canceled and replaced by a new one.
+
+	*Example usage:
+	 Call this endpoint at 30s intervals with an countdownTime of 120000 (120s).
+	 If this endpoint is not called within 120 seconds, all your orders of the specified symbol will be automatically canceled.
+	 If this endpoint is called with an countdownTime of 0, the countdown timer will be stopped.
+
+	*The system will check all countdowns approximately every 10 milliseconds, so please note that sufficient redundancy should be considered when using this function.
+	 We do not recommend setting the countdown time to be too precise or too small.
+
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::cancel_all_orders_timer(const Params* params_ptr)
 {
@@ -3345,6 +4442,11 @@ Json::Value FuturesClient<CT>::cancel_all_orders_timer(const Params* params_ptr)
 	}
 }
 
+/**
+	Query an open order - Check an order's status
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::query_open_order(const Params* params_ptr)
 {
@@ -3359,6 +4461,11 @@ Json::Value FuturesClient<CT>::query_open_order(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Futures Account Balance
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::account_balances(const Params* params_ptr)
 {
@@ -3373,7 +4480,11 @@ Json::Value FuturesClient<CT>::account_balances(const Params* params_ptr)
 	}
 	}
 
-
+/**
+	Change Initial Leverage - Change user's initial leverage of specific symbol market
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::change_leverage(const Params* params_ptr) 
 {
@@ -3388,6 +4499,11 @@ Json::Value FuturesClient<CT>::change_leverage(const Params* params_ptr)
 	}
 }
 
+/**
+	Change Margin Type
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::change_margin_type(const Params* params_ptr)
 {
@@ -3402,6 +4518,11 @@ Json::Value FuturesClient<CT>::change_margin_type(const Params* params_ptr)
 	}
 }
 
+/**
+	Modify Isolated Position Margin
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::change_position_margin(const Params* params_ptr) 
 {
@@ -3416,6 +4537,11 @@ Json::Value FuturesClient<CT>::change_position_margin(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Position Margin Change History
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::change_position_margin_history(const Params* params_ptr) 
 {
@@ -3430,6 +4556,11 @@ Json::Value FuturesClient<CT>::change_position_margin_history(const Params* para
 	}
 }
 
+/**
+	Get Position Information V2
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::position_info(const Params* params_ptr)
 {
@@ -3444,6 +4575,11 @@ Json::Value FuturesClient<CT>::position_info(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Income History
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::get_income_history(const Params* params_ptr)
 {
@@ -3458,6 +4594,11 @@ Json::Value FuturesClient<CT>::get_income_history(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Notional and Leverage Brackets
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::get_leverage_bracket(const Params* params_ptr) 
 {
@@ -3472,6 +4613,20 @@ Json::Value FuturesClient<CT>::get_leverage_bracket(const Params* params_ptr)
 	}
 }
 
+/**
+	Position ADL Quantile Estimation
+	*Values update every 30s.
+	*Values 0, 1, 2, 3, 4 shows the queue position and possibility of ADL from low to high.
+	*For positions of the symbol are in One-way Mode or isolated margined in Hedge Mode, "LONG", "SHORT", and "BOTH"
+	 will be returned to show the positions' adl quantiles of different position sides.
+	*If the positions of the symbol are crossed margined in Hedge Mode:
+		**"HEDGE" as a sign will be returned instead of "BOTH";
+		**A same value caculated on unrealized pnls on long and short sides' positions will be shown 
+		  for "LONG" and "SHORT" when there are positions in both of long and short sides.
+	
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template<typename CT>
 Json::Value FuturesClient<CT>::pos_adl_quantile_est(const Params* params_ptr)
 {
@@ -3492,12 +4647,21 @@ Json::Value FuturesClient<CT>::pos_adl_quantile_est(const Params* params_ptr)
 
 //  ------------------------------ Start | FuturesClient Global + CRTP methods - WS Streams 
 
+/**
+	CRTP of get_listen_key()
+*/
 template <typename CT>
 std::string FuturesClient<CT>::v_get_listen_key() { return static_cast<CT*>(this)->v__get_listen_key(); }
 
+/**
+	CRTP of ping_listen_key()
+*/
 template <typename CT>
 Json::Value FuturesClient<CT>::v_ping_listen_key(const std::string& listen_key) { return static_cast<CT*>(this)->v__ping_listen_key(); }
 
+/**
+	CRTP of revoke_listen_key()
+*/
 template <typename CT>
 Json::Value FuturesClient<CT>::v_revoke_listen_key(const std::string& listen_key) { return static_cast<CT*>(this)->v__revoke_listen_key(); }
 
@@ -3506,6 +4670,11 @@ Json::Value FuturesClient<CT>::v_revoke_listen_key(const std::string& listen_key
 
 //  ------------------------------ Start | FuturesClient General methods - Markets Stats
 
+/**
+	Get Open Interest Statistics
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename CT>
 Json::Value FuturesClient<CT>::open_interest_stats(const Params* params_ptr)
 {
@@ -3524,6 +4693,12 @@ Json::Value FuturesClient<CT>::open_interest_stats(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Top Trader Long/Short Ratio (Accounts / Positions)
+	@param params_ptr - a pointer to the request Params object
+	@param accounts - true to 'Accounts', false for 'Positions'
+	@return json returned by the request
+*/
 template <typename CT>
 Json::Value FuturesClient<CT>::top_long_short_ratio(const Params* params_ptr, bool accounts)
 {
@@ -3543,6 +4718,14 @@ Json::Value FuturesClient<CT>::top_long_short_ratio(const Params* params_ptr, bo
 	}
 }
 
+/**
+	Get Long/Short Ratio
+	*If startTime and endTime are not sent, the most recent data is returned.
+	*Only the data of the latest 30 days is available.
+	
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename CT>
 Json::Value FuturesClient<CT>::global_long_short_ratio(const Params* params_ptr)
 {
@@ -3561,6 +4744,14 @@ Json::Value FuturesClient<CT>::global_long_short_ratio(const Params* params_ptr)
 	}
 }
 
+/**
+	Get Taker Buy/Sell Volume
+	*If startTime and endTime are not sent, the most recent data is returned.
+	*Only the data of the latest 30 days is available.
+
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
 template <typename CT>
 Json::Value FuturesClient<CT>::taker_long_short_ratio(const Params* params_ptr)
 {
@@ -3569,24 +4760,6 @@ Json::Value FuturesClient<CT>::taker_long_short_ratio(const Params* params_ptr)
 		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
 		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 		full_path += ("/futures/data/takerlongshortRatio" + query);
-		Json::Value response = (this->_rest_client)->_getreq(full_path);
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-template <typename CT>
-Json::Value FuturesClient<CT>::basis_data(const Params* params_ptr)
-{
-	try
-	{
-		std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-		std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
-		full_path += ("/futures/data/basis" + query);
 		Json::Value response = (this->_rest_client)->_getreq(full_path);
 		return response;
 	}
@@ -3607,25 +4780,45 @@ Json::Value FuturesClient<CT>::basis_data(const Params* params_ptr)
 //  ------------------------------ Start | FuturesClientUSDT General methods - Infrastructure
 
 
+/**
+	A constructor - called directly by the user
+	Public client
+*/
 FuturesClientUSDT::FuturesClientUSDT()
 	: FuturesClient(*this)
 {};
 
+/**
+	A constructor - called directly by the user
+	Private client
+	@param key - API key
+	@param secret - API secret
+*/
 FuturesClientUSDT::FuturesClientUSDT(const std::string key, const std::string secret)
 	: FuturesClient(*this, key, secret)
 {}
 
+/**
+	Destructor
+	Delete Websocket and REST sessions
+*/
 FuturesClientUSDT::~FuturesClientUSDT()
 {
 	delete this->_ws_client;
 	delete this->_rest_client;
 }
 
+/**
+	CRTP of v_init_ws_session()
+*/
 void FuturesClientUSDT::v__init_ws_session()
 {
 	this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
 }
 
+/**
+	CRTP of set_testnet_mode()
+*/
 void FuturesClientUSDT::v_set_testnet_mode(const bool status)
 {
 	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT_TESTNET, _WS_PORT_FUTURES);
@@ -3636,6 +4829,9 @@ void FuturesClientUSDT::v_set_testnet_mode(const bool status)
 
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - Market Data Implementations
 
+/**
+	CRTP of v_ping_client()
+*/
 bool FuturesClientUSDT::v__ping_client()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -3644,6 +4840,9 @@ bool FuturesClientUSDT::v__ping_client()
 	return (ping_response != Json::nullValue);
 }
 
+/**
+	CRTP of v_exchange_time()
+*/
 unsigned long long FuturesClientUSDT::v__exchange_time()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -3653,6 +4852,9 @@ unsigned long long FuturesClientUSDT::v__exchange_time()
 	return std::atoll(ex_time.c_str());
 }
 
+/**
+	CRTP of v_exchange_info()
+*/
 Json::Value FuturesClientUSDT::v__exchange_info()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -3661,6 +4863,9 @@ Json::Value FuturesClientUSDT::v__exchange_info()
 	return response;
 }
 
+/**
+	CRTP of v_order_book()
+*/
 Json::Value FuturesClientUSDT::v__order_book(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3670,6 +4875,9 @@ Json::Value FuturesClientUSDT::v__order_book(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_recent()
+*/
 Json::Value FuturesClientUSDT::v__public_trades_recent(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3679,6 +4887,9 @@ Json::Value FuturesClientUSDT::v__public_trades_recent(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_historical()
+*/
 Json::Value FuturesClientUSDT::v__public_trades_historical(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3688,6 +4899,9 @@ Json::Value FuturesClientUSDT::v__public_trades_historical(const Params* params_
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_agg()
+*/
 Json::Value FuturesClientUSDT::v__public_trades_agg(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3697,6 +4911,9 @@ Json::Value FuturesClientUSDT::v__public_trades_agg(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_klines()
+*/
 Json::Value FuturesClientUSDT::v__klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3706,6 +4923,9 @@ Json::Value FuturesClientUSDT::v__klines(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_daily_ticker_stats()
+*/
 Json::Value FuturesClientUSDT::v__daily_ticker_stats(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3715,6 +4935,9 @@ Json::Value FuturesClientUSDT::v__daily_ticker_stats(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_get_ticker()
+*/
 Json::Value FuturesClientUSDT::v__get_ticker(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3724,6 +4947,9 @@ Json::Value FuturesClientUSDT::v__get_ticker(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_get_order_book_ticker()
+*/
 Json::Value FuturesClientUSDT::v__get_order_book_ticker(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3738,6 +4964,9 @@ Json::Value FuturesClientUSDT::v__get_order_book_ticker(const Params* params_ptr
 
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - Unique Endpoints
 
+/**
+	CRTP of mark_price()
+*/
 Json::Value FuturesClientUSDT::v_mark_price(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3747,6 +4976,9 @@ Json::Value FuturesClientUSDT::v_mark_price(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of public_liquidation_orders()
+*/
 Json::Value FuturesClientUSDT::v_public_liquidation_orders(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3755,6 +4987,10 @@ Json::Value FuturesClientUSDT::v_public_liquidation_orders(const Params* params_
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
+
+/**
+	CRTP of open_interest()
+*/
 Json::Value FuturesClientUSDT::v_open_interest(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3766,18 +5002,29 @@ Json::Value FuturesClientUSDT::v_open_interest(const Params* params_ptr)
 
 // ~~~ Do not exist for this client
 
+/**
+	CRTP of continues_klines() - MISSING ENDPOINT
+*/
 Json::Value FuturesClientUSDT::v_continues_klines(const Params* params_ptr)
 {
 	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
+
+/**
+	CRTP of index_klines() - MISSING ENDPOINT
+*/
 Json::Value FuturesClientUSDT::v_index_klines(const Params* params_ptr)
 {
 	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
+
+/**
+	CRTP of mark_klines() - MISSING ENDPOINT
+*/
 Json::Value FuturesClientUSDT::v_mark_klines(const Params* params_ptr)
 {
 	MissingEndpoint e{};
@@ -3788,6 +5035,9 @@ Json::Value FuturesClientUSDT::v_mark_klines(const Params* params_ptr)
 
 // ~~~ Unique for this Client 
 
+/**
+	CRTP of funding_rate_history() - Unique for USDT margined client
+*/
 Json::Value FuturesClientUSDT::v_funding_rate_history(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -3804,6 +5054,9 @@ Json::Value FuturesClientUSDT::v_funding_rate_history(const Params* params_ptr)
 
 // -- Up to 'Client' Level
 
+/**
+	CRTP of v_new_order()
+*/
 Json::Value FuturesClientUSDT::v__new_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3814,6 +5067,9 @@ Json::Value FuturesClientUSDT::v__new_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_cancel_order()
+*/
 Json::Value FuturesClientUSDT::v__cancel_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3824,6 +5080,9 @@ Json::Value FuturesClientUSDT::v__cancel_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_cancel_all_orders()
+*/
 Json::Value FuturesClientUSDT::v__cancel_all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3834,7 +5093,9 @@ Json::Value FuturesClientUSDT::v__cancel_all_orders(const Params* params_ptr)
 	return response;
 }
 
-
+/**
+	CRTP of v_query_order()
+*/
 Json::Value FuturesClientUSDT::v__query_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3845,6 +5106,9 @@ Json::Value FuturesClientUSDT::v__query_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_open_orders()
+*/
 Json::Value FuturesClientUSDT::v__open_orders(const Params* params_ptr)
 {
 
@@ -3856,6 +5120,9 @@ Json::Value FuturesClientUSDT::v__open_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_all_orders()
+*/
 Json::Value FuturesClientUSDT::v__all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3866,6 +5133,9 @@ Json::Value FuturesClientUSDT::v__all_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_account_info()
+*/
 Json::Value FuturesClientUSDT::v__account_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3876,6 +5146,9 @@ Json::Value FuturesClientUSDT::v__account_info(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_account_trades_list()
+*/
 Json::Value FuturesClientUSDT::v__account_trades_list(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3888,7 +5161,9 @@ Json::Value FuturesClientUSDT::v__account_trades_list(const Params* params_ptr)
 
 // -- Up to 'FuturesClient' (this) Level
 
-
+/**
+	CRTP of change_position_mode()
+*/
 Json::Value FuturesClientUSDT::v_change_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3899,6 +5174,9 @@ Json::Value FuturesClientUSDT::v_change_position_mode(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_position_mode()
+*/
 Json::Value FuturesClientUSDT::v_get_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3909,6 +5187,9 @@ Json::Value FuturesClientUSDT::v_get_position_mode(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of batch_orders()
+*/
 Json::Value FuturesClientUSDT::v_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3919,6 +5200,9 @@ Json::Value FuturesClientUSDT::v_batch_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of cancel_batch_orders()
+*/
 Json::Value FuturesClientUSDT::v_cancel_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3929,6 +5213,9 @@ Json::Value FuturesClientUSDT::v_cancel_batch_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of cancel_all_orders_timer()
+*/
 Json::Value FuturesClientUSDT::v_cancel_all_orders_timer(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3939,6 +5226,9 @@ Json::Value FuturesClientUSDT::v_cancel_all_orders_timer(const Params* params_pt
 	return response;
 }
 
+/**
+	CRTP of query_open_order()
+*/
 Json::Value FuturesClientUSDT::v_query_open_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3949,6 +5239,9 @@ Json::Value FuturesClientUSDT::v_query_open_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of account_balances()
+*/
 Json::Value FuturesClientUSDT::v_account_balances(const Params* params_ptr)
 {
 
@@ -3960,6 +5253,9 @@ Json::Value FuturesClientUSDT::v_account_balances(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_leverage()
+*/
 Json::Value FuturesClientUSDT::v_change_leverage(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3970,6 +5266,9 @@ Json::Value FuturesClientUSDT::v_change_leverage(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_margin_type()
+*/
 Json::Value FuturesClientUSDT::v_change_margin_type(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3980,6 +5279,9 @@ Json::Value FuturesClientUSDT::v_change_margin_type(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_position_margin()
+*/
 Json::Value FuturesClientUSDT::v_change_position_margin(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -3990,6 +5292,9 @@ Json::Value FuturesClientUSDT::v_change_position_margin(const Params* params_ptr
 	return response;
 }
 
+/**
+	CRTP of change_position_margin_history()
+*/
 Json::Value FuturesClientUSDT::v_change_position_margin_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4000,6 +5305,9 @@ Json::Value FuturesClientUSDT::v_change_position_margin_history(const Params* pa
 	return response;
 }
 
+/**
+	CRTP of position_info()
+*/
 Json::Value FuturesClientUSDT::v_position_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4010,6 +5318,9 @@ Json::Value FuturesClientUSDT::v_position_info(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_income_history()
+*/
 Json::Value FuturesClientUSDT::v_get_income_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4020,6 +5331,9 @@ Json::Value FuturesClientUSDT::v_get_income_history(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_leverage_bracket()
+*/
 Json::Value FuturesClientUSDT::v_get_leverage_bracket(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4030,6 +5344,9 @@ Json::Value FuturesClientUSDT::v_get_leverage_bracket(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of pos_adl_quantile_est()
+*/
 Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4044,7 +5361,9 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
 
-
+/**
+	CRTP of v_get_listen_key()
+*/
 std::string FuturesClientUSDT::v__get_listen_key()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -4054,6 +5373,9 @@ std::string FuturesClientUSDT::v__get_listen_key()
 	return response["response"]["listenKey"].asString();
 }
 
+/**
+	CRTP of v_ping_listen_key()
+*/
 Json::Value FuturesClientUSDT::v__ping_listen_key()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
@@ -4064,6 +5386,9 @@ Json::Value FuturesClientUSDT::v__ping_listen_key()
 	return response;
 }
 
+/**
+	CRTP of v_revoke_listen_key()
+*/
 Json::Value FuturesClientUSDT::v__revoke_listen_key()
 {
 
@@ -4083,20 +5408,38 @@ Json::Value FuturesClientUSDT::v__revoke_listen_key()
 
 //  ------------------------------ Start | FuturesClientCoin General methods - Infrastructure
 
+
+/**
+	A constructor - called directly by the user
+	Public client
+*/
 FuturesClientCoin::FuturesClientCoin()
 	: FuturesClient(*this)
 {};
 
+/**
+	A constructor - called directly by the user
+	Private client
+	@param key - API key
+	@param secret - API secret
+*/
 FuturesClientCoin::FuturesClientCoin(const std::string key, const std::string secret)
 	: FuturesClient(*this, key, secret)
 {}
 
+/**
+	Destructor
+	Delete Websocket and REST sessions
+*/
 FuturesClientCoin::~FuturesClientCoin()
 {
 	delete this->_ws_client;
 	delete this->_rest_client;
 }
 
+/**
+	CRTP of v_init_ws_session()
+*/
 void FuturesClientCoin::v__init_ws_session()
 {
 
@@ -4104,6 +5447,9 @@ void FuturesClientCoin::v__init_ws_session()
 
 }
 
+/**
+	CRTP of set_testnet_mode()
+*/
 void FuturesClientCoin::v_set_testnet_mode(const bool status)
 {
 	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN_TESTNET, _WS_PORT_FUTURES);
@@ -4115,6 +5461,9 @@ void FuturesClientCoin::v_set_testnet_mode(const bool status)
 
 //  ------------------------------ Start | FuturesClientCoin CRTP methods - Market Data Implementations
 
+/**
+	CRTP of v_ping_client()
+*/
 bool FuturesClientCoin::v__ping_client()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -4123,6 +5472,9 @@ bool FuturesClientCoin::v__ping_client()
 	return (ping_response != Json::nullValue);
 }
 
+/**
+	CRTP of v_exchange_time()
+*/
 unsigned long long FuturesClientCoin::v__exchange_time()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -4132,6 +5484,9 @@ unsigned long long FuturesClientCoin::v__exchange_time()
 	return std::atoll(ex_time.c_str());
 }
 
+/**
+	CRTP of v_exchange_info()
+*/
 Json::Value FuturesClientCoin::v__exchange_info()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -4140,6 +5495,9 @@ Json::Value FuturesClientCoin::v__exchange_info()
 	return response;
 }
 
+/**
+	CRTP of v_order_book()
+*/
 Json::Value FuturesClientCoin::v__order_book(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -4149,6 +5507,9 @@ Json::Value FuturesClientCoin::v__order_book(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_recent()
+*/
 Json::Value FuturesClientCoin::v__public_trades_recent(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -4158,6 +5519,9 @@ Json::Value FuturesClientCoin::v__public_trades_recent(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_historical()
+*/
 Json::Value FuturesClientCoin::v__public_trades_historical(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -4167,6 +5531,9 @@ Json::Value FuturesClientCoin::v__public_trades_historical(const Params* params_
 	return response;
 }
 
+/**
+	CRTP of v_public_trades_agg()
+*/
 Json::Value FuturesClientCoin::v__public_trades_agg(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -4176,6 +5543,9 @@ Json::Value FuturesClientCoin::v__public_trades_agg(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_klines()
+*/
 Json::Value FuturesClientCoin::v__klines(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -4185,6 +5555,9 @@ Json::Value FuturesClientCoin::v__klines(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_daily_ticker_stats()
+*/
 Json::Value FuturesClientCoin::v__daily_ticker_stats(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -4194,6 +5567,9 @@ Json::Value FuturesClientCoin::v__daily_ticker_stats(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_get_ticker()
+*/
 Json::Value FuturesClientCoin::v__get_ticker(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -4203,6 +5579,9 @@ Json::Value FuturesClientCoin::v__get_ticker(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_get_order_book_ticker()
+*/
 Json::Value FuturesClientCoin::v__get_order_book_ticker(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr);
@@ -4220,6 +5599,9 @@ Json::Value FuturesClientCoin::v__get_order_book_ticker(const Params* params_ptr
 // -- Up to 'Client' Level
 
 
+/**
+	CRTP of v_new_order()
+*/
 Json::Value FuturesClientCoin::v__new_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4230,6 +5612,9 @@ Json::Value FuturesClientCoin::v__new_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_cancel_order()
+*/
 Json::Value FuturesClientCoin::v__cancel_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4240,6 +5625,9 @@ Json::Value FuturesClientCoin::v__cancel_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_cancel_all_orders()
+*/
 Json::Value FuturesClientCoin::v__cancel_all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4250,6 +5638,9 @@ Json::Value FuturesClientCoin::v__cancel_all_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_query_order()
+*/
 Json::Value FuturesClientCoin::v__query_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4260,6 +5651,9 @@ Json::Value FuturesClientCoin::v__query_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_open_orders()
+*/
 Json::Value FuturesClientCoin::v__open_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4270,6 +5664,9 @@ Json::Value FuturesClientCoin::v__open_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_all_orders()
+*/
 Json::Value FuturesClientCoin::v__all_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4280,6 +5677,9 @@ Json::Value FuturesClientCoin::v__all_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_account_info()
+*/
 Json::Value FuturesClientCoin::v__account_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4290,6 +5690,9 @@ Json::Value FuturesClientCoin::v__account_info(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of v_account_trades_list()
+*/
 Json::Value FuturesClientCoin::v__account_trades_list(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4303,6 +5706,9 @@ Json::Value FuturesClientCoin::v__account_trades_list(const Params* params_ptr)
 // -- Up to 'FuturesClient' (this) Level
 
 
+/**
+	CRTP of change_position_mode()
+*/
 Json::Value FuturesClientCoin::v_change_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4313,7 +5719,9 @@ Json::Value FuturesClientCoin::v_change_position_mode(const Params* params_ptr)
 	return response;
 }
 
-
+/**
+	CRTP of get_position_mode()
+*/
 Json::Value FuturesClientCoin::v_get_position_mode(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4324,6 +5732,9 @@ Json::Value FuturesClientCoin::v_get_position_mode(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of batch_orders()
+*/
 Json::Value FuturesClientCoin::v_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4334,6 +5745,9 @@ Json::Value FuturesClientCoin::v_batch_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of cancel_batch_orders()
+*/
 Json::Value FuturesClientCoin::v_cancel_batch_orders(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4344,6 +5758,9 @@ Json::Value FuturesClientCoin::v_cancel_batch_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of cancel_all_orders_timer()
+*/
 Json::Value FuturesClientCoin::v_cancel_all_orders_timer(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4354,6 +5771,9 @@ Json::Value FuturesClientCoin::v_cancel_all_orders_timer(const Params* params_pt
 	return response;
 }
 
+/**
+	CRTP of query_open_order()
+*/
 Json::Value FuturesClientCoin::v_query_open_order(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4364,6 +5784,9 @@ Json::Value FuturesClientCoin::v_query_open_order(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of account_balances()
+*/
 Json::Value FuturesClientCoin::v_account_balances(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4374,6 +5797,9 @@ Json::Value FuturesClientCoin::v_account_balances(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_leverage()
+*/
 Json::Value FuturesClientCoin::v_change_leverage(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4384,6 +5810,9 @@ Json::Value FuturesClientCoin::v_change_leverage(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_margin_type()
+*/
 Json::Value FuturesClientCoin::v_change_margin_type(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4394,6 +5823,9 @@ Json::Value FuturesClientCoin::v_change_margin_type(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of change_position_margin()
+*/
 Json::Value FuturesClientCoin::v_change_position_margin(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4404,6 +5836,9 @@ Json::Value FuturesClientCoin::v_change_position_margin(const Params* params_ptr
 	return response;
 }
 
+/**
+	CRTP of change_position_margin_history()
+*/
 Json::Value FuturesClientCoin::v_change_position_margin_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4414,6 +5849,9 @@ Json::Value FuturesClientCoin::v_change_position_margin_history(const Params* pa
 	return response;
 }
 
+/**
+	CRTP of position_info()
+*/
 Json::Value FuturesClientCoin::v_position_info(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4424,6 +5862,9 @@ Json::Value FuturesClientCoin::v_position_info(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_income_history()
+*/
 Json::Value FuturesClientCoin::v_get_income_history(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4434,6 +5875,9 @@ Json::Value FuturesClientCoin::v_get_income_history(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of get_leverage_bracket()
+*/
 Json::Value FuturesClientCoin::v_get_leverage_bracket(const Params* params_ptr)
 {
 	std::string query = this->_generate_query(params_ptr, 1);
@@ -4444,6 +5888,9 @@ Json::Value FuturesClientCoin::v_get_leverage_bracket(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of pos_adl_quantile_est()
+*/
 Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 {
 	MissingEndpoint e{};
@@ -4456,6 +5903,9 @@ Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 //  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
 
 
+/**
+	CRTP of stream_markprice_all()
+*/
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor) // here
 {
@@ -4464,7 +5914,9 @@ unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol
 	throw(e);
 }
 
-
+/**
+	CRTP of v_get_listen_key()
+*/
 std::string FuturesClientCoin::v__get_listen_key()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
@@ -4474,6 +5926,9 @@ std::string FuturesClientCoin::v__get_listen_key()
 	return response["response"]["listenKey"].asString();
 }
 
+/**
+	CRTP of v_ping_listen_key()
+*/
 Json::Value FuturesClientCoin::v__ping_listen_key()
 {
 	// no signature is needed here
@@ -4485,6 +5940,9 @@ Json::Value FuturesClientCoin::v__ping_listen_key()
 	return response;
 }
 
+/**
+	CRTP of v_revoke_listen_key()
+*/
 Json::Value FuturesClientCoin::v__revoke_listen_key()
 {
 	// no signature is needed here
@@ -4501,6 +5959,9 @@ Json::Value FuturesClientCoin::v__revoke_listen_key()
 
 //  ------------------------------ Start | FuturesClientCoin CRTP methods - Unique Endpoints
 
+/**
+	CRTP of mark_price()
+*/
 Json::Value FuturesClientCoin::v_mark_price(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4510,6 +5971,9 @@ Json::Value FuturesClientCoin::v_mark_price(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of public_liquidation_orders()
+*/
 Json::Value FuturesClientCoin::v_public_liquidation_orders(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4518,6 +5982,10 @@ Json::Value FuturesClientCoin::v_public_liquidation_orders(const Params* params_
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
+
+/**
+	CRTP of open_interest()
+*/
 Json::Value FuturesClientCoin::v_open_interest(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4530,6 +5998,10 @@ Json::Value FuturesClientCoin::v_open_interest(const Params* params_ptr)
 
 // ~~~ Unique for this Client 
 
+
+/**
+	CRTP of continues_klines() - Unique for Coin Margined client
+*/
 Json::Value FuturesClientCoin::v_continues_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4538,6 +6010,10 @@ Json::Value FuturesClientCoin::v_continues_klines(const Params* params_ptr)
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
+
+/**
+	CRTP of index_klines() - Unique for Coin Margined client
+*/
 Json::Value FuturesClientCoin::v_index_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4546,6 +6022,10 @@ Json::Value FuturesClientCoin::v_index_klines(const Params* params_ptr)
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
+
+/**
+	CRTP of mark_klines() - Unique for Coin Margined client
+*/
 Json::Value FuturesClientCoin::v_mark_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
@@ -4558,6 +6038,10 @@ Json::Value FuturesClientCoin::v_mark_klines(const Params* params_ptr)
 
 // ~~~ Don't exist for this client
 
+
+/**
+	CRTP of funding_rate_history() - Missing endpoint for this client
+*/
 Json::Value FuturesClientCoin::v_funding_rate_history(const Params* params_ptr)
 {
 	MissingEndpoint e{};
@@ -4573,10 +6057,16 @@ Json::Value FuturesClientCoin::v_funding_rate_history(const Params* params_ptr)
 
 //  ------------------------------ Start | Params methods
 
+/**
+	Default constructor
+*/
 Params::Params()
 	: default_recv{ 0 }, default_recv_amt{ 0 }
 {};
 
+/**
+	Copy constructor
+*/
 Params::Params(Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
@@ -4584,6 +6074,9 @@ Params::Params(Params& params_obj)
 	this->default_recv_amt = params_obj.default_recv_amt;
 }
 
+/**
+	Copy constructor (constant)
+*/
 Params::Params(const Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
@@ -4591,6 +6084,9 @@ Params::Params(const Params& params_obj)
 	this->default_recv_amt = params_obj.default_recv_amt;
 }
 
+/**
+	Copy assignment
+*/
 Params& Params::operator=(Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
@@ -4600,6 +6096,9 @@ Params& Params::operator=(Params& params_obj)
 	return *this;
 }
 
+/**
+	Copy assignment (constant)
+*/
 Params& Params::operator=(const Params& params_obj)
 {
 	this->param_map = params_obj.param_map;
@@ -4609,6 +6108,9 @@ Params& Params::operator=(const Params& params_obj)
 	return *this;
 }
 
+/**
+	Move assignment
+*/
 Params& Params::operator=(Params&& params_obj)
 {
 	this->param_map = std::move(params_obj.param_map);
@@ -4618,29 +6120,57 @@ Params& Params::operator=(Params&& params_obj)
 	return *this;
 }
 
+/**
+	Set a new parameter
+	@typename PT - Type of value
+	@param key - name of parameter
+	@param value - value of parameter to set
+*/
 template <typename PT>
 void Params::set_param(const std::string& key, const PT& value)
 {
 	param_map[key] = std::to_string(value);
 }
+
+/**
+	Set a new parameter - type of value = std::string
+	@param key - name of parameter
+	@param value - value of parameter to set
+*/
 template <> // do not call to_string on a string
 void Params::set_param<std::string>(const std::string& key, const std::string& value)
 {
 	param_map[key] = value;
 }
 
+/**
+	Set a new parameter
+	@typename PT - Type of value
+	@param key - name of parameter
+	@param value - value of parameter to set (Move)
+*/
 template <typename PT>
 void Params::set_param(const std::string& key, PT&& value)
 {
 	param_map[key] = std::to_string(std::move(value));
 }
+
+/**
+	Set a new parameter - type of value = std::string
+	@param key - name of parameter
+	@param value - value of parameter to set (Move)
+*/
 template <>
 void Params::set_param<std::string>(const std::string& key, std::string&& value)
 {
 	param_map[key] = std::move(value);
 }
 
-
+/**
+	Delete a parameter
+	@param key - name of parameter
+	@return - bool for success
+*/
 bool Params::delete_param(const std::string& key)
 {
 	std::unordered_map<std::string, std::string>::iterator itr;
@@ -4656,6 +6186,11 @@ bool Params::delete_param(const std::string& key)
 	return 0;
 }
 
+/**
+	Set a default RecvWindow value
+	@param set_always - a bool for whether to keep after flush
+	@param recv_val - recvWindow value
+*/
 void Params::set_recv(const bool& set_always, const unsigned int& recv_val)
 {
 	this->default_recv = set_always;
@@ -4672,6 +6207,10 @@ void Params::set_recv(const bool& set_always, const unsigned int& recv_val)
 
 }
 
+/**
+	Flush params - erase all keys
+	if default recvWindow is set, it will be kept
+*/
 void Params::flush_params()
 {
 	this->param_map.clear();
