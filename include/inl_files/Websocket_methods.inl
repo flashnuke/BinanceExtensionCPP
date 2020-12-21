@@ -2,6 +2,14 @@
 
 // Client stream templates
 
+/**
+	Start userstream (Margin)
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param ping_listen_key - if true, will ping listen key periodically
+	@param isolaten_margin_type - if true, userstream will be for isolated margin
+	@return an unsigned int representing success
+*/
 template <typename T>
 template <typename FT>
 unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key, const bool& isolated_margin_type)
@@ -25,6 +33,13 @@ unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buf
 
 }
 
+/**
+	Start userstream (Spot)
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param ping_listen_key - if true, will ping listen key periodically
+	@return an unsigned int representing success
+*/
 template <typename FT>
 unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
@@ -39,6 +54,13 @@ unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor, c
 
 }
 
+/**
+	Start trades stream (Spot)
+	@param symbol - the symbol of the trades
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template <typename FT>
 unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
 {
@@ -52,6 +74,14 @@ unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer,
 	return this->_ws_client->running_streams[stream_query];
 }
 
+/**
+	Start mark price stream (symbol)
+	@param symbol - the symbol of the trades
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_markprice(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval)
@@ -75,7 +105,13 @@ unsigned int FuturesClient<CT>::stream_markprice(const std::string& symbol, std:
 }
 
 
-
+/**
+	Start trades stream (Futures)
+	@param symbol - the symbol of the trades
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template <typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
@@ -86,6 +122,13 @@ unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& 
 }
 
 
+/**
+	Start mark price stream (all)
+	@param pair - the pair
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor)
@@ -99,8 +142,16 @@ unsigned int FuturesClient<CT>::stream_markprice_all(const std::string& pair, st
 		e.append_to_traceback(std::string(__FUNCTION__));
 		throw(e);
 	}
-}  // only USDT
+} // only USDT
 
+/**
+	Start index price stream
+	@param pair - the pair
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
@@ -116,6 +167,16 @@ unsigned int FuturesClient<CT>::stream_indexprice(const std::string& pair, std::
 	}
 } // only Coin
 
+
+
+/**
+	Start mark price stream (by pair)
+	@param pair - the pair
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
@@ -131,6 +192,15 @@ unsigned int FuturesClient<CT>::stream_markprice_by_pair(const std::string& pair
 	}
 } // only coin
 
+
+/**
+	Start kline contract stream
+	@param pair_and_type - the pair & type
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
@@ -146,6 +216,14 @@ unsigned int FuturesClient<CT>::stream_kline_contract(const std::string& pair_an
 	}
 } // only coin
 
+/**
+	Start kline index stream
+	@param pair - the pair
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
@@ -161,6 +239,14 @@ unsigned int FuturesClient<CT>::stream_kline_index(const std::string& pair, std:
 	}
 } // only coin
 
+/**
+	Start kline mark price stream
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
@@ -176,9 +262,13 @@ unsigned int FuturesClient<CT>::stream_kline_markprice(const std::string& symbol
 	}
 } // only coin
 
-
-
-
+/**
+	Start liquidation orders stream
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_liquidation_orders(const std::string& symbol, std::string& buffer, FT& functor)
@@ -201,6 +291,12 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders(const std::string& sym
 	}
 }
 
+/**
+	Start liquidation orders stream (all)
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffer, FT& functor)
@@ -223,11 +319,16 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffe
 	}
 }
 
+/**
+	CRTP of stream_userStream
+*/
 template<typename CT>
 template <typename FT>
 unsigned int FuturesClient<CT>::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key) { return static_cast<CT*>(this)->v__stream_userStream(buffer, functor, ping_listen_key); }
 
-
+/**
+	CRTP of stream_markprice_all
+*/
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor)
 {
@@ -241,7 +342,9 @@ unsigned int FuturesClientUSDT::v_stream_markprice_all(const std::string& symbol
 	return this->_ws_client->running_streams[stream_query];
 }
 
-
+/**
+	CRTP of stream_indexprice
+*/
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
@@ -250,6 +353,9 @@ unsigned int FuturesClientUSDT::v_stream_indexprice(const std::string& pair, std
 	throw(e);
 }
 
+/**
+	CRTP of stream_markprice_by_pair
+*/
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
@@ -258,6 +364,9 @@ unsigned int FuturesClientUSDT::v_stream_markprice_by_pair(const std::string& pa
 	throw(e);
 }
 
+/**
+	CRTP of stream_kline_contract
+*/
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
 {
@@ -266,6 +375,9 @@ unsigned int FuturesClientUSDT::v_stream_kline_contract(const std::string& pair_
 	throw(e);
 }
 
+/**
+	CRTP of stream_kline_index
+*/
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
 {
@@ -274,6 +386,9 @@ unsigned int FuturesClientUSDT::v_stream_kline_index(const std::string& pair, st
 	throw(e);
 }
 
+/**
+	CRTP of stream_kline_markprice
+*/
 template <typename FT>
 unsigned int FuturesClientUSDT::v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
@@ -282,6 +397,9 @@ unsigned int FuturesClientUSDT::v_stream_kline_markprice(const std::string& symb
 	throw(e);
 }
 
+/**
+	CRTP of v_stream_userStream
+*/
 template <typename FT>
 unsigned int FuturesClientUSDT::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
@@ -295,6 +413,9 @@ unsigned int FuturesClientUSDT::v__stream_userStream(std::string& buffer, FT& fu
 	return this->_ws_client->running_streams[stream_query];
 }
 
+/**
+	CRTP of stream_indexprice
+*/
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
@@ -308,6 +429,9 @@ unsigned int FuturesClientCoin::v_stream_indexprice(const std::string& pair, std
 	return this->_ws_client->running_streams[stream_query];
 }
 
+/**
+	CRTP of stream_markprice_by_pair
+*/
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval)
 {
@@ -321,6 +445,9 @@ unsigned int FuturesClientCoin::v_stream_markprice_by_pair(const std::string& pa
 	return this->_ws_client->running_streams[stream_query];
 }
 
+/**
+	CRTP of stream_kline_contract
+*/
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval)
 {
@@ -334,6 +461,9 @@ unsigned int FuturesClientCoin::v_stream_kline_contract(const std::string& pair_
 	return this->_ws_client->running_streams[stream_query];
 }
 
+/**
+	CRTP of stream_kline_index
+*/
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval)
 {
@@ -347,6 +477,9 @@ unsigned int FuturesClientCoin::v_stream_kline_index(const std::string& pair, st
 	return this->_ws_client->running_streams[stream_query];
 }
 
+/**
+	CRTP of stream_kline_markprice
+*/
 template <typename FT>
 unsigned int FuturesClientCoin::v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
@@ -360,6 +493,9 @@ unsigned int FuturesClientCoin::v_stream_kline_markprice(const std::string& symb
 	return this->_ws_client->running_streams[stream_query];
 }
 
+/**
+	CRTP of v_stream_userStream
+*/
 template <typename FT>
 unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
@@ -373,7 +509,13 @@ unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& fu
 	return this->_ws_client->running_streams[stream_query];
 }
 
-
+/**
+	Start aggregated trades stream
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int  Client<T>::stream_aggTrade(const std::string& symbol, std::string& buffer, FT& functor)
@@ -396,7 +538,14 @@ unsigned int  Client<T>::stream_aggTrade(const std::string& symbol, std::string&
 	}
 }
 
-
+/**
+	Start kline (candlesticks) stream
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
@@ -419,6 +568,13 @@ unsigned int Client<T>::stream_kline(const std::string& symbol, std::string& buf
 	}
 }
 
+/**
+	Start mini ticker stream (individual)
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_ind_mini(const std::string& symbol, std::string& buffer, FT& functor)
@@ -441,6 +597,12 @@ unsigned int Client<T>::stream_ticker_ind_mini(const std::string& symbol, std::s
 	}
 }
 
+/**
+	Start mini ticker stream (all)
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
@@ -463,6 +625,13 @@ unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
 	}
 }
 
+/**
+	Start ticker stream (individual)
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_ind(const std::string& symbol, std::string& buffer, FT& functor)
@@ -485,6 +654,12 @@ unsigned int Client<T>::stream_ticker_ind(const std::string& symbol, std::string
 	}
 }
 
+/**
+	Start ticker stream (all)
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
@@ -507,6 +682,13 @@ unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
 	}
 }
 
+/**
+	Start book ticker stream (individual)
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_ind_book(const std::string& symbol, std::string& buffer, FT& functor)
@@ -529,6 +711,12 @@ unsigned int Client<T>::stream_ticker_ind_book(const std::string& symbol, std::s
 	}
 }
 
+/**
+	Start book ticker stream (all)
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
@@ -551,6 +739,15 @@ unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
 	}
 }
 
+/**
+	Start partial depth stream
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param levels - how many depth level, part of the query
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
@@ -573,6 +770,14 @@ unsigned int Client<T>::stream_depth_partial(const std::string& symbol, std::str
 	}
 }
 
+/**
+	Start diff depth stream
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval)
@@ -595,7 +800,13 @@ unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string
 	}
 }
 
-
+/**
+	Start User Stream
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param ping_listen_key - if true, will ping listen key 
+	@return an unsigned int representing success
+*/
 template<typename T>
 template <typename FT>
 unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
@@ -611,7 +822,14 @@ unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor, cons
 	}
 }
 
-
+/**
+	Start Custom Stream
+	@param stream_name - The name of the stream
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param ping_listen_key - if true, will ping listen key
+	@return an unsigned int representing success
+*/
 template <typename T>
 template <typename FT>
 unsigned int Client<T>::custom_stream(const std::string stream_name, std::string& buffer, FT& functor, const bool ping_listen_key)
@@ -638,6 +856,17 @@ unsigned int Client<T>::custom_stream(const std::string stream_name, std::string
 // Websocket methods templates
 
 
+/**
+	Manage an active stream
+	This manager is responsible for reconnecting as well
+
+	@param stream_map_name - The name of the stream
+	@param stream_path - The path of the string (query)
+	@param buf - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param ping_listen_key - if true, will ping listen key
+	@return an unsigned int representing success
+*/
 template <typename T>
 template <class FT>
 void WebsocketClient<T>::_stream_manager(std::string stream_map_name, const std::string stream_path, std::string& buf, FT& functor, const bool ping_listen_key)
@@ -666,7 +895,20 @@ void WebsocketClient<T>::_stream_manager(std::string stream_map_name, const std:
 	} while (this->running_streams[stream_map_name] && this->_reconnect_on_error && (reconnect_attempts < this->_max_reconnect_count)); // will repeat only of stream is up (no user shutdown) and reconnect is true, and reconnections not above max
 }
 
+/**
+	Starts a new stream
+	This method starts the stream and maintains a 'while' loop that loads the websocket messages into 'buf' and
+	invoke 'functor' as the callback.
+	The member 'running_streams' contains names of active streams. In order to close
+	a stream, the name should be removed from there.
 
+	@param stream_map_name - The name of the stream
+	@param stream_path - The path of the string (query)
+	@param buf - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param ping_listen_key - if true, will ping listen key
+	@return an unsigned int representing success
+*/
 template <typename T>
 template <class FT>
 void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name, const std::string stream_path, std::string& buf, FT& functor, const bool ping_listen_key)
