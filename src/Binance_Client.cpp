@@ -540,11 +540,11 @@ Json::Value Client<T>::account_trades_list(const Params* params_ptr)
 	@param symbol - a string reference of the symbol
 	@param buffer - a reference of the string buffer to load responses to
 	@param functor - a reference to the functor object to be called as callback
-	@return the json returned by the request
+	@return an unsigned int representing success
 */
 template<typename T>
 template <typename FT>
-unsigned int  Client<T>::stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
+unsigned int Client<T>::stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
 {
 	try
 	{
