@@ -5,6 +5,14 @@ Json::CharReader* _J_READER = _J_BUILDER.newCharReader();
 static long _IDLE_TIME_TCP = 120L;
 static long _INTVL_TIME_TCP = 60L;
 
+/**
+	Request callback method (REST)
+	@param contents - text response
+	@param size - size of text
+	@param nmemb - number of elements
+	@param req - RestSession object of the request
+	@return 0 if error, 1 if success
+*/
 unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req) 
 {
 	(&req->req_raw)->append((char*)contents, size * nmemb);
@@ -39,6 +47,10 @@ unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 	return 1;
 };
 
+/**
+	Default Constructor
+	Set all CURL handles (GET, POST, PUT, DELETE)
+*/
 RestSession::RestSession() // except handles in rest_init exchange client level
 {
 	_get_handle = curl_easy_init();
@@ -79,6 +91,10 @@ RestSession::RestSession() // except handles in rest_init exchange client level
 	this->status = 1;
 }
 
+/**
+	Enable verbose state for the session
+	@param state - 1 to enable, 0 to disable
+*/
 void RestSession::set_verbose(const long int state)
 {
 	curl_easy_setopt(this->_get_handle, CURLOPT_VERBOSE, state);
@@ -88,7 +104,11 @@ void RestSession::set_verbose(const long int state)
 
 }
 
-
+/**
+	Make a GET request
+	@param full_path - the full path of the request
+	@return a JSON value returned by the request response
+*/
 Json::Value RestSession::_getreq(std::string full_path)
 {
 	try
@@ -114,6 +134,11 @@ Json::Value RestSession::_getreq(std::string full_path)
 	}
 };
 
+/**
+	Make a POST request
+	@param full_path - the full path of the request
+	@return a JSON value returned by the request response
+*/
 Json::Value RestSession::_postreq(std::string full_path)
 {
 	try
@@ -138,6 +163,11 @@ Json::Value RestSession::_postreq(std::string full_path)
 	}
 };
 
+/**
+	Make a PUT request
+	@param full_path - the full path of the request
+	@return a JSON value returned by the request response
+*/
 Json::Value RestSession::_putreq(std::string full_path)
 {
 	try
@@ -162,6 +192,11 @@ Json::Value RestSession::_putreq(std::string full_path)
 	}
 };
 
+/**
+	Make a DELETE request
+	@param full_path - the full path of the request
+	@return a JSON value returned by the request response
+*/
 Json::Value RestSession::_deletereq(std::string full_path)
 {
 	try
@@ -187,6 +222,10 @@ Json::Value RestSession::_deletereq(std::string full_path)
 };
 
 
+/**
+	Close the current session
+	@return a boolean value representing success for closing the session
+*/
 bool RestSession::close()
 {
 	try
@@ -210,6 +249,10 @@ bool RestSession::close()
 	}
 };
 
+/**
+	Default constructor
+	this class is used to handle request responses
+*/
 RestSession::RequestHandler::RequestHandler()
 	: req_raw{ "" }, req_json{ Json::Value{} }, req_status{ CURLcode{} }, locker { nullptr }
 {
@@ -218,6 +261,10 @@ RestSession::RequestHandler::RequestHandler()
 
 };
 
+/**
+	Destructor
+	close the session upon deletion
+*/
 RestSession::~RestSession()
 {
 	this->close();

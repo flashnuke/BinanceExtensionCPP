@@ -6,7 +6,9 @@ ClientException::ClientException(std::string error_text)
 	: error_desc{ error_text }
 {};
 
-
+/**
+	returns a description of the exception
+*/
 const char* ClientException::what()
 {
 	final_error_body = "exception: " + this->error_desc;
