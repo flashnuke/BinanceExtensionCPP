@@ -6,7 +6,11 @@ ClientException::ClientException(std::string error_text)
 	: error_desc{ error_text }
 {};
 
-
+/**
+	Set a default RecvWindow value
+	@param set_always - a bool for whether to keep after flush
+	@param recv_val - recvWindow value
+*/
 const char* ClientException::what()
 {
 	final_error_body = "exception: " + this->error_desc;

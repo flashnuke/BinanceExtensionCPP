@@ -1,5 +1,9 @@
 #include "../include/Binance_Client.h"
 
+/**
+	Get local timestamp
+	@return - local timestamp
+*/
 unsigned long long local_timestamp()
 {
 	auto now = std::chrono::system_clock::now().time_since_epoch();
@@ -7,6 +11,10 @@ unsigned long long local_timestamp()
 	return ms_timestamp.count();
 }
 
+/**
+	Convert binary to hex
+	@return the result
+*/
 std::string binary_to_hex(unsigned char const* binary, unsigned binary_len)
 {
 	std::string r(binary_len * 2, '\0');
@@ -17,6 +25,9 @@ std::string binary_to_hex(unsigned char const* binary, unsigned binary_len)
 	return r;
 }
 
+/**
+	Generate an HMAC sha256 signature - as required by Binance
+*/
 std::string HMACsha256(std::string const& message, std::string const& secret)
 {
 	unsigned char result[EVP_MAX_MD_SIZE];

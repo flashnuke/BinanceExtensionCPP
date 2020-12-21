@@ -1,10 +1,20 @@
 #include "../include/Binance_Client.h"
 
+/**
+	Default constructor
+	@param exchange_client - passed internally
+	@param host - the host of the path
+	@param port - the port of the path
+*/
 template <typename T>
 WebsocketClient<T>::WebsocketClient(T* exchange_client, const std::string host, const unsigned int port)
     : _host{ host }, _port{ std::to_string(port) }, _reconnect_on_error{ 0 }, exchange_client { exchange_client }, _max_reconnect_count{ 20 }
 {}
 
+/**
+	Close a stream
+	@param full_stream_name - Close a stream by its name
+*/
 template <typename T>
 void WebsocketClient<T>::close_stream(const std::string& full_stream_name)
 {
@@ -20,6 +30,10 @@ void WebsocketClient<T>::close_stream(const std::string& full_stream_name)
 	}
 }
 
+/**
+	Get open streams
+	@return a vector containing std::string names of open streams
+*/
 template <typename T>
 std::vector<std::string> WebsocketClient<T>::open_streams()
 {
@@ -34,6 +48,11 @@ std::vector<std::string> WebsocketClient<T>::open_streams()
 	return results;
 };
 
+/**
+	Checks whether a stream is open
+	@param full_stream_name - the full name of the stream
+	@return a bool for whether is open or not
+*/
 template <typename T>
 bool WebsocketClient<T>::is_open(const std::string& full_stream_name) const
 {
@@ -47,12 +66,21 @@ bool WebsocketClient<T>::is_open(const std::string& full_stream_name) const
 	return 0; 
 };
 
+/**
+	Enable / Disable 'reconnect on error'
+	@param reconnect - 1 to enable reconnect, 0 to disable
+*/
 template <typename T>
 void WebsocketClient<T>::_set_reconnect(const bool& reconnect)
 {
 	this->_reconnect_on_error = reconnect;
 }
 
+/**
+	Sets a different host / port 
+	@param new_host - std::string representing the new host
+	@param new_port - the new port
+*/
 template <typename T>
 void WebsocketClient<T>::set_host_port(const std::string new_host, const unsigned int new_port)
 {
@@ -66,6 +94,11 @@ void WebsocketClient<T>::set_host_port(const std::string new_host, const unsigne
 	}
 }
 
+/**
+	Destructor
+	setting 'exchange_client' to nullptr to avoid deleting an external exchange client
+	iterates over open streams and closes them one by one
+*/
 template <typename T>
 WebsocketClient<T>::~WebsocketClient()
 {
