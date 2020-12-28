@@ -327,6 +327,38 @@ public:
 		Json::Value account_list(const Params* params_ptr);
 	};
 
+	struct BLVT
+	{
+		const Client<T>* user_client;
+		explicit BLVT(Client<T>& client);
+		explicit BLVT(const Client<T>& client);
+		~BLVT();
+
+		Json::Value get_blvt_info(const Params* params_ptr);
+		Json::Value subscribe_blvt(const Params* params_ptr);
+		Json::Value get_subscribe_blvt_history(const Params* params_ptr);
+		Json::Value redeem_blvt(const Params* params_ptr);
+		Json::Value get_redeem_blvt_history(const Params* params_ptr);
+		Json::Value get_blvt_user_limit(const Params* params_ptr);
+	};
+
+	struct BSwap
+	{
+		const Client<T>* user_client;
+		explicit BSwap(Client<T>& client);
+		explicit BSwap(const Client<T>& client);
+		~BSwap();
+
+		Json::Value get_all_swap_pools();
+		Json::Value get_liquidity_info_pool(const Params* params_ptr);
+		Json::Value add_liquidity(const Params* params_ptr);
+		Json::Value remove_liquidity(const Params* params_ptr);
+		Json::Value get_liquidity_ops_record(const Params* params_ptr);
+		Json::Value request_quote(const Params* params_ptr);
+		Json::Value make_swap(const Params* params_ptr);
+		Json::Value get_swap_history(const Params* params_ptr);
+	};
+
 	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);
 	Json::Value custom_post_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);
 	Json::Value custom_put_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);

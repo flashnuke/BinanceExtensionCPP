@@ -3564,6 +3564,440 @@ Json::Value Client<T>::Mining::account_list(const Params* params_ptr)
 // =======================================================================================================
 
 
+//  ------------------------------ Start | Client BLVT - User Mining Endpoints
+
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
+template <typename T>
+Client<T>::BLVT::BLVT(Client<T>& client_obj)
+	: user_client{ &client_obj }
+{
+	if (user_client->_public_client)
+	{
+		MissingCredentials e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
+}
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
+template <typename T>
+Client<T>::BLVT::BLVT(const Client<T>& client_obj)
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
+{
+	if (user_client->_public_client)
+	{
+		MissingCredentials e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
+}
+
+/**
+	Destructor
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
+template <typename T>
+Client<T>::BLVT::~BLVT()
+{
+	user_client = nullptr;
+}
+
+// ------ Endpoint methods
+
+/**
+	Get BLVT Info
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BLVT::get_blvt_info(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/blvt/tokenInfo";
+		std::string query = user_client->_generate_query(params_ptr, 0);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Subscribe BLVT
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BLVT::subscribe_blvt(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/blvt/subscribe";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Query Subscription Record
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BLVT::get_subscribe_blvt_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/blvt/subscribe/record";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Redeem BLVT
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BLVT::redeem_blvt(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/blvt/redeem";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Query Redemption Record
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BLVT::get_redeem_blvt_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/blvt/redeem/record";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Query Redemption Record
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BLVT::get_blvt_user_limit(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/blvt/userLimit";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+
+//  ------------------------------ End | Client BLVT - User Mining Endpoints
+
+
+// =======================================================================================================
+
+
+//  ------------------------------ Start | Client BSwap - User Mining Endpoints
+
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
+template <typename T>
+Client<T>::BSwap::BSwap(Client<T>& client_obj)
+	: user_client{ &client_obj }
+{
+	if (user_client->_public_client)
+	{
+		MissingCredentials e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
+}
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
+template <typename T>
+Client<T>::BSwap::BSwap(const Client<T>& client_obj)
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
+{
+	if (user_client->_public_client)
+	{
+		MissingCredentials e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
+}
+
+/**
+	Destructor
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
+template <typename T>
+Client<T>::BSwap::~BSwap()
+{
+	user_client = nullptr;
+}
+
+// ------ Endpoint methods
+
+/**
+	List All Swap Pools
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::get_all_swap_pools()
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/pools";
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Get liquidity information of a pool
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::get_liquidity_info_pool(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/liquidity";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Add liquidity to a pool
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::add_liquidity(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/liquidityAdd";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Remove liquidity from a pool
+	* type include SINGLE and COMBINATION
+	* asset is mandatory for single asset removal
+	
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::remove_liquidity(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/liquidityRemove";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Get liquidity operation (add/remove) records
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::get_liquidity_ops_record(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/liquidityOps";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Request a quote for swap quote asset (selling asset) for base asset (buying asset),
+	essentially price/exchange rates.
+
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::request_quote(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/quote";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Swap quoteAsset for baseAsset
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::make_swap(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/swap";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Get swap history
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::get_swap_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/swap";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+//  ------------------------------ End | Client BLVT - User Mining Endpoints
+
+
+// =======================================================================================================
+
+
 //  ------------------------------ Start | SpotClient General methods - Infrastructure
 
 /**
