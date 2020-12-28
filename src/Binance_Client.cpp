@@ -1353,7 +1353,7 @@ Json::Value Client<T>::FuturesWallet::collateral_borrow_history(const Params* pa
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::FuturesWallet::collateral_repay(const Params* params_ptr)
+Json::Value Client<T>::FuturesWallet::collateral_cross_repay(const Params* params_ptr)
 {
 	try
 	{
@@ -2226,6 +2226,29 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_to_master(const Params* p
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subToMaster";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Sub-account Transfer History (For Sub-account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::SubAccount::transfer_subaccount_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subUserHistory";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
@@ -4120,7 +4143,7 @@ Json::Value Client<T>::BSwap::get_all_swap_pools()
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/pools";
-		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path);
 
 		return response;
 	}

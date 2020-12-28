@@ -190,7 +190,7 @@ public:
 		Json::Value futures_transfer_history(const Params* params_ptr);
 		Json::Value collateral_borrow(const Params* params_ptr);
 		Json::Value collateral_borrow_history(const Params* params_ptr = nullptr);
-		Json::Value collateral_repay(const Params* params_ptr);
+		Json::Value collateral_cross_repay(const Params* params_ptr);
 		Json::Value collateral_repay_history(const Params* params_ptr = nullptr);
 		Json::Value collateral_wallet(const Params* params_ptr = nullptr);
 		Json::Value collateral_info(const Params* params_ptr = nullptr);
@@ -242,7 +242,7 @@ public:
 		Json::Value transfer_to_subaccount_margin(const Params* params_ptr);
 		Json::Value transfer_subaccount_to_subaccount(const Params* params_ptr);
 		Json::Value transfer_subaccount_to_master(const Params* params_ptr);
-		Json::Value transfer_subaccount_history(const Params* params_ptr);
+		Json::Value transfer_subaccount_history(const Params* params_ptr = nullptr);
 
 		Json::Value make_universal_transfer(const Params* params_ptr);
 		Json::Value get_universal_transfer_history(const Params* params_ptr = nullptr);
