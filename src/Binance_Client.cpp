@@ -1779,6 +1779,29 @@ Json::Value Client<T>::SubAccount::transfer_master_history(const Params* params_
 };
 
 /**
+	Query Sub-account Spot Asset Transfer History (SAPI For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::SubAccount::transfer_spot_subaccount_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/sub/transfer/history";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
 	Sub-account Spot Asset Transfer(For Master Account)
 	@param params_ptr - a pointer to the request Params object
 	@return the json returned by the request
@@ -2216,16 +2239,108 @@ Json::Value Client<T>::SubAccount::transfer_subaccount_to_master(const Params* p
 };
 
 /**
-	Sub-account Transfer History (For Sub-account)
+	Universal Transfer (For Master Account)
 	@param params_ptr - a pointer to the request Params object
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::SubAccount::transfer_subaccount_history(const Params* params_ptr)
+Json::Value Client<T>::SubAccount::make_universal_transfer(const Params* params_ptr)
 {
 	try
 	{
-		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/transfer/subUserHistory";
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/universalTransfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Query Universal Transfer History
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::SubAccount::get_universal_transfer_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/universalTransfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Get Detail on Sub-account's Futures Account V2 (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::SubAccount::get_details_subaccount_futures(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v2/sub-account/futures/account";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Get Summary of Sub-account's Futures Account V2 (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::SubAccount::get_summary_subaccount_futures(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v2/sub-account/futures/accountSummary";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Get Futures Position-Risk of Sub-account V2 (For Master Account)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::SubAccount::get_positionrisk_subaccount_futures(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v2/sub-account/futures/positionRisk";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
@@ -2980,6 +3095,53 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_symbol_all(const Pa
 	}
 };
 
+/**
+	Toggle BNB Burn On Spot Trade And Margin Interest
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::toggle_bnb_burn(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bnbBurn";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Get BNB Burn Status
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::get_bnb_burn_status(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bnbBurn";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
 /**
 	Create a ListenKey - Margin
 	@return the ListenKey as std::string

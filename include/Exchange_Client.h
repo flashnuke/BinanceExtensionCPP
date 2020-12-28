@@ -217,6 +217,7 @@ public:
 		Json::Value get_all_subaccounts(const Params* params_ptr = nullptr);
 
 		Json::Value transfer_master_history(const Params* params_ptr);
+		Json::Value transfer_spot_subaccount_history(const Params* params_ptr = nullptr);
 		Json::Value transfer_master_to_subaccount(const Params* params_ptr);
 
 		Json::Value futures_transfer_master_history(const Params* params_ptr);
@@ -242,6 +243,13 @@ public:
 		Json::Value transfer_subaccount_to_subaccount(const Params* params_ptr);
 		Json::Value transfer_subaccount_to_master(const Params* params_ptr);
 		Json::Value transfer_subaccount_history(const Params* params_ptr);
+
+		Json::Value make_universal_transfer(const Params* params_ptr);
+		Json::Value get_universal_transfer_history(const Params* params_ptr = nullptr);
+
+		Json::Value get_details_subaccount_futures(const Params* params_ptr);
+		Json::Value get_summary_subaccount_futures(const Params* params_ptr);
+		Json::Value get_positionrisk_subaccount_futures(const Params* params_ptr);
 
 	};
 
@@ -280,6 +288,8 @@ public:
 		Json::Value margin_isolated_margin_account_info(const Params* params_ptr = nullptr);
 		Json::Value margin_isolated_margin_symbol(const Params* params_ptr);
 		Json::Value margin_isolated_margin_symbol_all(const Params* params_ptr = nullptr);
+		Json::Value toggle_bnb_burn(const Params* params_ptr = nullptr);
+		Json::Value get_bnb_burn_status(const Params* params_ptr = nullptr);
 
 		template <typename FT>
 		unsigned int margin_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key = 0, const bool& isolated_margin_type = 0);
