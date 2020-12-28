@@ -320,6 +320,73 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffe
 }
 
 /**
+	BLVT Info Streams
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param token_name - token name
+	@return an unsigned int representing success
+*/
+template<typename CT>
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_blvt_info(std::string& buffer, FT& functor, std::string token_name)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_stream_blvt_info(buffer, functor, token_name);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	BLVT NAV Kline/Candlestick Streams
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param token_name - token name
+	@param interval - interval of klines
+	@return an unsigned int representing success
+*/
+template<typename CT>
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_blvt_klines(std::string& buffer, FT& functor, std::string token_name, std::string interval)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_stream_blvt_klines(buffer, functor, token_name, interval);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	BLVT NAV Kline/Candlestick Streams
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param token_name - token name
+	@return an unsigned int representing success
+*/
+template<typename CT>
+template <typename FT>
+unsigned int FuturesClient<CT>::stream_composite_index_symbol(std::string& buffer, FT& functor, std::string token_name)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_stream_composite_index_symbol(buffer, functor, token_name);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
 	CRTP of stream_userStream
 */
 template<typename CT>
@@ -446,6 +513,39 @@ unsigned int FuturesClientCoin::v_stream_markprice_by_pair(const std::string& pa
 }
 
 /**
+	CRTP of stream_blvt_info
+*/
+template <typename FT>
+unsigned int FuturesClientCoin::v_stream_blvt_info(std::string& buffer, FT& functor, std::string token_name)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
+	CRTP of stream_blvt_klines
+*/
+template <typename FT>
+unsigned int FuturesClientCoin::v_stream_blvt_klines(std::string& buffer, FT& functor, std::string token_name, std::string interval)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
+	CRTP of stream_composite_index_symbol
+*/
+template <typename FT>
+unsigned int FuturesClientCoin::v_stream_composite_index_symbol(std::string& buffer, FT& functor, std::string token_name)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
 	CRTP of stream_kline_contract
 */
 template <typename FT>
@@ -491,6 +591,79 @@ unsigned int FuturesClientCoin::v_stream_kline_markprice(const std::string& symb
 	}
 	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
 	return this->_ws_client->running_streams[stream_query];
+}
+
+
+/**
+	CRTP of stream_blvt_info
+*/
+template <typename FT>
+unsigned int FuturesClientUSDT::v_stream_blvt_info(std::string& buffer, FT& functor, std::string token_name)
+{
+	try
+	{
+		std::string stream_name = token_name + "@nav_Kline_";
+		std::string stream_query = "/ws/" + stream_name;
+		if (this->_ws_client->is_open(stream_query))
+		{
+			this->_ws_client->close_stream(stream_query);
+		}
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	CRTP of stream_blvt_klines
+*/
+template <typename FT>
+unsigned int FuturesClientUSDT::v_stream_blvt_klines(std::string& buffer, FT& functor, std::string token_name, std::string interval)
+{
+	try
+	{
+		std::string stream_name = token_name + "@nav_Kline_" + interval;
+		std::string stream_query = "/ws/" + stream_name;
+		if (this->_ws_client->is_open(stream_query))
+		{
+			this->_ws_client->close_stream(stream_query);
+		}
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	CRTP of stream_composite_index_symbol
+*/
+template <typename FT>
+unsigned int FuturesClientUSDT::v_stream_composite_index_symbol(std::string& buffer, FT& functor, std::string token_name)
+{
+	try
+	{
+		std::string stream_name = token_name + "@compositeIndex";
+		std::string stream_query = "/ws/" + stream_name;
+		if (this->_ws_client->is_open(stream_query))
+		{
+			this->_ws_client->close_stream(stream_query);
+		}
+		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		return this->_ws_client->running_streams[stream_query];
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
 }
 
 /**

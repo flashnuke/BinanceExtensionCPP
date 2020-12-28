@@ -465,6 +465,9 @@ public:
 	Json::Value users_force_orders(const Params* params_ptr = nullptr);
 	Json::Value pos_adl_quantile_est(const Params* params_ptr = nullptr);
 	Json::Value get_user_comission_rate(const Params* params_ptr);
+	Json::Value api_quant_trading_rules(const Params* params_ptr = nullptr);
+	Json::Value get_blvt_kline_history(const Params* params_ptr);
+	Json::Value get_composite_index_symbol_info(const Params* params_ptr = nullptr);
 
 	// -------------------  inter-future crtp ONLY
 
@@ -495,6 +498,15 @@ public:
 
 	template <typename FT>
 	unsigned int stream_liquidation_orders_all(std::string& buffer, FT& functor);
+
+	template <typename FT>
+	unsigned int stream_blvt_info(std::string& buffer, FT& functor, std::string token_name);
+
+	template <typename FT>
+	unsigned int stream_blvt_klines(std::string& buffer, FT& functor, std::string token_name, std::string interval);
+
+	template <typename FT>
+	unsigned int stream_composite_index_symbol(std::string& buffer, FT& functor, std::string token_name);
 
 	template <typename FT>
 	unsigned int stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor); // only USDT
@@ -556,10 +568,9 @@ private:
 	Json::Value v_public_liquidation_orders(const Params* params_ptr);
 	Json::Value v_open_interest(const Params* params_ptr);
 	Json::Value v_composite_index_symbol_info(const Params* params_ptr = nullptr);
-
-
-	// note that the following four might be only for coin margined market data
 	Json::Value v_continues_klines(const Params* params_ptr);
+
+	// note that the following might be only for coin margined market data
 	Json::Value v_index_klines(const Params* params_ptr);
 	Json::Value v_mark_klines(const Params* params_ptr);
 
@@ -600,7 +611,9 @@ private:
 	Json::Value v_users_force_orders(const Params* params_ptr = nullptr);
 	Json::Value v_pos_adl_quantile_est(const Params* params_ptr = nullptr);
 	Json::Value v_get_user_comission_rate(const Params* params_ptr);
-
+	Json::Value v_api_quant_trading_rules(const Params* params_ptr = nullptr);
+	Json::Value v_get_blvt_kline_history(const Params* params_ptr);
+	Json::Value v_get_composite_index_symbol_info(const Params* params_ptr = nullptr);
 
 	// WS Streams
 
@@ -615,6 +628,15 @@ private:
 
 	template <typename FT>
 	unsigned int v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
+	
+	template <typename FT>
+	unsigned int v_stream_blvt_info(std::string& buffer, FT& functor, std::string token_name); // only USDT
+	
+	template <typename FT>
+	unsigned int v_stream_blvt_klines(std::string& buffer, FT& functor, std::string token_name, std::string interval); // only USDT
+	
+	template <typename FT>
+	unsigned int v_stream_composite_index_symbol(std::string& buffer, FT& functor, std::string token_name); // only USDT
 
 	template <typename FT>
 	unsigned int v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
@@ -711,7 +733,9 @@ private:
 	Json::Value v_users_force_orders(const Params* params_ptr = nullptr);
 	Json::Value v_pos_adl_quantile_est(const Params* params_ptr = nullptr); 
 	Json::Value v_get_user_comission_rate(const Params* params_ptr); 
-
+	Json::Value v_api_quant_trading_rules(const Params* params_ptr = nullptr);
+	Json::Value v_get_blvt_kline_history(const Params* params_ptr);
+	Json::Value v_get_composite_index_symbol_info(const Params* params_ptr = nullptr);
 
 	// WS Streams
 
@@ -726,6 +750,15 @@ private:
 
 	template <typename FT>
 	unsigned int v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
+	
+	template <typename FT>
+	unsigned int v_stream_blvt_info(std::string& buffer, FT& functor, std::string token_name); // only USDT
+
+	template <typename FT>
+	unsigned int v_stream_blvt_klines(std::string& buffer, FT& functor, std::string token_name, std::string interval); // only USDT
+
+	template <typename FT>
+	unsigned int v_stream_composite_index_symbol(std::string& buffer, FT& functor, std::string token_name); // only USDT
 
 	template <typename FT>
 	unsigned int v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin

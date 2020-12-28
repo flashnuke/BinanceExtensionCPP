@@ -5437,6 +5437,63 @@ Json::Value FuturesClient<CT>::get_user_comission_rate(const Params* params_ptr)
 	}
 }
 
+/**
+	User API Trading Quantitative Rules Indicators
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::api_quant_trading_rules(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_api_quant_trading_rules(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	Historical BLVT NAV Kline/Candlestick
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::get_blvt_kline_history(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_get_blvt_kline_history(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	Composite Index Symbol Information
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::get_composite_index_symbol_info(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_get_composite_index_symbol_info(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
 //  ------------------------------ End | FuturesClient CRTP methods - Trade Implementations
 
 
@@ -5810,13 +5867,15 @@ Json::Value FuturesClientUSDT::v_composite_index_symbol_info(const Params* param
 // ~~~ Do not exist for this client
 
 /**
-	CRTP of continues_klines() - MISSING ENDPOINT
+	CRTP of continues_klines()
 */
 Json::Value FuturesClientUSDT::v_continues_klines(const Params* params_ptr)
 {
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/fapi/v1/continuousKlines" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
 }
 
 /**
@@ -6175,13 +6234,53 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 }
 
 /**
-	CRTP of get_user_comission_rate() - Does not exist for USDT
+	CRTP of get_user_comission_rate() - Does not exist for Coin
 */
 Json::Value FuturesClientUSDT::v_get_user_comission_rate(const Params* params_ptr)
 {
 	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
+
+}
+
+/**
+	CRTP of api_quant_trading_rules() - Does not exist for Coin
+*/
+Json::Value FuturesClientUSDT::v_api_quant_trading_rules(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 0);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/fapi/v1/apiTradingStatus" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+/**
+	CRTP of get_blvt_kline_history() - Does not exist for Coin
+*/
+Json::Value FuturesClientUSDT::v_get_blvt_kline_history(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 0);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/fapi/v1/lvtKlines" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+/**
+	CRTP of get_composite_index_symbol_info() - Does not exist for Coin
+*/
+Json::Value FuturesClientUSDT::v_get_composite_index_symbol_info(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 0);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/fapi/v1/indexInfo" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
 }
 
 //  ------------------------------ End | FuturesClientUSDT CRTP methods - Trade Implementations 
@@ -6753,6 +6852,38 @@ Json::Value FuturesClientCoin::v_get_user_comission_rate(const Params* params_pt
 
 	return response;
 }
+
+
+/**
+	CRTP of api_quant_trading_rules() - Does not exist for Coin
+*/
+Json::Value FuturesClientCoin::v_api_quant_trading_rules(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
+	CRTP of get_blvt_kline_history() - Does not exist for Coin
+*/
+Json::Value FuturesClientCoin::v_get_blvt_kline_history(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
+	CRTP of get_composite_index_symbol_info() - Does not exist for Coin
+*/
+Json::Value FuturesClientCoin::v_get_composite_index_symbol_info(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
 
 //  ------------------------------ End | FuturesClientCoin CRTP methods - Trade Implementations 
 
