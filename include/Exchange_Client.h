@@ -462,11 +462,9 @@ public:
 	Json::Value position_info(const Params* params_ptr = nullptr);
 	Json::Value get_income_history(const Params* params_ptr);
 	Json::Value get_leverage_bracket(const Params* params_ptr = nullptr);
-
-
-	// -- unique to USDT endpoint
-
-	Json::Value pos_adl_quantile_est(const Params* params_ptr = nullptr); 
+	Json::Value users_force_orders(const Params* params_ptr = nullptr);
+	Json::Value pos_adl_quantile_est(const Params* params_ptr = nullptr);
+	Json::Value get_user_comission_rate(const Params* params_ptr);
 
 	// -------------------  inter-future crtp ONLY
 
@@ -475,6 +473,7 @@ public:
 	Json::Value mark_price(const Params* params_ptr = nullptr);
 	Json::Value public_liquidation_orders(const Params* params_ptr);
 	Json::Value open_interest(const Params* params_ptr); 
+	Json::Value composite_index_symbol_info(const Params* params_ptr);
 
 
 	// note that the following four might be only for coin margined market data
@@ -556,6 +555,7 @@ private:
 	Json::Value v_mark_price(const Params* params_ptr);
 	Json::Value v_public_liquidation_orders(const Params* params_ptr);
 	Json::Value v_open_interest(const Params* params_ptr);
+	Json::Value v_composite_index_symbol_info(const Params* params_ptr = nullptr);
 
 
 	// note that the following four might be only for coin margined market data
@@ -597,11 +597,9 @@ private:
 	Json::Value v_position_info(const Params* params_ptr);
 	Json::Value v_get_income_history(const Params* params_ptr);
 	Json::Value v_get_leverage_bracket(const Params* params_ptr);
-
-
-	// -- unique to USDT endpoint
-
-	Json::Value v_pos_adl_quantile_est(const Params* params_ptr);
+	Json::Value v_users_force_orders(const Params* params_ptr = nullptr);
+	Json::Value v_pos_adl_quantile_est(const Params* params_ptr = nullptr);
+	Json::Value v_get_user_comission_rate(const Params* params_ptr);
 
 
 	// WS Streams
@@ -670,7 +668,7 @@ private:
 	Json::Value v_mark_price(const Params* params_ptr);
 	Json::Value v_public_liquidation_orders(const Params* params_ptr);
 	Json::Value v_open_interest(const Params* params_ptr);
-
+	Json::Value v_composite_index_symbol_info(const Params* params_ptr = nullptr);
 
 	// note that the following four might be only for coin margined market data
 	Json::Value v_continues_klines(const Params* params_ptr);
@@ -710,11 +708,10 @@ private:
 	Json::Value v_position_info(const Params* params_ptr);
 	Json::Value v_get_income_history(const Params* params_ptr);
 	Json::Value v_get_leverage_bracket(const Params* params_ptr);
+	Json::Value v_users_force_orders(const Params* params_ptr = nullptr);
+	Json::Value v_pos_adl_quantile_est(const Params* params_ptr = nullptr); 
+	Json::Value v_get_user_comission_rate(const Params* params_ptr); 
 
-
-	// -- unique to USDT endpoint
-
-	Json::Value v_pos_adl_quantile_est(const Params* params_ptr);
 
 	// WS Streams
 

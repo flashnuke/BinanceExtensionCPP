@@ -4926,6 +4926,25 @@ Json::Value FuturesClient<CT>::open_interest(const Params* params_ptr)
 }
 
 /**
+	Composite Index Symbol Information
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::composite_index_symbol_info(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_open_interest(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
 	Continues Contract Kline/Candlestick Data
 	*If startTime and endTime are not sent, the most recent klines are returned
 	* 
@@ -5353,6 +5372,25 @@ Json::Value FuturesClient<CT>::get_leverage_bracket(const Params* params_ptr)
 }
 
 /**
+	User's Force Orders (USER_DATA)
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::users_force_orders(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_users_force_orders(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
 	Position ADL Quantile Estimation
 	*Values update every 30s.
 	*Values 0, 1, 2, 3, 4 shows the queue position and possibility of ADL from low to high.
@@ -5380,6 +5418,24 @@ Json::Value FuturesClient<CT>::pos_adl_quantile_est(const Params* params_ptr)
 	}
 }
 
+/**
+	User Commission Rate
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::get_user_comission_rate(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_get_user_comission_rate(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
 
 //  ------------------------------ End | FuturesClient CRTP methods - Trade Implementations
 
@@ -5739,6 +5795,18 @@ Json::Value FuturesClientUSDT::v_open_interest(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of composite_index_symbol_info()
+*/
+Json::Value FuturesClientUSDT::v_composite_index_symbol_info(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/fapi/v1/indexInfo" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
 // ~~~ Do not exist for this client
 
 /**
@@ -6084,6 +6152,16 @@ Json::Value FuturesClientUSDT::v_get_leverage_bracket(const Params* params_ptr)
 }
 
 /**
+	CRTP of users_force_orders()
+*/
+Json::Value FuturesClientUSDT::v_users_force_orders(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
 	CRTP of pos_adl_quantile_est()
 */
 Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
@@ -6094,6 +6172,16 @@ Json::Value FuturesClientUSDT::v_pos_adl_quantile_est(const Params* params_ptr)
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
 	return response;
+}
+
+/**
+	CRTP of get_user_comission_rate() - Does not exist for USDT
+*/
+Json::Value FuturesClientUSDT::v_get_user_comission_rate(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 //  ------------------------------ End | FuturesClientUSDT CRTP methods - Trade Implementations 
@@ -6628,18 +6716,47 @@ Json::Value FuturesClientCoin::v_get_leverage_bracket(const Params* params_ptr)
 }
 
 /**
+	CRTP of users_force_orders()
+*/
+Json::Value FuturesClientCoin::v_users_force_orders(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/dapi/v1/forceOrders" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+/**
 	CRTP of pos_adl_quantile_est()
 */
 Json::Value FuturesClientCoin::v_pos_adl_quantile_est(const Params* params_ptr)
 {
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/dapi/v1/adlQuantile" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
 }
 
-//  ------------------------------ End | FuturesClientUSDT CRTP methods - Trade Implementations 
+/**
+	CRTP of get_user_comission_rate()
+*/
+Json::Value FuturesClientCoin::v_get_user_comission_rate(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/dapi/v1/commissionRate" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
-//  ------------------------------ Start | FuturesClientUSDT CRTP methods - WS Streams
+	return response;
+}
+
+//  ------------------------------ End | FuturesClientCoin CRTP methods - Trade Implementations 
+
+//  ------------------------------ Start | FuturesClientCoin CRTP methods - WS Streams
 
 
 /**
@@ -6734,6 +6851,15 @@ Json::Value FuturesClientCoin::v_open_interest(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of composite_index_symbol_info() - Missing endpoint for Coin margined
+*/
+Json::Value FuturesClientCoin::v_composite_index_symbol_info(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
 
 // ~~~ Unique for this Client 
 
