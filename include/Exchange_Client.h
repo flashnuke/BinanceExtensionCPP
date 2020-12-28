@@ -199,6 +199,11 @@ public:
 		Json::Value collateral_adjust(const Params* params_ptr);
 		Json::Value collateral_adjust_history(const Params* params_ptr = nullptr);
 		Json::Value collateral_liquidation_history(const Params* params_ptr = nullptr);
+		Json::Value collateral_check_repay_limit(const Params* params_ptr);
+		Json::Value collateral_get_repay_quote(const Params* params_ptr);
+		Json::Value collateral_repay(const Params* params_ptr);
+		Json::Value collateral_repay_result(const Params* params_ptr);
+		Json::Value collateral_cross_interest_history(const Params* params_ptr);
 
 	};
 
@@ -308,6 +313,7 @@ public:
 		Json::Value get_purchase_record(const Params* params_ptr);
 		Json::Value get_redemption_record(const Params* params_ptr);
 		Json::Value get_interest_history(const Params* params_ptr);
+		Json::Value change_fixed_pos_to_daily_pos(const Params* params_ptr);
 
 	};
 
@@ -334,7 +340,7 @@ public:
 		explicit BLVT(const Client<T>& client);
 		~BLVT();
 
-		Json::Value get_blvt_info(const Params* params_ptr);
+		Json::Value get_blvt_info(const Params* params_ptr = nullptr);
 		Json::Value subscribe_blvt(const Params* params_ptr);
 		Json::Value get_subscribe_blvt_history(const Params* params_ptr);
 		Json::Value redeem_blvt(const Params* params_ptr);

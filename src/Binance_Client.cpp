@@ -1555,6 +1555,126 @@ Json::Value Client<T>::FuturesWallet::collateral_liquidation_history(const Param
 	}
 }
 
+/**
+	Check the maximum and minimum limit when repay with collateral
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_check_repay_limit(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/collateralRepayLimit";
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	Get Collateral Repay Quote
+	* the quote will be valid within 25 seconds
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_get_repay_quote(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/collateralRepay";
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	Repay with Collateral
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_repay(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/collateralRepay";
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	Check collateral repayment result
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_repay_result(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/collateralRepayResult";
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	Cross-Collateral Interest History
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::FuturesWallet::collateral_cross_interest_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/interestHistory";
+		std::string query = this->user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
 //  ------------------------------ End | Client FuturesWallet - User FuturesWallet Endpoints
 
 
@@ -3335,6 +3455,29 @@ Json::Value Client<T>::Savings::get_interest_history(const Params* params_ptr)
 	try
 	{ 
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/union/interestHistory";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Change Fixed/Activity Position to Daily Position
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Savings::change_fixed_pos_to_daily_pos(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/lending/positionChanged";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
