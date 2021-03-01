@@ -13,7 +13,9 @@ class OrderbookManager
     std::string parse_errors;
 
     Json::Value get_initial_snap();
-    static void append_initial_into_book(const Json::Value& record, std::map<float, float>& side);
+    static void append_initial_into_book(const Json::Value& record, std::vector<std::pair<float, float>>& side, std::string side_n);
+    static unsigned int insert_layer(std::vector<std::pair<float, float>>& side, float price, float quantity, std::string side_n);
+    static void remove_layer(std::vector<std::pair<float, float>>& side, float price);
 
 
 public:
@@ -21,8 +23,8 @@ public:
     std::string msg_buffer;
     Json::Value stream_msg;
 
-    std::map<float, float> bids;
-    std::map<float, float> asks;
+    std::vector<std::pair<float, float>> bids;
+    std::vector<std::pair<float, float>> asks;
 
     explicit OrderbookManager(const std::string ticker_symbol, FuturesClientUSDT& client_init);
     OrderbookManager operator()(const std::string& response);
@@ -70,8 +72,33 @@ Json::Value OrderbookManager::get_initial_snap()
     return user_client->order_book(&req_params);
 }
 
+unsigned int OrderbookManager::insert_layer(std::vector<std::pair<float, float>>& side, float price, float quantity, std::string side_n)
+{
+    for (std::vector<std::pair<float, float>>::iterator itr = side.begin(); itr != side.end(); itr++)
+    {
+        float i_price = itr->first;
+        if ((side_n == "bids" && i_price > price) || (side_n == "asks" && i_price < price))
+        {
+            side.insert(itr, std::pair<float, float>(price, quantity));
+            return 1;
+        }
+    }
+    side.push_back(std::pair<float, float>(price, quantity));
+    return 1;
+}
 
-void OrderbookManager::append_initial_into_book(const Json::Value& record, std::map<float, float>& side)
+void OrderbookManager::remove_layer(std::vector<std::pair<float, float>>& side, float price)
+{
+    for (std::vector<std::pair<float, float>>::iterator itr = side.begin(); itr != side.end(); itr++)
+    {
+        float i_price = itr->first;
+        if (price == itr->first) side.erase(itr);
+        break;
+    }
+
+}
+
+void OrderbookManager::append_initial_into_book(const Json::Value& record, std::vector<std::pair<float, float>>& side, std::string side_n)
 {
     for (Json::ValueConstIterator itr = record.begin(); itr != record.end(); itr++)
     {
@@ -95,11 +122,11 @@ void OrderbookManager::append_initial_into_book(const Json::Value& record, std::
 
         if (price != 0)
         {
-            side[price] = quantity;
+            OrderbookManager::insert_layer(side, price, quantity, side_n);
         }
         else
         {
-            side.erase(price);
+            OrderbookManager::remove_layer(side, price);
         }
     }
 }
@@ -114,8 +141,8 @@ OrderbookManager OrderbookManager::operator()(const std::string& response)
     Json::Value asks_resp = this->stream_msg["a"];
     Json::Value bids_resp = this->stream_msg["b"];
 
-    OrderbookManager::append_initial_into_book(asks_resp, this->asks);
-    OrderbookManager::append_initial_into_book(bids_resp, this->bids);
+    OrderbookManager::append_initial_into_book(asks_resp, this->asks, "asks");
+    OrderbookManager::append_initial_into_book(bids_resp, this->bids, "bids");
 
     return *this;
 }
@@ -126,15 +153,15 @@ void OrderbookManager::setup_initial_snap()
     Json::Value asks_resp = ex_response["asks"];
     Json::Value bids_resp = ex_response["bids"];
 
-    OrderbookManager::append_initial_into_book(asks_resp, this->asks);
-    OrderbookManager::append_initial_into_book(bids_resp, this->bids);
+    OrderbookManager::append_initial_into_book(asks_resp, this->asks, "asks");
+    OrderbookManager::append_initial_into_book(bids_resp, this->bids, "bids");
 
 }
 
 
 void OrderbookManager::get_best_bid()
 {
-    std::map<float, float>::const_reverse_iterator itr;
+    std::vector<std::pair<float, float>>::const_reverse_iterator itr;
 
     for (itr = bids.rbegin(); itr != bids.rend(); itr++)
     {
@@ -148,7 +175,7 @@ void OrderbookManager::get_best_bid()
 
 void OrderbookManager::get_best_ask()
 {
-    std::map<float, float>::const_iterator itr;
+    std::vector<std::pair<float, float>>::const_iterator itr;
 
     for (itr = asks.begin(); itr != asks.end(); itr++)
     {
