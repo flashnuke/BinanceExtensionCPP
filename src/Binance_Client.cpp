@@ -1199,6 +1199,52 @@ Json::Value Client<T>::Wallet::trading_fees(const Params* params_ptr)
 	}
 };
 
+/**
+	Make User Universal Transfer
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Wallet::make_user_transfer_universal(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/asset/transfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Query User Universal Transfer
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Wallet::query_user_transfer_universal(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/asset/transfer";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
 //  ------------------------------ End | Client Wallet - User Wallet Endpoints
 
 // ***************************************************************************
@@ -1399,11 +1445,12 @@ Json::Value Client<T>::FuturesWallet::collateral_repay_history(const Params* par
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::FuturesWallet::collateral_wallet(const Params* params_ptr)
+Json::Value Client<T>::FuturesWallet::collateral_wallet(const Params* params_ptr, const unsigned int version)
 {
 	try
 	{
-		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/wallet";
+		
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v" + std::to_string(version) + "/futures/loan/wallet";
 		std::string query = this->user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
@@ -1423,11 +1470,11 @@ Json::Value Client<T>::FuturesWallet::collateral_wallet(const Params* params_ptr
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::FuturesWallet::collateral_info(const Params* params_ptr)
+Json::Value Client<T>::FuturesWallet::collateral_info(const Params* params_ptr, const unsigned int version)
 {
 	try
 	{
-		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/configs";
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v" + std::to_string(version) + "/futures/loan/configs";
 		std::string query = this->user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
@@ -1446,11 +1493,11 @@ Json::Value Client<T>::FuturesWallet::collateral_info(const Params* params_ptr)
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(const Params* params_ptr)
+Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(const Params* params_ptr, const unsigned int version)
 {
 	try
 	{
-		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/calcAdjustLevel";
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v" + std::to_string(version) + "/futures/loan/calcAdjustLevel";
 		std::string query = this->user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
@@ -1469,11 +1516,11 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_calc_rate(const Params* 
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(const Params* params_ptr)
+Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(const Params* params_ptr, const unsigned int version)
 {
 	try
 	{
-		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/calcMaxAdjustAmount";
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v" + std::to_string(version) + "/futures/loan/calcMaxAdjustAmount";
 		std::string query = this->user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (this->user_client->_rest_client)->_getreq(full_path + query);
 
@@ -1492,11 +1539,11 @@ Json::Value Client<T>::FuturesWallet::collateral_adjust_get_max(const Params* pa
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::FuturesWallet::collateral_adjust(const Params* params_ptr)
+Json::Value Client<T>::FuturesWallet::collateral_adjust(const Params* params_ptr, const unsigned int version)
 {
 	try
 	{
-		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/futures/loan/adjustCollateral";
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v" + std::to_string(version) + "/futures/loan/adjustCollateral";
 		std::string query = this->user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (this->user_client->_rest_client)->_postreq(full_path + query);
 
@@ -2644,6 +2691,29 @@ Json::Value Client<T>::MarginAccount::margin_cancel_order(const Params* params_p
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/order";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_deletereq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Margin Account Cancel All Open Orders (On a Symbol)
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_cancel_all_orders(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/openOrders";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_deletereq(full_path + query);
 
@@ -3829,6 +3899,121 @@ Json::Value Client<T>::Mining::revenue_list(const Params* params_ptr)
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/payment/list";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Extra Bonus List
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Mining::get_extra_bonus_list(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/payment/other";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Hashrate Resale List
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Mining::get_hashrate_resale_list(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/hash-transfer/config/details/list";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Hashrate Resale Detail
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Mining::get_hashrate_resale_detail(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/hash-transfer/profit/details";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Hashrate Resale Request
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Mining::make_hashrate_resale_request(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/hash-transfer/config";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Cancel hashrate resale configuration
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Mining::cancel_hashrate_resale_config(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/mining/hash-transfer/config/cancel";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
 		return response;
 	}

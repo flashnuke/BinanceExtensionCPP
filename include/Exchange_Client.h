@@ -177,6 +177,9 @@ public:
 		Json::Value asset_dividend_records(const Params* params_ptr = nullptr);
 		Json::Value asset_details(const Params* params_ptr = nullptr);
 		Json::Value trading_fees(const Params* params_ptr = nullptr);
+		Json::Value make_user_transfer_universal(const Params* params_ptr);
+		Json::Value query_user_transfer_universal(const Params* params_ptr);
+
 	};
 
 	struct FuturesWallet
@@ -193,11 +196,11 @@ public:
 		Json::Value collateral_cross_repay(const Params* params_ptr);
 		Json::Value collateral_repay_history(const Params* params_ptr = nullptr);
 		Json::Value collateral_wallet(const Params* params_ptr = nullptr);
-		Json::Value collateral_info(const Params* params_ptr = nullptr);
-		Json::Value collateral_adjust_calc_rate(const Params* params_ptr);
-		Json::Value collateral_adjust_get_max(const Params* params_ptr);
-		Json::Value collateral_adjust(const Params* params_ptr);
-		Json::Value collateral_adjust_history(const Params* params_ptr = nullptr);
+		Json::Value collateral_info(const Params* params_ptr = nullptr, const unsigned int = 1);
+		Json::Value collateral_adjust_calc_rate(const Params* params_ptr, const unsigned int = 1);
+		Json::Value collateral_adjust_get_max(const Params* params_ptr, const unsigned int = 1);
+		Json::Value collateral_adjust(const Params* params_ptr, const unsigned int = 1);
+		Json::Value collateral_adjust_history(const Params* params_ptr = nullptr, const unsigned int = 1);
 		Json::Value collateral_liquidation_history(const Params* params_ptr = nullptr);
 		Json::Value collateral_check_repay_limit(const Params* params_ptr);
 		Json::Value collateral_get_repay_quote(const Params* params_ptr);
@@ -270,6 +273,7 @@ public:
 		Json::Value margin_price_index(const Params* params_ptr);
 		Json::Value margin_new_order(const Params* params_ptr);
 		Json::Value margin_cancel_order(const Params* params_ptr);
+		Json::Value margin_cancel_all_orders(const Params* params_ptr);
 		Json::Value margin_transfer_history(const Params* params_ptr = nullptr);
 		Json::Value margin_loan_record(const Params* params_ptr);
 		Json::Value margin_repay_record(const Params* params_ptr);
@@ -339,6 +343,11 @@ public:
 		Json::Value get_miner_list_detail(const Params* params_ptr);
 		Json::Value get_miner_list(const Params* params_ptr);
 		Json::Value revenue_list(const Params* params_ptr);
+		Json::Value get_extra_bonus_list(const Params* params_ptr);
+		Json::Value get_hashrate_resale_list(const Params* params_ptr = nullptr);
+		Json::Value get_hashrate_resale_detail(const Params* params_ptr);
+		Json::Value make_hashrate_resale_request(const Params* params_ptr);
+		Json::Value cancel_hashrate_resale_config(const Params* params_ptr);
 		Json::Value statistic_list(const Params* params_ptr);
 		Json::Value account_list(const Params* params_ptr);
 	};
