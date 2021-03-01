@@ -195,12 +195,12 @@ public:
 		Json::Value collateral_borrow_history(const Params* params_ptr = nullptr);
 		Json::Value collateral_cross_repay(const Params* params_ptr);
 		Json::Value collateral_repay_history(const Params* params_ptr = nullptr);
-		Json::Value collateral_wallet(const Params* params_ptr = nullptr);
+		Json::Value collateral_wallet(const Params* params_ptr = nullptr, const unsigned int = 1);
 		Json::Value collateral_info(const Params* params_ptr = nullptr, const unsigned int = 1);
 		Json::Value collateral_adjust_calc_rate(const Params* params_ptr, const unsigned int = 1);
 		Json::Value collateral_adjust_get_max(const Params* params_ptr, const unsigned int = 1);
 		Json::Value collateral_adjust(const Params* params_ptr, const unsigned int = 1);
-		Json::Value collateral_adjust_history(const Params* params_ptr = nullptr, const unsigned int = 1);
+		Json::Value collateral_adjust_history(const Params* params_ptr = nullptr);
 		Json::Value collateral_liquidation_history(const Params* params_ptr = nullptr);
 		Json::Value collateral_check_repay_limit(const Params* params_ptr);
 		Json::Value collateral_get_repay_quote(const Params* params_ptr);
