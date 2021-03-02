@@ -174,7 +174,7 @@ void OrderbookManager::print_best_bid()
 {
     std::vector<std::pair<double, double>>::const_iterator itr;
     std::vector<std::pair<double, double>> cpy_b{ bids };
-    for (itr = cpy_b.begin(); itr != cpy_b.begin() + 10; itr++)
+    for (itr = cpy_b.begin(); itr != cpy_b.begin() + 10; itr++) // todo remove
     {
         //std::cout << itr->first << "   " << itr->second << "\n";
     }
