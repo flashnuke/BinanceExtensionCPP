@@ -43,9 +43,11 @@ int main()
     FuturesClientUSDT public_client{};
     OrderbookManager btcusdt_orderbook{ "btcusdt", public_client };
 
+
     std::thread t4(&FuturesClientUSDT::stream_depth_diff<OrderbookManager>, std::ref(public_client), btcusdt_orderbook.symbol, std::ref(btcusdt_orderbook.msg_buffer), std::ref(btcusdt_orderbook), 100);
 
     btcusdt_orderbook.setup_initial_snap();
+
 
     while (1)
     {
@@ -69,7 +71,7 @@ OrderbookManager::OrderbookManager(const std::string ticker_symbol, FuturesClien
 Json::Value OrderbookManager::get_initial_snap()
 {
     Params req_params{};
-    req_params.set_param<int>("limit", 500);
+    req_params.set_param<int>("limit", 10);
     req_params.set_param<std::string>("symbol", symbol);
     return user_client->order_book(&req_params);
 }
@@ -109,30 +111,13 @@ void OrderbookManager::remove_layer(std::vector<std::pair<double, double>>& side
 
 void OrderbookManager::append_initial_into_book(const Json::Value& record, std::vector<std::pair<double, double>>& side)
 {
-    std::lock_guard<std::mutex> guard(ob_mutex);
     for (Json::ValueConstIterator itr = record.begin(); itr != record.end(); itr++)
     {
-        std::string val = itr->toStyledString();
-        if (val.find("null") != std::string::npos) continue;
-
-        std::vector<unsigned int> positions_of_quotes{};
-        bool finished{ 0 };
-
-        while (!finished)
-        {
-            unsigned int pos = val.find('"');
-            positions_of_quotes.push_back(pos);
-            val.replace(pos, 1, " ");
-
-            if (positions_of_quotes.size() == 4) break;
-        }
-
-        double price = std::stod(val.substr(positions_of_quotes[0], positions_of_quotes[1] - positions_of_quotes[0]));
-        double quantity = std::stod(val.substr(positions_of_quotes[2], positions_of_quotes[3] - positions_of_quotes[2]));
+        double price = std::stod((*itr)[0].asCString());
+        double quantity = std::stod((*itr)[1].asCString());
 
         if (quantity != 0)
         {
-            std::cout << val << "\n"; // todo remove
             OrderbookManager::insert_layer(side, price, quantity);
         }
         else
@@ -144,6 +129,8 @@ void OrderbookManager::append_initial_into_book(const Json::Value& record, std::
 
 OrderbookManager OrderbookManager::operator()(const std::string& response)
 {
+    std::lock_guard<std::mutex> guard(ob_mutex);
+
     this->charreader->parse(response.c_str(),
         response.c_str() + response.size(),
         &this->stream_msg,
@@ -160,6 +147,8 @@ OrderbookManager OrderbookManager::operator()(const std::string& response)
 
 void OrderbookManager::setup_initial_snap()
 {
+    std::lock_guard<std::mutex> guard(ob_mutex);
+
     Json::Value ex_response = this->get_initial_snap()["response"];
     Json::Value asks_resp = ex_response["asks"];
     Json::Value bids_resp = ex_response["bids"];
@@ -172,19 +161,22 @@ void OrderbookManager::setup_initial_snap()
 
 void OrderbookManager::print_best_bid()
 {
+    std::lock_guard<std::mutex> guard(ob_mutex);
+
     std::vector<std::pair<double, double>>::const_iterator itr;
     std::vector<std::pair<double, double>> cpy_b{ bids };
-    for (itr = cpy_b.begin(); itr != cpy_b.begin() + 10; itr++) // todo remove
-    {
-        //std::cout << itr->first << "   " << itr->second << "\n";
-    }
-    std::pair<double, double> layer = cpy_b.front();
-    std::cout << layer.first << " <:> " << layer.second;
+
+    std::pair<double, double> layer = bids[0];
+    std::cout << layer.first << " : " << layer.second;
 
 }
 
 void OrderbookManager::print_best_ask()
 {
-    std::pair<double, double> layer = this->asks.back();
+    std::vector<std::pair<double, double>>::const_iterator itr;
+    std::vector<std::pair<double, double>> cpy_b{ asks };
+
+
+    std::pair<double, double> layer = asks[asks.size() - 1];
     std::cout << layer.first << " : " << layer.second;
 }
