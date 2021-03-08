@@ -23,7 +23,6 @@ class OrderbookManager
 public:
     const std::string symbol;
     std::string msg_buffer;
-    Json::Value stream_msg;
 
     std::vector<std::pair<double, double>> bids;
     std::vector<std::pair<double, double>> asks;
@@ -31,8 +30,9 @@ public:
     explicit OrderbookManager(const std::string ticker_symbol, FuturesClientUSDT& client_init);
     OrderbookManager operator()(const std::string& response);
 
-
+    void reset_order_book(std::vector<std::pair<double, double>>& side);
     void setup_initial_snap();
+    void print_top_layers();
     void print_best_bid();
     void print_best_ask();
 };
@@ -43,19 +43,12 @@ int main()
     FuturesClientUSDT public_client{};
     OrderbookManager btcusdt_orderbook{ "btcusdt", public_client };
 
-
-    std::thread t4(&FuturesClientUSDT::stream_depth_diff<OrderbookManager>, std::ref(public_client), btcusdt_orderbook.symbol, std::ref(btcusdt_orderbook.msg_buffer), std::ref(btcusdt_orderbook), 100);
-
+    std::thread t4(&FuturesClientUSDT::stream_depth_partial<OrderbookManager>, std::ref(public_client), btcusdt_orderbook.symbol, std::ref(btcusdt_orderbook.msg_buffer), std::ref(btcusdt_orderbook), 5, 100);
     btcusdt_orderbook.setup_initial_snap();
-
 
     while (1)
     {
-        std::cout << "\nbest bid    ";
-        btcusdt_orderbook.print_best_bid();
-        std::cout << "\nbest ask    ";
-        btcusdt_orderbook.print_best_ask();
-        std::cout << "\n========";
+        btcusdt_orderbook.print_top_layers();
         Sleep(3000);
     }
 
@@ -67,6 +60,11 @@ int main()
 OrderbookManager::OrderbookManager(const std::string ticker_symbol, FuturesClientUSDT& client_init)
     : symbol{ ticker_symbol }, user_client{ &client_init }, msg_buffer{ "" }, parse_errors{ }, charreader{ charbuilder.newCharReader() }
 {}
+
+void OrderbookManager::reset_order_book(std::vector<std::pair<double, double>>& side)
+{
+    side.clear();
+}
 
 Json::Value OrderbookManager::get_initial_snap()
 {
@@ -111,6 +109,7 @@ void OrderbookManager::remove_layer(std::vector<std::pair<double, double>>& side
 
 void OrderbookManager::append_initial_into_book(const Json::Value& record, std::vector<std::pair<double, double>>& side)
 {
+
     for (Json::ValueConstIterator itr = record.begin(); itr != record.end(); itr++)
     {
         double price = std::stod((*itr)[0].asCString());
@@ -130,16 +129,19 @@ void OrderbookManager::append_initial_into_book(const Json::Value& record, std::
 OrderbookManager OrderbookManager::operator()(const std::string& response)
 {
     std::lock_guard<std::mutex> guard(ob_mutex);
+    Json::Value stream_msg;
 
     this->charreader->parse(response.c_str(),
         response.c_str() + response.size(),
-        &this->stream_msg,
+        &stream_msg,
         &this->parse_errors);
 
-    Json::Value asks_resp = this->stream_msg["a"];
-    Json::Value bids_resp = this->stream_msg["b"];
+    Json::Value asks_resp = stream_msg["a"];
+    Json::Value bids_resp = stream_msg["b"];
 
+    this->reset_order_book(this->asks);
     OrderbookManager::append_initial_into_book(asks_resp, this->asks);
+    this->reset_order_book(this->bids);
     OrderbookManager::append_initial_into_book(bids_resp, this->bids);
 
     return *this;
@@ -153,22 +155,21 @@ void OrderbookManager::setup_initial_snap()
     Json::Value asks_resp = ex_response["asks"];
     Json::Value bids_resp = ex_response["bids"];
 
+    this->reset_order_book(this->asks);
     OrderbookManager::append_initial_into_book(asks_resp, this->asks);
+    this->reset_order_book(this->bids);
     OrderbookManager::append_initial_into_book(bids_resp, this->bids);
-
 }
 
 
 void OrderbookManager::print_best_bid()
 {
-    std::lock_guard<std::mutex> guard(ob_mutex);
 
     std::vector<std::pair<double, double>>::const_iterator itr;
     std::vector<std::pair<double, double>> cpy_b{ bids };
 
     std::pair<double, double> layer = bids[0];
     std::cout << layer.first << " : " << layer.second;
-
 }
 
 void OrderbookManager::print_best_ask()
@@ -176,7 +177,17 @@ void OrderbookManager::print_best_ask()
     std::vector<std::pair<double, double>>::const_iterator itr;
     std::vector<std::pair<double, double>> cpy_b{ asks };
 
-
     std::pair<double, double> layer = asks[asks.size() - 1];
     std::cout << layer.first << " : " << layer.second;
+}
+
+void OrderbookManager::print_top_layers()
+{
+    std::lock_guard<std::mutex> guard(ob_mutex);
+
+    std::cout << std::setprecision(8) << "\nbest bid    ";
+    this->print_best_bid();
+    std::cout << "\nbest ask    ";
+    this->print_best_ask();
+    std::cout << "\n========";
 }
