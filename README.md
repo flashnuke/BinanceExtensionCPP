@@ -143,6 +143,7 @@ For Microsoft compilers set the following flags for better runtime performance:
 * `place_testnet_order_futures.cpp` = Using 'testnet_mode' to place a test order for FuturesClient.
 * `client_wallet_methods.cpp` = Initializing a 'Wallet' objects (Similar for `MarginAccount`, `FuturesWallet`, `SubAccount`, `Savings`, `Mining`)
 * `custom_ws_stream.cpp` = Starting a custom stream
+* `fetch_ticker_rest.cpp` = Fetching a ticker once using REST
 
 
 # Lined up
