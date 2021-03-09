@@ -217,6 +217,8 @@ public:
 		explicit SubAccount(const Client<T>& client);
 		~SubAccount();
 
+		Json::Value create_virtual_subaccount(const Params* params_ptr);
+		Json::Value query_subaccount_list_sapi(const Params* params_ptr = nullptr);
 		Json::Value get_all_subaccounts(const Params* params_ptr = nullptr);
 
 		Json::Value transfer_master_history(const Params* params_ptr);
@@ -253,6 +255,7 @@ public:
 		Json::Value get_details_subaccount_futures(const Params* params_ptr);
 		Json::Value get_summary_subaccount_futures(const Params* params_ptr);
 		Json::Value get_positionrisk_subaccount_futures(const Params* params_ptr);
+		Json::Value enable_leverage_token_subaccount(const Params* params_ptr);
 
 	};
 
@@ -294,6 +297,7 @@ public:
 		Json::Value margin_isolated_margin_symbol_all(const Params* params_ptr = nullptr);
 		Json::Value toggle_bnb_burn(const Params* params_ptr = nullptr);
 		Json::Value get_bnb_burn_status(const Params* params_ptr = nullptr);
+		Json::Value query_margin_interest_rate_history(const Params* params_ptr);
 
 		template <typename FT>
 		unsigned int margin_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key = 0, const bool& isolated_margin_type = 0);

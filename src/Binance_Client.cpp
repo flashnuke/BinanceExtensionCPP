@@ -1780,7 +1780,56 @@ Client<T>::SubAccount::~SubAccount()
 
 
 /**
+	Create a Virtual Sub-account(For Master Account)
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::SubAccount::create_virtual_subaccount(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/virtualSubAccount";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Query Sub-account List SAPI (For Master Account)
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::SubAccount::query_subaccount_list_sapi(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/list";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
 	Query Sub-account List(For Master Account)
+
 	@param params_ptr - a pointer to the request Params object
 	@return the json returned by the request
 */
@@ -2413,6 +2462,30 @@ Json::Value Client<T>::SubAccount::get_positionrisk_subaccount_futures(const Par
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v2/sub-account/futures/positionRisk";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Enable Leverage Token for Sub-account (For Master Account)
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::SubAccount::enable_leverage_token_subaccount(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/blvt/enable";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
 		return response;
 	}
@@ -3235,6 +3308,31 @@ Json::Value Client<T>::MarginAccount::get_bnb_burn_status(const Params* params_p
 		throw(e);
 	}
 };
+
+/**
+	Query Margin Interest Rate History
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::query_margin_interest_rate_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/interestRateHistory";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
 /**
 	Create a ListenKey - Margin
 	@return the ListenKey as std::string
