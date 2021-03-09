@@ -582,12 +582,8 @@ private:
 	Json::Value v_open_interest(const Params* params_ptr);
 	Json::Value v_composite_index_symbol_info(const Params* params_ptr = nullptr);
 	Json::Value v_continues_klines(const Params* params_ptr);
-
-	// note that the following might be only for coin margined market data
 	Json::Value v_index_klines(const Params* params_ptr);
 	Json::Value v_mark_klines(const Params* params_ptr);
-
-	// note that the following four might be only for usdt margined market data
 
 	Json::Value v_funding_rate_history(const Params* params_ptr);
 
@@ -704,13 +700,9 @@ private:
 	Json::Value v_public_liquidation_orders(const Params* params_ptr);
 	Json::Value v_open_interest(const Params* params_ptr);
 	Json::Value v_composite_index_symbol_info(const Params* params_ptr = nullptr);
-
-	// note that the following four might be only for coin margined market data
 	Json::Value v_continues_klines(const Params* params_ptr);
 	Json::Value v_index_klines(const Params* params_ptr);
 	Json::Value v_mark_klines(const Params* params_ptr);
-
-	// note that the following four might be only for coin margined market data
 
 	Json::Value v_funding_rate_history(const Params* params_ptr);
 

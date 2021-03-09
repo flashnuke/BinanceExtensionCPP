@@ -6185,23 +6185,27 @@ Json::Value FuturesClientUSDT::v_continues_klines(const Params* params_ptr)
 }
 
 /**
-	CRTP of index_klines() - MISSING ENDPOINT
+	CRTP of index_klines()
 */
 Json::Value FuturesClientUSDT::v_index_klines(const Params* params_ptr)
 {
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/fapi/v1/indexPriceKlines" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
 }
 
 /**
-	CRTP of mark_klines() - MISSING ENDPOINT
+	CRTP of mark_klines()
 */
 Json::Value FuturesClientUSDT::v_mark_klines(const Params* params_ptr)
 {
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/fapi/v1/markPriceKlines" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
 }
 
 
