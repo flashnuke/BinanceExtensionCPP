@@ -74,7 +74,7 @@ In order to initialize a client that is not public, api-key and api-secret must 
     <br />ClientException base class contains a `what()` method which returns a `c-string` which is a 
     description of the problem and a traceback.
     <br />Each time an exception is thrown and a function inside the library catches it, the name of the method will be
-     appended to the traceback using the `__FUNTION__` macro and later on also added to `what()` `c-string`.
+     appended to the traceback using the `__FUCNTION__` macro and later on also added to `what()` `c-string`.
     <br />
     <br />The main idea is to `catch(ClientException& e)` in order handle any exception which is one of the aforementioned,
     since they are all derived. It is also possible to `catch()` a specific exception.
