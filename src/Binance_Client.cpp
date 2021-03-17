@@ -7,11 +7,15 @@ const std::string _BASE_REST_FUTURES_USDT{ "https://fapi.binance.com" };
 const std::string _BASE_REST_FUTURES_COIN{ "https://dapi.binance.com" };
 const std::string _BASE_REST_FUTURES_TESTNET{ "https://testnet.binancefuture.com" };
 const std::string _BASE_REST_SPOT{ "https://api.binance.com" };
+const std::string _BASE_REST_OPS{ "https://vapi.binance.com" };
+const std::string _BASE_REST_OPS_TESTNET{ "https://testnet.binanceops.com" };
 const std::string _WS_BASE_FUTURES_USDT{ "fstream.binance.com" };
 const std::string _WS_BASE_FUTURES_USDT_TESTNET{ "stream.binancefuture.com" };
 const std::string _WS_BASE_FUTURES_COIN{ "dstream.binance.com" };
 const std::string _WS_BASE_FUTURES_COIN_TESTNET{ "dstream.binancefuture.com" };
 const std::string _WS_BASE_SPOT{ "stream.binance.com" };
+const std::string _WS_BASE_OPS{ "vstream.binance.com" };
+const std::string _WS_BASE_OPS_TESTNET{ "testnetws.binanceops.com" };
 const unsigned int _WS_PORT_SPOT{ 9443 };
 const unsigned int _WS_PORT_FUTURES{ 443 };
 
@@ -6053,6 +6057,378 @@ Json::Value FuturesClientCoin::v_funding_rate_history(const Params* params_ptr)
 
 
 // =======================================================================================================
+
+//  ------------------------------ Start | OpsClient General methods - Infrastructure
+
+/**
+	A constructor - called directly by the user
+	Public client
+*/
+OpsClient::OpsClient() : Client(*this)
+{};
+
+/**
+	A constructor - called directly by the user
+	Private client
+	@param key - API key
+	@param secret - API secret
+*/
+OpsClient::OpsClient(const std::string key, const std::string secret)
+	: Client(*this, key, secret)
+{}
+
+/**
+	Destructor
+	delete Websocket and REST sessions
+*/
+OpsClient::~OpsClient()
+{
+	delete this->_ws_client;
+	delete this->_rest_client;
+};
+
+//  ------------------------------ End | OpsClient General methods - Infrastructure
+
+//  ------------------------------ Start | OpsClient CRTP methods - Client infrastructure
+
+/**
+	Initialize a Websocket session
+*/
+void OpsClient::v_init_ws_session()
+{
+	//this->_ws_client->set_host_port(_WS_BASE_SPOT, _WS_PORT_SPOT);
+	BadStreamOpenWS e{};
+    e.append_to_traceback(std::string(__FUNCTION__));
+    throw(e);
+}
+
+/**
+	Create a ListenKey
+	@return an std::string representing the ListenKey
+*/
+std::string OpsClient::v_get_listen_key()
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/userDataStream";
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response["response"]["listenKey"].asString();
+}
+
+/**
+	Ping/Keep-alive a ListenKey
+	@param listen_key - the listen_key
+	@return json returned by the request
+*/
+Json::Value OpsClient::v_ping_listen_key(const std::string& listen_key)
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/userDataStream" + "?listenKey=" + listen_key;
+	Json::Value response = listen_key.empty() ? (this->_rest_client)->_putreq(full_path) : (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+/**
+	Revoke a ListenKey
+	@param listen_key - the listen_key
+	@return json returned by the request
+*/
+Json::Value OpsClient::v_revoke_listen_key(const std::string& listen_key)
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/userDataStream" + "?listenKey=" + listen_key;
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+//  ------------------------------ End | OpsClient CRTP methods - Client infrastructure
+
+//  ------------------------------ Start | OpsClient CRTP methods - Market Data Implementations
+
+/**
+	CRTP of ping_client()
+*/
+bool OpsClient::v_ping_client()
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/ping";
+	Json::Value ping_response = (this->_rest_client)->_getreq(full_path)["response"];
+	return (ping_response != Json::nullValue);
+}
+
+/**
+	CRTP of exchange_time()
+*/
+unsigned long long OpsClient::v_exchange_time()
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/time";
+	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
+
+	return std::atoll(ex_time.c_str());
+}
+
+/**
+	CRTP of exchange_info()
+*/
+Json::Value OpsClient::v_exchange_info()
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/exchangeInfo";
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+/**
+	CRTP of public_trades_recent()
+*/
+Json::Value OpsClient::v_get_ticker(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/ticker" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+/**
+
+*/
+Json::Value OpsClient::get_spot_index_price(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/index" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+/**
+
+*/
+Json::Value OpsClient::get_mark_price(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/mark" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+
+
+/**
+	CRTP of order_book()
+*/
+Json::Value OpsClient::v_order_book(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/depth" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+/**
+	CRTP of klines()
+*/
+Json::Value OpsClient::v_klines(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/klines" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+/**
+	CRTP of public_trades_recent()
+*/
+Json::Value OpsClient::v_public_trades_recent(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/trades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+/**
+	CRTP of public_trades_historical()
+*/
+Json::Value OpsClient::v_public_trades_historical(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/historicalTrades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+/**
+
+*/
+Json::Value OpsClient::funds_transfer(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/transfer" + query;
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+	return response;
+}
+
+/**
+
+*/
+Json::Value OpsClient::holding_info(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/position" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+/**
+
+*/
+Json::Value OpsClient::account_funding_flow(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/bill" + query;
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+	return response;
+}
+/**
+
+*/
+Json::Value OpsClient::batch_orders(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/batchOrders" + query;
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+	return response;
+}
+/**
+
+*/
+Json::Value OpsClient::cancel_batch_orders(const Params* params_ptr)
+{
+	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/batchOrders" + query;
+	Json::Value response = (this->_rest_client)->_deletereq(full_path);
+	return response;
+}
+//  ------------------------------ End | OpsClient CRTP methods - Market Data Implementations
+
+
+//  ------------------------------ Start | OpsClient CRTP methods - Trade Implementations
+
+
+// -- Up to 'Client' Level
+
+
+/**
+	CRTP of account_info()
+*/
+Json::Value OpsClient::v_account_info(const Params* params_ptr)
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/account";
+	std::string query = this->_generate_query(params_ptr, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+
+/**
+	CRTP of test_new_order()
+*/
+Json::Value OpsClient::v_test_new_order(const Params* params_ptr)
+{
+	std::string full_path = _BASE_REST_OPS_TESTNET + "/vapi/v1/order";
+	std::string query = this->_generate_query(params_ptr, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	return response;
+}
+
+/**
+	CRTP of new_order()
+*/
+Json::Value OpsClient::v_new_order(const Params* params_ptr)
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/order";
+	std::string query = this->_generate_query(params_ptr, 1);
+	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+
+	return response;
+}
+
+/**
+	CRTP of cancel_order()
+*/
+Json::Value OpsClient::v_cancel_order(const Params* params_ptr)
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/order";
+	std::string query = this->_generate_query(params_ptr, 1);
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+
+	return response;
+}
+
+/**
+	CRTP of cancel_all_orders()
+*/
+Json::Value OpsClient::v_cancel_all_orders(const Params* params_ptr)
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/allOpenOrders";
+	std::string query = this->_generate_query(params_ptr, 1);
+	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+
+	return response;
+}
+
+/**
+	CRTP of query_order()
+*/
+Json::Value OpsClient::v_query_order(const Params* params_ptr)
+{
+	std::string full_path = _BASE_REST_OPS + " /vapi/v1/order";
+	std::string query = this->_generate_query(params_ptr, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+/**
+	CRTP of open_orders()
+*/
+Json::Value OpsClient::v_open_orders(const Params* params_ptr)
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/openOrders";
+	std::string query = this->_generate_query(params_ptr, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+/**
+	CRTP of all_orders()
+*/
+Json::Value OpsClient::v_all_orders(const Params* params_ptr)
+{
+	std::string full_path = _BASE_REST_OPS + "/vapi/v1/historyOrders";
+	std::string query = this->_generate_query(params_ptr, 1);
+	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+
+	return response;
+}
+
+
+//  ------------------------------ End | SpotClient CRTP methods - Trade Implementations
+
+//  ------------------------------ Start | SpotClient General methods - Trade Implementations 
+
+
+//  ------------------------------ End | OpsClient General methods - Trade Implementations 
+
+
+//  ------------------------------ Start | OpsClient General methods - WS Streams
+
+
+
+//  ------------------------------ End | OpsClient General methods - WS Streams
+
+
+// =======================================================================================================
+
 
 
 //  ------------------------------ Start | Params methods

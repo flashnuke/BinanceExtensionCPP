@@ -781,6 +781,89 @@ public:
 	~SpotClient();
 };
 
+class OpsClient : public Client<OpsClient>
+{
+private:
+	// CRTP methods
+
+	// market data
+
+	bool v_ping_client();
+	unsigned long long v_exchange_time();
+	Json::Value v_exchange_info();
+	Json::Value v_get_ticker(const Params* params_ptr = nullptr);
+
+	Json::Value get_spot_index_price(const Params* params_ptr); // todo: define doc
+	Json::Value get_mark_price(const Params* params_ptr = nullptr); // todo: define doc
+	Json::Value v_order_book(const Params* params_ptr);
+	Json::Value v_klines(const Params* params_ptr);
+	Json::Value v_public_trades_recent(const Params* params_ptr);
+	Json::Value v_public_trades_historical(const Params* params_ptr);
+
+
+
+	// ------------------- crtp global end
+
+	// Trading endpoints
+
+	// ---- CRTP implementations
+
+	Json::Value v_account_info(const Params* params_ptr = nullptr);
+	Json::Value v_test_new_order(const Params* params_ptr);
+	Json::Value v_new_order(const Params* params_ptr);
+	Json::Value v_cancel_order(const Params* params_ptr);
+	Json::Value v_cancel_all_orders(const Params* params_ptr);
+	Json::Value v_query_order(const Params* params_ptr);
+	Json::Value v_open_orders(const Params* params_ptr);
+	Json::Value v_all_orders(const Params* params_ptr);
+
+	// ---- general methods
+
+	Json::Value funds_transfer(const Params* params_ptr);
+	Json::Value holding_info(const Params* params_ptr = nullptr);
+	Json::Value account_funding_flow(const Params* params_ptr);
+	Json::Value batch_orders(const Params* params_ptr);
+	Json::Value cancel_batch_orders(const Params* params_ptr);
+
+
+	// WS Streams
+
+	// crtp infrastructure start
+
+	void v_init_ws_session(); // todo: define (what is the port??? gzip used??)
+
+	template <typename FT>
+	unsigned int v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key); // todo: define
+	std::string v_get_listen_key();
+	Json::Value v_ping_listen_key(const std::string& listen_key);
+	Json::Value v_revoke_listen_key(const std::string& listen_key);
+
+
+	template <typename FT>
+	unsigned int v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor); // todo: define
+
+	template <typename FT>
+	unsigned int v_stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h"); // todo: define
+
+	template <typename FT>
+	unsigned int v_stream_ticker_ind(const std::string& symbol, std::string& buffer, FT& functor); // todo: define
+
+	template <typename FT>
+	unsigned int v_stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int levels = 10, const unsigned int interval = 0); // todo: define
+
+
+	// crtp infrastructure end
+
+
+
+public:
+	friend Client;
+
+	OpsClient();
+	OpsClient(const std::string key, const std::string secret);
+
+	~OpsClient();
+};
 
 
 #endif
