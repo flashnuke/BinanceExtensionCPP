@@ -834,6 +834,7 @@ private:
 
 	template <typename FT>
 	unsigned int v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key); // todo: define
+
 	std::string v_get_listen_key();
 	Json::Value v_ping_listen_key(const std::string& listen_key);
 	Json::Value v_revoke_listen_key(const std::string& listen_key);
