@@ -793,8 +793,8 @@ private:
 	Json::Value v_exchange_info();
 	Json::Value v_get_ticker(const Params* params_ptr = nullptr);
 
-	Json::Value get_spot_index_price(const Params* params_ptr); // todo: define doc
-	Json::Value get_mark_price(const Params* params_ptr = nullptr); // todo: define doc
+	Json::Value get_spot_index_price(const Params* params_ptr); 
+	Json::Value get_mark_price(const Params* params_ptr = nullptr);
 	Json::Value v_order_book(const Params* params_ptr);
 	Json::Value v_klines(const Params* params_ptr);
 	Json::Value v_public_trades_recent(const Params* params_ptr);
