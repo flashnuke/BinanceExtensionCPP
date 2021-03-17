@@ -876,7 +876,7 @@ unsigned int OpsClient::v_stream_userStream(std::string& buffer, FT& functor, co
 	@return an unsigned int representing success
 */
 template <typename FT>
-unsigned int OpsClient::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
+unsigned int OpsClient::v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
 {
 	BadStreamOpenWS e{};
     e.append_to_traceback(std::string(__FUNCTION__));
@@ -894,12 +894,9 @@ unsigned int OpsClient::v_stream_Trade(std::string symbol, std::string& buffer, 
 template <typename FT>
 unsigned int OpsClient::v_stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
-	try
-	{
 	BadStreamOpenWS e{};
     e.append_to_traceback(std::string(__FUNCTION__));
     throw(e);
-	}
 }
 /**
 	Start ticker stream (individual)

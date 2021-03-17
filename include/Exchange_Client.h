@@ -839,6 +839,12 @@ private:
 	Json::Value v_ping_listen_key(const std::string& listen_key);
 	Json::Value v_revoke_listen_key(const std::string& listen_key);
 
+    // crtp - missing endpoints
+
+	Json::Value v_public_trades_agg(const Params* params_ptr = nullptr);
+	Json::Value v_get_order_book_ticker(const Params* params_ptr = nullptr);
+	Json::Value v_daily_ticker_stats(const Params* params_ptr = nullptr);
+	Json::Value v_account_trades_list(const Params* params_ptr = nullptr);
 
 	template <typename FT>
 	unsigned int v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor); // todo: define

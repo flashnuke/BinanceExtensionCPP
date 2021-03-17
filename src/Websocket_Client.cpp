@@ -114,3 +114,4 @@ WebsocketClient<T>::~WebsocketClient()
 template class WebsocketClient<SpotClient>;
 template class WebsocketClient<FuturesClient<FuturesClientCoin>>;
 template class WebsocketClient<FuturesClient<FuturesClientUSDT>>;
+template class WebsocketClient<OpsClient>;

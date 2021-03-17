@@ -6411,6 +6411,44 @@ Json::Value OpsClient::v_all_orders(const Params* params_ptr)
 	return response;
 }
 
+/**
+	CRTP of public_trades_agg()
+*/
+Json::Value OpsClient::v_public_trades_agg(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
+	CRTP of get_order_book_ticker()
+*/
+Json::Value OpsClient::v_get_order_book_ticker(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+/**
+	CRTP of daily_ticker_stats()
+*/
+Json::Value OpsClient::v_daily_ticker_stats(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+/**
+	CRTP of account_trades_list()
+*/
+Json::Value OpsClient::v_account_trades_list(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
 // WIP
 
 //  ------------------------------ End | SpotClient CRTP methods - Trade Implementations
@@ -6605,6 +6643,7 @@ void Params::flush_params()
 template class Client<SpotClient>;
 template class Client<FuturesClient<FuturesClientUSDT>>;
 template class Client<FuturesClient<FuturesClientCoin>>;
+template class Client<OpsClient>;
 
 template void Params::set_param<int>(const std::string& key, const int& value);
 template void Params::set_param<float>(const std::string& key, const float& value);
