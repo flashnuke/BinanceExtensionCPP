@@ -1025,6 +1025,84 @@ unsigned int Client<T>::custom_stream(const std::string stream_name, std::string
 	}
 }
 
+/**
+	Start userstream (Ops)
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param ping_listen_key - if true, will ping listen key periodically
+	@return an unsigned int representing success
+*/
+template <typename FT>
+unsigned int OpsClient::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
+{
+	BadStreamOpenWS e{};
+    e.append_to_traceback(std::string(__FUNCTION__));
+    throw(e);
+
+}
+
+/**
+	Start trades stream (Ops)
+	@param symbol - the symbol of the trades
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
+template <typename FT>
+unsigned int OpsClient::v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
+{
+	BadStreamOpenWS e{};
+    e.append_to_traceback(std::string(__FUNCTION__));
+    throw(e);
+}
+/**
+	Start kline (candlesticks) stream
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
+
+template <typename FT>
+unsigned int OpsClient::v_stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
+{
+	BadStreamOpenWS e{};
+    e.append_to_traceback(std::string(__FUNCTION__));
+    throw(e);
+}
+/**
+	Start ticker stream (individual)
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
+
+template <typename FT>
+unsigned int OpsClient::v_stream_ticker_ind(const std::string& symbol, std::string& buffer, FT& functor)
+{
+	BadStreamOpenWS e{};
+    e.append_to_traceback(std::string(__FUNCTION__));
+    throw(e);
+}
+/**
+	Start partial depth stream
+	@param symbol - the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@param levels - how many depth level, part of the query
+	@param interval - interval of the responses, part of the query
+	@return an unsigned int representing success
+*/
+
+template <typename FT>
+unsigned int OpsClient::v_stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
+{
+	BadStreamOpenWS e{};
+    e.append_to_traceback(std::string(__FUNCTION__));
+    throw(e);
+}
 
 // Websocket methods templates
 
