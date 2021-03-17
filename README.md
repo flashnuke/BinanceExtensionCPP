@@ -150,7 +150,7 @@ For Microsoft compilers set the following flags for better runtime performance:
 * constexpr for endpoints + api base after the release of c++20 (constexpr support for std::string)
 * Support for Vanilla Options
 
-**Latest `Version` update: `2020-09-03` (Binance API Changelogs have been implemented up to this date)**
+**Latest `Version` update: `2020-17-03` (Binance API Changelogs have been implemented up to this date)**
 
 # Links
 * [CRTP Method - Info](https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern)
