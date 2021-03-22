@@ -148,7 +148,7 @@ For Microsoft compilers set the following flags for better runtime performance:
 
 # Lined up
 * constexpr for endpoints + api base after the release of c++20 (constexpr support for std::string)
-* Support for Vanilla Options
+* Support for Vanilla Options (Currently only REST methods are supported. Websocket streams are not)
 
 **Latest `Version` update: `2020-17-03` (Binance API Changelogs have been implemented up to this date)**
 
