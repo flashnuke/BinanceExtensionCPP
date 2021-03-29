@@ -14,7 +14,7 @@ This library is an extension for the API of Binance. It is designed for writing 
 2. [CURL](https://curl.haxx.se) (latest version tested: **curl 7.72.0**) 
 3. [Boost/Beast websockets](https://github.com/boostorg/beast) (latest version tested: **boost-1.73.0**) 
 
-These 3 must be installed in the default include directory in order to use the library.
+These 3 must be installed in order to use the library.
 
 
 # Documentation
