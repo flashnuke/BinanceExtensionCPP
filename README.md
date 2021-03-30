@@ -47,6 +47,7 @@ In order to initialize a client that is not public, api-key and api-secret must 
     <br />   │
     <br />   └── OpsClient
     <br /> 
+    <br /> 
     As was mentioned earlier, unique endpoints are located as separate structs inside Client.
 	<br /> CRTP interface and implementations are separated inside `Binance_Client.cpp`. Generally speaking, implementations are marked by a `v_` prefix.
     <br /> Deeper implementations (i.e `Client` -> `FuturesClient` -> [`FuturesClientUSDT`, `FuturesClientCoin`]) include an additional underscore: `v__`.
@@ -146,6 +147,7 @@ For Microsoft compilers set the following flags for better runtime performance:
 * `client_wallet_methods.cpp` = Initializing a 'Wallet' objects (Similar for `MarginAccount`, `FuturesWallet`, `SubAccount`, `Savings`, `Mining`)
 * `custom_ws_stream.cpp` = Starting a custom stream
 * `fetch_ticker_rest.cpp` = Fetching a ticker once using REST
+* `options_trade_stream.cpp` = Connecting to "Trades" stream in Vanilla Options
 
 
 # Lined up
