@@ -21,7 +21,7 @@ These 3 must be installed in order to use the library.
 In order to use this library, you must have all dependencies installed. Only one `#include` statement is required - `#include "include/Binance_Client.h"`, and add all content of `/src` directory should be added to the Source files. 
 <br />Note that `.inl` files are included inside the main header.
 <br /> <br />
-<br />You must initialize a `Client` object, which is one of the following: *[SpotClient, FuturesClientUSDT, FuturesClientCoin]*
+<br />You must initialize a `Client` object, which is one of the following: *[SpotClient, FuturesClientUSDT, FuturesClientCoin, OpsClient]*
 <br /> **Unique methods** - In order to use *[Wallet, FuturesWallet, SubAccount, MarginAccount, Savings, Mining]* endpoints, they should be initialized from within other Client classes, and by passing the Client object to the constructor.					
 i.e:
  >SpotClient::Wallet my_wallet{ my_client_obj }. 
@@ -32,7 +32,7 @@ i.e:
 In order to initialize a client that is not public, api-key and api-secret must be passed in std::string format to the constructor.
 > FuturesClientUSDT(api_key, api_secret)
 > 
-<br />Futures clients may be set in testnet mode by using the method "set_testnet_mode(bool)". SpotClient has 'test_new_order' method but no testnet mode endpoints.
+<br />Futures and Options clients may be set in testnet mode by using the method "set_testnet_mode(bool)". SpotClient has 'test_new_order' method but no testnet mode endpoints.
 
 - #### CRTP implementation
 	The CRTP is implemented as follows:
@@ -81,12 +81,12 @@ In order to initialize a client that is not public, api-key and api-secret must 
     since they are all derived. It is also possible to `catch()` a specific exception.
     
 - #### Notes
-		1. No copy assignment / constructor are implemented for Client classes. Each object has its own unique Session, WS, and running streams...
+		1. No copy assignment / constructor are implemented for Client classes. Each object has its own unique Session, WS, and running streams.
 		2. All unique endpoint structs require that the client object contains keys and is not a public client.
 		3. `ClientException` derives from `std::exception` therefore `catch(std::exception)` would also work.
 
 ## REST client
-All REST request methods take a pointer to a `Params` object. This object holds the parameters that would be generated to a query string and sent as the request body.
+All (except for ones that don't have mandatory parameters) REST request methods take a pointer to a `Params` object. This object holds the parameters that would be generated to a query string and sent as the request body.
 <br /> Endpoints that do not require any params, have a default argument which is a `nullptr` (beware if using threads). 
 <br />* Signing requests is done after generating the query, and the `Params` object remains unchanged.
 - #### 'Params' object
@@ -120,8 +120,8 @@ Each time a client object is created, a websocket client is also instantiated. I
 
 	<br /> It would be good practice to set the buffer as a member of the functor object.
 - #### Stream Manager
-	The WebsocketClient class has a `stream_manager`, which is responsible for the stream connection. It is possible to set `reconnect_on_error` by using Client's `ws_auto_reconnect()` method, and also specify the number of attempts by using `set_max_reconnect_count()` method.
-<br />The `stream_manager` closes a stream when the stream status is set to zero by the `close_stream()` method, or if any other error was encountered (unless `reconnect_on_error` is true).
+	The WebsocketClient class has a `stream_manager` method, which is responsible for the stream connection. It is possible to set `reconnect_on_error` by using Client's `ws_auto_reconnect()` method, and also specify the number of attempts by using `set_max_reconnect_count()` method.
+<br />The `stream_manager` method closes a stream when the stream status is set to zero by the `close_stream()` method, or if any other error was encountered (unless `reconnect_on_error` is true).
 <br /> The stream manager also accepts a `bool` for whether or not to ping a listen key periodically. The ping interval is 30 minutes by default, and can be set using `set_refresh_key_interval()` method (in `Client`).
 - #### Custom Streams
 	Custom streams are possible by using `Client`'s `custom_stream()` method. This method accepts 4 arguments: `stream_path` std::string, `buffer` std::string, `functor` functor, and `ping_listen_key` bool (when true, pings listen key periodically).
