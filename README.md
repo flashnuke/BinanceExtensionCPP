@@ -153,6 +153,10 @@ For Microsoft compilers set the following flags for better runtime performance:
 
 **Latest `Version` update: `2020-30-03` (Binance API Changelogs have been implemented up to this date)**
 
+
+# Release Notes
+Please see here https://github.com/adanikel/BinanceExtensionCPP/releases/
+
 # Links
 * [CRTP Method - Info](https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern)
 * [Binance API Documentation](https://binance-docs.github.io/apidocs/)
