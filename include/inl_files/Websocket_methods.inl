@@ -1211,7 +1211,15 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 		this->running_streams[stream_map_name] = 1;
 		if (this->_gzip_conversion)
 		{
+			bool conversion_successful{ 0 };
 			ws.write(net::buffer(std::string("{\"method\":\"BINARY\", \"params\":[\"false\"], \"id\":1}")));
+			while (!conversion_successful)
+			{
+				auto beast_buffer = boost::asio::dynamic_buffer(buf);
+				ws.read(beast_buffer, ec);
+				conversion_successful = (buf == "{\"id\":1}");
+				buf.clear();
+			}
 		}
 	}
 	else
@@ -1242,7 +1250,6 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 				if (!this->_reconnect_on_error) this->running_streams[stream_map_name] = 0; // to exit loop if not retry
 				break;
 			}
-			else if (buf == "{\"id\":1}") continue;
 
 			functor(buf);
 			buf.clear();
