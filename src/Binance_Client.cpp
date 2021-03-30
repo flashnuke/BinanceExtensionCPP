@@ -7348,7 +7348,7 @@ Json::Value FuturesClientCoin::v_funding_rate_history(const Params* params_ptr)
 	A constructor - called directly by the user
 	Public client
 */
-OpsClient::OpsClient() : Client(*this)
+OpsClient::OpsClient() : Client(*this), _testnet_mode{ 0 }
 {};
 
 /**
@@ -7358,7 +7358,7 @@ OpsClient::OpsClient() : Client(*this)
 	@param secret - API secret
 */
 OpsClient::OpsClient(const std::string key, const std::string secret)
-	: Client(*this, key, secret)
+	: Client(*this, key, secret), _testnet_mode{ 0 }
 {}
 
 /**
@@ -7390,8 +7390,8 @@ void OpsClient::v_init_ws_session()
 */
 void OpsClient::set_testnet_mode(const bool status)
 {
-	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT_TESTNET, _WS_PORT_FUTURES);
-	else this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
+	if (status) this->_ws_client->set_host_port(_WS_BASE_OPS_TESTNET, _WS_PORT_OPS);
+	else this->_ws_client->set_host_port(_WS_BASE_OPS, _WS_PORT_OPS);
 	this->_testnet_mode = status;
 }
 
@@ -7410,7 +7410,8 @@ bool OpsClient::get_testnet_mode()
 */
 std::string OpsClient::v_get_listen_key()
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/userDataStream";
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += _BASE_REST_OPS + "/vapi/v1/userDataStream";
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
 	return response["response"]["listenKey"].asString();
@@ -7423,7 +7424,8 @@ std::string OpsClient::v_get_listen_key()
 */
 Json::Value OpsClient::v_ping_listen_key(const std::string& listen_key)
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/userDataStream" + "?listenKey=" + listen_key;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += ("/vapi/v1/userDataStream?listenKey=" + listen_key);
 	Json::Value response = listen_key.empty() ? (this->_rest_client)->_putreq(full_path) : (this->_rest_client)->_postreq(full_path);
 
 	return response;
@@ -7436,7 +7438,8 @@ Json::Value OpsClient::v_ping_listen_key(const std::string& listen_key)
 */
 Json::Value OpsClient::v_revoke_listen_key(const std::string& listen_key)
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/userDataStream" + "?listenKey=" + listen_key;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += ("/vapi/v1/userDataStream?listenKey=" + listen_key);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
 	return response;
@@ -7451,7 +7454,8 @@ Json::Value OpsClient::v_revoke_listen_key(const std::string& listen_key)
 */
 bool OpsClient::v_ping_client()
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/ping";
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/ping";
 	Json::Value ping_response = (this->_rest_client)->_getreq(full_path)["response"];
 	return (ping_response != Json::nullValue);
 }
@@ -7461,7 +7465,8 @@ bool OpsClient::v_ping_client()
 */
 unsigned long long OpsClient::v_exchange_time()
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/time";
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/time";
 	std::string ex_time = (this->_rest_client)->_getreq(full_path)["response"]["serverTime"].asString();
 
 	return std::atoll(ex_time.c_str());
@@ -7472,7 +7477,8 @@ unsigned long long OpsClient::v_exchange_time()
 */
 Json::Value OpsClient::v_exchange_info()
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/exchangeInfo";
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/exchangeInfo";
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7483,7 +7489,8 @@ Json::Value OpsClient::v_exchange_info()
 Json::Value OpsClient::v_get_ticker(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/ticker" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/ticker" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7494,7 +7501,8 @@ Json::Value OpsClient::v_get_ticker(const Params* params_ptr)
 Json::Value OpsClient::get_spot_index_price(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/index" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/index" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7505,7 +7513,8 @@ Json::Value OpsClient::get_spot_index_price(const Params* params_ptr)
 Json::Value OpsClient::get_mark_price(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/mark" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/mark" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7518,7 +7527,8 @@ Json::Value OpsClient::get_mark_price(const Params* params_ptr)
 Json::Value OpsClient::v_order_book(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/depth" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/depth" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7529,7 +7539,8 @@ Json::Value OpsClient::v_order_book(const Params* params_ptr)
 Json::Value OpsClient::v_klines(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/klines" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/klines" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7540,7 +7551,8 @@ Json::Value OpsClient::v_klines(const Params* params_ptr)
 Json::Value OpsClient::v_public_trades_recent(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/trades" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/trades" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7551,7 +7563,8 @@ Json::Value OpsClient::v_public_trades_recent(const Params* params_ptr)
 Json::Value OpsClient::v_public_trades_historical(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/historicalTrades" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/historicalTrades" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7562,7 +7575,8 @@ Json::Value OpsClient::v_public_trades_historical(const Params* params_ptr)
 Json::Value OpsClient::funds_transfer(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/transfer" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/transfer" + query;
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 	return response;
 }
@@ -7573,7 +7587,8 @@ Json::Value OpsClient::funds_transfer(const Params* params_ptr)
 Json::Value OpsClient::holding_info(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/position" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/position" + query;
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7583,7 +7598,8 @@ Json::Value OpsClient::holding_info(const Params* params_ptr)
 Json::Value OpsClient::account_funding_flow(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/bill" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/bill" + query;
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 	return response;
 }
@@ -7593,7 +7609,8 @@ Json::Value OpsClient::account_funding_flow(const Params* params_ptr)
 Json::Value OpsClient::batch_orders(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/batchOrders" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/batchOrders" + query;
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 	return response;
 }
@@ -7603,7 +7620,8 @@ Json::Value OpsClient::batch_orders(const Params* params_ptr)
 Json::Value OpsClient::cancel_batch_orders(const Params* params_ptr)
 {
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/batchOrders" + query;
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/batchOrders" + query;
 	Json::Value response = (this->_rest_client)->_deletereq(full_path);
 	return response;
 }
@@ -7621,9 +7639,10 @@ Json::Value OpsClient::cancel_batch_orders(const Params* params_ptr)
 */
 Json::Value OpsClient::v_account_info(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/account";
 	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/account" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
 	return response;
 }
@@ -7634,9 +7653,10 @@ Json::Value OpsClient::v_account_info(const Params* params_ptr)
 */
 Json::Value OpsClient::v_test_new_order(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_OPS_TESTNET + "/vapi/v1/order";
 	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/order" + query;
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
 	return response;
 }
@@ -7646,9 +7666,10 @@ Json::Value OpsClient::v_test_new_order(const Params* params_ptr)
 */
 Json::Value OpsClient::v_new_order(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/order";
 	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/order" + query;
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
 	return response;
 }
@@ -7658,9 +7679,10 @@ Json::Value OpsClient::v_new_order(const Params* params_ptr)
 */
 Json::Value OpsClient::v_cancel_order(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/order";
 	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/order" + query;
+	Json::Value response = (this->_rest_client)->_deletereq(full_path);
 
 	return response;
 }
@@ -7670,9 +7692,10 @@ Json::Value OpsClient::v_cancel_order(const Params* params_ptr)
 */
 Json::Value OpsClient::v_cancel_all_orders(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/allOpenOrders";
 	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_deletereq(full_path + query);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/allOpenOrders" + query;
+	Json::Value response = (this->_rest_client)->_deletereq(full_path);
 
 	return response;
 }
@@ -7682,9 +7705,10 @@ Json::Value OpsClient::v_cancel_all_orders(const Params* params_ptr)
 */
 Json::Value OpsClient::v_query_order(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_OPS + " /vapi/v1/order";
 	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += " /vapi/v1/order" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
 	return response;
 }
@@ -7694,9 +7718,10 @@ Json::Value OpsClient::v_query_order(const Params* params_ptr)
 */
 Json::Value OpsClient::v_open_orders(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/openOrders";
 	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/openOrders" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
 	return response;
 }
@@ -7706,9 +7731,10 @@ Json::Value OpsClient::v_open_orders(const Params* params_ptr)
 */
 Json::Value OpsClient::v_all_orders(const Params* params_ptr)
 {
-	std::string full_path = _BASE_REST_OPS + "/vapi/v1/historyOrders";
 	std::string query = this->_generate_query(params_ptr, 1);
-	Json::Value response = (this->_rest_client)->_getreq(full_path + query);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/historyOrders" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
 	return response;
 }
