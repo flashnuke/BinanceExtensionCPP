@@ -40,7 +40,7 @@ In order to initialize a client that is not public, api-key and api-secret must 
     <br />└── Client
     <br />   ├── SpotClient
     <br />   │
-    <br />   └── FuturesClient
+    <br />   ├── FuturesClient
     <br />   │ │
     <br />   │ ├── FuturesClientUSDT
     <br />   │ └── FuturesClientCoin
