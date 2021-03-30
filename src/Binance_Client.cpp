@@ -7385,6 +7385,26 @@ void OpsClient::v_init_ws_session()
 }
 
 /**
+	Enables / disables testnet mode
+	@param status - a boolean for enabling / disabling
+*/
+void OpsClient::set_testnet_mode(const bool status)
+{
+	if (status) this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT_TESTNET, _WS_PORT_FUTURES);
+	else this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
+	this->_testnet_mode = status;
+}
+
+/**
+	Get current testnet mode status
+	@return 1 if enabled, 0 if disabled
+*/
+bool OpsClient::get_testnet_mode()
+{
+	return this->_testnet_mode;
+}
+
+/**
 	Create a ListenKey
 	@return an std::string representing the ListenKey
 */

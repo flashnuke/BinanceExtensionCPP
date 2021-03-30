@@ -938,11 +938,15 @@ private:
 
 
 	// crtp infrastructure end
-
-
+	
+;
 
 public:
 	friend Client;
+	bool _testnet_mode;
+
+	void set_testnet_mode(const bool status);
+	bool get_testnet_mode();
 
 	OpsClient();
 	OpsClient(const std::string key, const std::string secret);
