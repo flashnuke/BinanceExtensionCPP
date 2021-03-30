@@ -1105,22 +1105,6 @@ unsigned int OpsClient::v_stream_kline(const std::string& symbol, std::string& b
 	return this->_ws_client->running_streams[stream_query];
 }
 
-/**
-	Start partial depth stream
-	@param symbol - the symbol
-	@param buffer - a reference of the string buffer to load responses to
-	@param functor - a reference to the functor object to be called as callback
-	@param levels - how many depth level, part of the query
-	@param interval - interval of the responses, part of the query
-	@return an unsigned int representing success
-*/
-template <typename FT>
-unsigned int OpsClient::v_stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, unsigned int levels, unsigned int interval)
-{
-	BadStreamOpenWS e{};
-    e.append_to_traceback(std::string(__FUNCTION__));
-    throw(e);
-}
 
 // Websocket methods templates
 

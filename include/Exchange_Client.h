@@ -936,9 +936,6 @@ private:
 	template <typename FT>
 	unsigned int v_stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h");
 
-	template <typename FT>
-	unsigned int v_stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int levels = 10, const unsigned int interval = 0); // todo: define
-
 
 	// crtp infrastructure end
 
