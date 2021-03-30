@@ -41,11 +41,11 @@ In order to initialize a client that is not public, api-key and api-secret must 
     <br />   ├── SpotClient
     <br />   │
     <br />   └── FuturesClient
-    <br />     │
-    <br />     ├── FuturesClientUSDT
-    <br />     └── FuturesClientCoin
-    <br />
-    <br /> 
+    <br />   │ │
+    <br />   │ ├── FuturesClientUSDT
+    <br />   │ └── FuturesClientCoin
+    <br />   │
+    <br />   └── OpsClient
     <br /> 
     As was mentioned earlier, unique endpoints are located as separate structs inside Client.
 	<br /> CRTP interface and implementations are separated inside `Binance_Client.cpp`. Generally speaking, implementations are marked by a `v_` prefix.
@@ -128,6 +128,8 @@ Each time a client object is created, a websocket client is also instantiated. I
 - #### Notes
 		1. Default arguments are not allowed with threads. The argument must be specified
 		2. When passing a symbol as an argument to a stream starter, the symbol must be lower case.
+		3. For options client streams, conversion from gzip to binary is performed when the stream is set up.
+		4. For all options websocket streams, only `interval = 0` is supported. Otherwise, no stream will be established
 
 ### Optimizations
 For Microsoft compilers set the following flags for better runtime performance:
@@ -148,9 +150,8 @@ For Microsoft compilers set the following flags for better runtime performance:
 
 # Lined up
 * constexpr for endpoints + api base after the release of c++20 (constexpr support for `std::string`)
-* Support for Vanilla Options (Currently only REST methods are supported. Websocket streams are not)
 
-**Latest `Version` update: `2020-17-03` (Binance API Changelogs have been implemented up to this date)**
+**Latest `Version` update: `2020-30-03` (Binance API Changelogs have been implemented up to this date)**
 
 # Links
 * [CRTP Method - Info](https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern)
