@@ -95,6 +95,16 @@ void WebsocketClient<T>::set_host_port(const std::string new_host, const unsigne
 }
 
 /**
+	Sets whether we should convert from gzip the messages - needed for options 
+	@param new_host - sets the state for the conversion
+*/
+template <typename T>
+void WebsocketClient<T>::set_gzip_conversion(const unsigned int state)
+{
+	this->_gzip_conversion = state;
+}
+
+/**
 	Destructor
 	setting 'exchange_client' to nullptr to avoid deleting an external exchange client
 	iterates over open streams and closes them one by one

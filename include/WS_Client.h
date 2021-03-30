@@ -8,6 +8,7 @@ class WebsocketClient
 private:
 	std::string _host; // not const because of testnet
 	std::string _port;
+	unsigned int _gzip_conversion;
 	T* exchange_client; // user client obj
 
 
@@ -32,6 +33,7 @@ public:
 	void _set_reconnect(const bool& reconnect);
 
 	void set_host_port(const std::string new_host, const unsigned int new_port);
+	void set_gzip_conversion(const unsigned int state);
 
 	~WebsocketClient();
 

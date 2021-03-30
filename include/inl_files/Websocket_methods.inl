@@ -1073,7 +1073,7 @@ unsigned int OpsClient::v_stream_userStream(std::string& buffer, FT& functor, co
 template <typename FT>
 unsigned int OpsClient::v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
 {
-	std::string stream_name = symbol + '@' + "trade";
+	std::string stream_name = symbol + '@' + "depth10"; // todo: revert to tradfe
 	std::string stream_query = "/ws/" + stream_name;
 	if (this->_ws_client->is_open(stream_query))
 	{
@@ -1209,6 +1209,10 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 	if (ws.is_open()) // change back to is open
 	{
 		this->running_streams[stream_map_name] = 1;
+		if (this->_gzip_conversion)
+		{
+			ws.write(net::buffer(std::string("{\"method\":\"BINARY\", \"params\":[\"false\"], \"id\":1}")));
+		}
 	}
 	else
 	{
@@ -1238,6 +1242,7 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 				if (!this->_reconnect_on_error) this->running_streams[stream_map_name] = 0; // to exit loop if not retry
 				break;
 			}
+			else if (buf == "{\"id\":1}") continue;
 
 			functor(buf);
 			buf.clear();

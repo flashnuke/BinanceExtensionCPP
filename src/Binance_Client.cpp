@@ -7381,6 +7381,7 @@ OpsClient::~OpsClient()
 void OpsClient::v_init_ws_session()
 {
 	this->_ws_client->set_host_port(_WS_BASE_OPS, _WS_PORT_OPS);
+	this->_ws_client->set_gzip_conversion(1);
 }
 
 /**
