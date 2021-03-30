@@ -447,7 +447,7 @@ private:
 	// -- Global that are going deeper to USDT and COIN
 
 	template <typename FT>
-	unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor);
+	unsigned int v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor);
 
 public:
 	friend Client<FuturesClient<CT>>;
@@ -837,7 +837,7 @@ private:
 	// WS Streams
 
 	template <typename FT>
-	unsigned int v_stream_Trade(std::string symbol, std::string& buffer, FT& functor);
+	unsigned int v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor);
 
 
 	// crtp infrastructure start

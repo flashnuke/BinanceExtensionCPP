@@ -62,7 +62,7 @@ unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor, c
 	@return an unsigned int representing success
 */
 template <typename FT>
-unsigned int SpotClient::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
+unsigned int SpotClient::v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
 {
 	std::string stream_name = symbol + '@' + "trade";
 	std::string stream_query = "/ws/" + stream_name;
@@ -114,7 +114,7 @@ unsigned int FuturesClient<CT>::stream_markprice(const std::string& symbol, std:
 */
 template <typename CT>
 template <typename FT>
-unsigned int FuturesClient<CT>::v_stream_Trade(std::string symbol, std::string& buffer, FT& functor)
+unsigned int FuturesClient<CT>::v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
 {
 	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
@@ -1026,6 +1026,28 @@ unsigned int Client<T>::custom_stream(const std::string stream_name, std::string
 }
 
 /**
+	Open trade stream
+	@param symbol - a string reference of the symbol
+	@param buffer - a reference of the string buffer to load responses to
+	@param functor - a reference to the functor object to be called as callback
+	@return an unsigned int representing success
+*/
+template<typename T>
+template <typename FT>
+unsigned int Client<T>::stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
+{
+	try
+	{
+		return static_cast<T*>(this)->v_stream_Trade(symbol, buffer, functor);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
 	Start userstream (Ops)
 	@param buffer - a reference of the string buffer to load responses to
 	@param functor - a reference to the functor object to be called as callback
@@ -1051,10 +1073,16 @@ unsigned int OpsClient::v_stream_userStream(std::string& buffer, FT& functor, co
 template <typename FT>
 unsigned int OpsClient::v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
 {
-	BadStreamOpenWS e{};
-    e.append_to_traceback(std::string(__FUNCTION__));
-    throw(e);
+	std::string stream_name = symbol + '@' + "trade";
+	std::string stream_query = "/ws/" + stream_name;
+	if (this->_ws_client->is_open(stream_query))
+	{
+		this->_ws_client->close_stream(stream_query);
+	}
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+	return this->_ws_client->running_streams[stream_query];
 }
+
 /**
 	Start kline (candlesticks) stream
 	@param symbol - the symbol
@@ -1063,7 +1091,6 @@ unsigned int OpsClient::v_stream_Trade(const std::string& symbol, std::string& b
 	@param interval - interval of the responses, part of the query
 	@return an unsigned int representing success
 */
-
 template <typename FT>
 unsigned int OpsClient::v_stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval)
 {
@@ -1071,6 +1098,7 @@ unsigned int OpsClient::v_stream_kline(const std::string& symbol, std::string& b
     e.append_to_traceback(std::string(__FUNCTION__));
     throw(e);
 }
+
 /**
 	Start ticker stream (individual)
 	@param symbol - the symbol

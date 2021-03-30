@@ -18,6 +18,7 @@ const std::string _WS_BASE_OPS{ "vstream.binance.com" };
 const std::string _WS_BASE_OPS_TESTNET{ "testnetws.binanceops.com" };
 const unsigned int _WS_PORT_SPOT{ 9443 };
 const unsigned int _WS_PORT_FUTURES{ 443 };
+const unsigned int _WS_PORT_OPS{ 443 };
 
 /**
 	An abstract constructor - called by the CRTP lower classes
@@ -537,29 +538,6 @@ Json::Value Client<T>::account_trades_list(const Params* params_ptr)
 //  ------------------------------ End | Client CRTP methods - Trade Endpoints
 
 //  ------------------------------ Start | Client global + CRTP methods - WS Streams
-
-
-/**
-	Open trade stream
-	@param symbol - a string reference of the symbol
-	@param buffer - a reference of the string buffer to load responses to
-	@param functor - a reference to the functor object to be called as callback
-	@return an unsigned int representing success
-*/
-template<typename T>
-template <typename FT>
-unsigned int Client<T>::stream_Trade(const std::string& symbol, std::string& buffer, FT& functor)
-{
-	try
-	{
-	return static_cast<T*>(this)->v_stream_Trade(symbol, buffer, functor); 
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
 
 
 //  ------------------------------ End | Client Global + CRTP methods - WS Streams
@@ -7402,10 +7380,7 @@ OpsClient::~OpsClient()
 */
 void OpsClient::v_init_ws_session()
 {
-	//this->_ws_client->set_host_port(_WS_BASE_SPOT, _WS_PORT_SPOT);
-	BadStreamOpenWS e{};
-    e.append_to_traceback(std::string(__FUNCTION__));
-    throw(e);
+	this->_ws_client->set_host_port(_WS_BASE_OPS, _WS_PORT_OPS);
 }
 
 /**
