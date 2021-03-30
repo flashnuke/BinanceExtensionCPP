@@ -155,7 +155,8 @@ For Microsoft compilers set the following flags for better runtime performance:
 
 
 # Release Notes
-Please see here https://github.com/adanikel/BinanceExtensionCPP/releases/
+### Latest version release - 2.0
+Please see release notes here https://github.com/adanikel/BinanceExtensionCPP/releases/
 
 # Links
 * [CRTP Method - Info](https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern)
