@@ -931,13 +931,10 @@ private:
 
 
 	template <typename FT>
-	unsigned int v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor); // todo: define
+	unsigned int v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor);
 
 	template <typename FT>
-	unsigned int v_stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h"); // todo: define
-
-	template <typename FT>
-	unsigned int v_stream_ticker_ind(const std::string& symbol, std::string& buffer, FT& functor); // todo: define
+	unsigned int v_stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h");
 
 	template <typename FT>
 	unsigned int v_stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int levels = 10, const unsigned int interval = 0); // todo: define
