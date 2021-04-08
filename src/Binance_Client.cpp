@@ -7969,8 +7969,77 @@ void Params::flush_params()
 //  ------------------------------ Start | Explicit template instantiations
 
 template class Client<SpotClient>;
+
 template class Client<FuturesClient<FuturesClientUSDT>>;
+template Json::Value FuturesClient<FuturesClientUSDT>::get_position_mode(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::change_position_mode(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::get_position_mode(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::batch_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::cancel_batch_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::cancel_all_orders_timer(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::query_open_order(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::account_balances(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::change_leverage(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::change_margin_type(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::change_position_margin(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::change_position_margin_history(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::position_info(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::get_income_history(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::get_leverage_bracket(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::users_force_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::pos_adl_quantile_est(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::get_user_comission_rate(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::api_quant_trading_rules(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::get_blvt_kline_history(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::get_composite_index_symbol_info(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::mark_price(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::public_liquidation_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::open_interest(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::composite_index_symbol_info(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::continues_klines(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::index_klines(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::mark_klines(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::funding_rate_history(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::open_interest_stats(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::top_long_short_ratio(const Params* params_ptr, bool accounts);
+template Json::Value FuturesClient<FuturesClientUSDT>::global_long_short_ratio(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::taker_long_short_ratio(const Params* params_ptr);
+
 template class Client<FuturesClient<FuturesClientCoin>>;
+template Json::Value FuturesClient<FuturesClientCoin>::get_position_mode(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::change_position_mode(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::get_position_mode(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::batch_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::cancel_batch_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::cancel_all_orders_timer(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::query_open_order(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::account_balances(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::change_leverage(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::change_margin_type(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::change_position_margin(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::change_position_margin_history(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::position_info(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::get_income_history(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::get_leverage_bracket(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::users_force_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::pos_adl_quantile_est(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::get_user_comission_rate(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::api_quant_trading_rules(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::get_blvt_kline_history(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::get_composite_index_symbol_info(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::mark_price(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::public_liquidation_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::open_interest(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::composite_index_symbol_info(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::continues_klines(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::index_klines(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::mark_klines(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::funding_rate_history(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::open_interest_stats(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::top_long_short_ratio(const Params* params_ptr, bool accounts);
+template Json::Value FuturesClient<FuturesClientCoin>::global_long_short_ratio(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::taker_long_short_ratio(const Params* params_ptr);
+
 template class Client<OpsClient>;
 
 template void Params::set_param<int>(const std::string& key, const int& value);
