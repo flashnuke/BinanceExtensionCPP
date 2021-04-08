@@ -157,7 +157,7 @@ For Microsoft compilers set the following flags for better runtime performance:
 
 
 # Release Notes
-### Latest version release - 2.0
+### Latest version release - 2.1
 Please see release notes here https://github.com/adanikel/BinanceExtensionCPP/releases/
 
 # Links
