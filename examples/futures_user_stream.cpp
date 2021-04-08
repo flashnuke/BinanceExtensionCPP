@@ -37,8 +37,8 @@ int main()
     try
     {
 
-        std::string api_key{ "9O8V9okoCPdmIoAOtC3WLytPVYLyHDgodZYuZ7I7WrAlEXkdmYehivF7RQyzO2aP" };
-        std::string api_secret{ "7Uw0zlAMBaSd6wRGWIpU9qPmFhLq29qbGhOjvVetCL51t4E9m3VlU4c7JBp5lrUa" };
+        std::string api_key{ "key" };
+        std::string api_secret{ "secret" };
 
         FuturesClientUSDT my_client{ api_key, api_secret };
         SomeFunctor ws_stream_read{};
