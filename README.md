@@ -148,6 +148,7 @@ For Microsoft compilers set the following flags for better runtime performance:
 * `custom_ws_stream.cpp` = Starting a custom stream
 * `fetch_ticker_rest.cpp` = Fetching a ticker once using REST
 * `options_trade_stream.cpp` = Connecting to "Trades" stream in Vanilla Options
+* `futures_user_stream.cpp` = Start a userstream for Futures account
 
 
 # Lined up
