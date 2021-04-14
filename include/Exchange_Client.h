@@ -896,15 +896,6 @@ private:
 	Json::Value v_open_orders(const Params* params_ptr);
 	Json::Value v_all_orders(const Params* params_ptr);
 
-	// ---- general methods
-
-	Json::Value funds_transfer(const Params* params_ptr);
-	Json::Value holding_info(const Params* params_ptr = nullptr);
-	Json::Value account_funding_flow(const Params* params_ptr);
-	Json::Value batch_orders(const Params* params_ptr);
-	Json::Value cancel_batch_orders(const Params* params_ptr);
-
-
 	// crtp - missing endpoints
 
 	Json::Value v_public_trades_agg(const Params* params_ptr = nullptr);
@@ -942,6 +933,15 @@ public:
 
 	Json::Value get_spot_index_price(const Params* params_ptr);
 	Json::Value get_mark_price(const Params* params_ptr = nullptr);
+
+
+	// ---- general methods
+
+	Json::Value funds_transfer(const Params* params_ptr);
+	Json::Value holding_info(const Params* params_ptr = nullptr);
+	Json::Value account_funding_flow(const Params* params_ptr);
+	Json::Value batch_orders(const Params* params_ptr);
+	Json::Value cancel_batch_orders(const Params* params_ptr);
 
 	bool _testnet_mode;
 

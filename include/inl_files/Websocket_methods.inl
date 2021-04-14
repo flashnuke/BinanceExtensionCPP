@@ -1058,10 +1058,14 @@ unsigned int Client<T>::stream_Trade(const std::string& symbol, std::string& buf
 template <typename FT>
 unsigned int OpsClient::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
-	BadStreamOpenWS e{};
-    e.append_to_traceback(std::string(__FUNCTION__));
-    throw(e);
-
+	std::string stream_name = this->get_listen_key();
+	std::string stream_query = "/ws/" + stream_name;
+	if (this->_ws_client->is_open(stream_query))
+	{
+		this->_ws_client->close_stream(stream_query);
+	}
+	this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor, ping_listen_key);
+	return this->_ws_client->running_streams[stream_query];
 }
 
 /**

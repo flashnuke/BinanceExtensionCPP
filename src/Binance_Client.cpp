@@ -7411,7 +7411,7 @@ bool OpsClient::get_testnet_mode()
 std::string OpsClient::v_get_listen_key()
 {
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
-	full_path += _BASE_REST_OPS + "/vapi/v1/userDataStream";
+	full_path += "/vapi/v1/userDataStream";
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
 	return response["response"]["listenKey"].asString();
