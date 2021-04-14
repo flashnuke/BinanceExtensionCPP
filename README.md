@@ -102,6 +102,8 @@ All (except for ones that don't have mandatory parameters) REST request methods 
 - #### Custom Requests
 	You can send a custom request, using `custom_{request_type}_req() method`.
 	<br /> This method accepts four arguments: `base_path` std::string, `endpoint`std::string, `Params` object, and `sign_request` bool (true = append signature to request body).
+- #### Debugging
+	You can set verbose mode for debugging, which will make all rest requests verbose. `my_client.rest_set_verbose(1);`
 - #### Notes
    		 1. There are four curl handles that are alive throughout the entire life of a RestSession object, one for each request type: PUT, DELETE, POST, GET.
    		 2. In order to avoid race conditions by using the same handle at the same time for different requests, mutex is used.
