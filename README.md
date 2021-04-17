@@ -22,12 +22,20 @@ In order to use this library, you must have all dependencies installed. Only one
 <br />Note that `.inl` files are included inside the main header.
 <br /> <br />
 <br />You must initialize a `Client` object, which is one of the following: *[SpotClient, FuturesClientUSDT, FuturesClientCoin, OpsClient]*
-<br /> **Unique methods** - In order to use *[Wallet, FuturesWallet, SubAccount, MarginAccount, Savings, Mining]* endpoints, they should be initialized from within other Client classes, and by passing the Client object to the constructor.					
+### Unique methods
+Many endpoints are divided by category into different structs inside `Client`. In order to use them, you must instantiate a struct object first. 
+- Wallet 
+- FuturesWallet
+- SubAccount
+- MarginAccount
+- Savings
+- Mining
+- BLVT
+- BSWAP
+They should be initialized from within other Client classes, and by passing the Client object to the constructor.					
 i.e:
  >SpotClient::Wallet my_wallet{ my_client_obj }. 
  
-<br /> Each of the aforementioned is a struct inside `Client` that contains methods.
-
 ## Exchange client
 In order to initialize a client that is not public, api-key and api-secret must be passed in std::string format to the constructor.
 > FuturesClientUSDT(api_key, api_secret)
