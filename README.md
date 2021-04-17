@@ -164,7 +164,7 @@ For Microsoft compilers set the following flags for better runtime performance:
 # Lined up
 * constexpr for endpoints + api base after the release of c++20 (constexpr support for `std::string`)
 
-**Latest `Version` update: `2020-08-04` (Binance API Changelogs have been implemented up to this date)**
+**Latest `Version` update: `2020-18-04` (Binance API Changelogs have been implemented up to this date)**
 
 
 # Release Notes
