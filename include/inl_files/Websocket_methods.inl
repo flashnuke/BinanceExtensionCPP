@@ -12,7 +12,7 @@
 */
 template <typename T>
 template <typename FT>
-unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key, const bool& isolated_margin_type)
+unsigned int Client<T>::MarginAccount::margin_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key, const bool& isolated_margin_type)
 {
 	try
 	{
@@ -41,7 +41,7 @@ unsigned int Client<T>::MarginAccount::margin_stream_userStream(std::string& buf
 	@return an unsigned int representing success
 */
 template <typename FT>
-unsigned int SpotClient::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
+unsigned int SpotClient::v_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
 	std::string stream_name = this->get_listen_key();
 	std::string stream_query = "/ws/" + stream_name;
@@ -387,11 +387,11 @@ unsigned int FuturesClient<CT>::stream_composite_index_symbol(std::string& buffe
 }
 
 /**
-	CRTP of stream_userStream
+	CRTP of stream_userstream
 */
 template<typename CT>
 template <typename FT>
-unsigned int FuturesClient<CT>::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key) { return static_cast<CT*>(this)->v__stream_userStream(buffer, functor, ping_listen_key); }
+unsigned int FuturesClient<CT>::v_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key) { return static_cast<CT*>(this)->v__stream_userstream(buffer, functor, ping_listen_key); }
 
 /**
 	CRTP of stream_markprice_all
@@ -465,10 +465,10 @@ unsigned int FuturesClientUSDT::v_stream_kline_markprice(const std::string& symb
 }
 
 /**
-	CRTP of v_stream_userStream
+	CRTP of v_stream_userstream
 */
 template <typename FT>
-unsigned int FuturesClientUSDT::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
+unsigned int FuturesClientUSDT::v__stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
 	std::string stream_name = this->get_listen_key();
 	std::string stream_query = "/ws/" + stream_name;
@@ -667,10 +667,10 @@ unsigned int FuturesClientUSDT::v_stream_composite_index_symbol(std::string& buf
 }
 
 /**
-	CRTP of v_stream_userStream
+	CRTP of v_stream_userstream
 */
 template <typename FT>
-unsigned int FuturesClientCoin::v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
+unsigned int FuturesClientCoin::v__stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
 	std::string stream_name = this->get_listen_key();
 	std::string stream_query = "/ws/" + stream_name;
@@ -978,16 +978,16 @@ unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string
 	Start User Stream
 	@param buffer - a reference of the string buffer to load responses to
 	@param functor - a reference to the functor object to be called as callback
-	@param ping_listen_key - if true, will ping listen key 
+	@param ping_listen_key - if true, will ping listen key
 	@return an unsigned int representing success
 */
 template<typename T>
 template <typename FT>
-unsigned int Client<T>::stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
+unsigned int Client<T>::stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
 	try
 	{
-		return static_cast<T*>(this)->v_stream_userStream(buffer, functor, ping_listen_key);
+		return static_cast<T*>(this)->v_stream_userstream(buffer, functor, ping_listen_key);
 	}
 	catch (ClientException e)
 	{
@@ -1056,7 +1056,7 @@ unsigned int Client<T>::stream_Trade(const std::string& symbol, std::string& buf
 	@return an unsigned int representing success
 */
 template <typename FT>
-unsigned int OpsClient::v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key)
+unsigned int OpsClient::v_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key)
 {
 	std::string stream_name = this->get_listen_key();
 	std::string stream_query = "/ws/" + stream_name;
@@ -1253,7 +1253,7 @@ void WebsocketClient<T>::_connect_to_endpoint(const std::string stream_map_name,
 			e.append_to_traceback(std::string(__FUNCTION__));
 			throw(e);
 		}
-	} 
+	}
 	try
 	{
 		ws.close(beast::websocket::close_code::normal, ec);

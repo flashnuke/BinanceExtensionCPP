@@ -133,7 +133,7 @@ public:
 	unsigned int stream_depth_diff(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int interval = 100);
 
 	template <typename FT>
-	unsigned int stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key = 0);
+	unsigned int stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key = 0);
 
 	std::string get_listen_key();
 	Json::Value ping_listen_key(const std::string& listen_key = ""); // only spot requires key
@@ -300,7 +300,7 @@ public:
 		Json::Value query_margin_interest_rate_history(const Params* params_ptr);
 
 		template <typename FT>
-		unsigned int margin_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key = 0, const bool& isolated_margin_type = 0);
+		unsigned int margin_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key = 0, const bool& isolated_margin_type = 0);
 		std::string margin_get_listen_key();
 		std::string margin_isolated_get_listen_key(const std::string symbol);
 		Json::Value margin_ping_listen_key(const std::string& listen_key);
@@ -322,7 +322,7 @@ public:
 		Json::Value get_product_daily_quota_purchase_flexible(const Params* params_ptr);
 		Json::Value purchase_product_flexible(const Params* params_ptr);
 		Json::Value get_product_daily_quota_redemption_flexible(const Params* params_ptr);
-		Json::Value redeem_product_flexible(const Params* params_ptr); 
+		Json::Value redeem_product_flexible(const Params* params_ptr);
 		Json::Value get_product_position_flexible(const Params* params_ptr);
 		Json::Value get_product_list_fixed(const Params* params_ptr);
 		Json::Value purchase_product_fixed(const Params* params_ptr);
@@ -396,8 +396,8 @@ public:
 	template <typename FT>
 	unsigned int custom_stream(const std::string stream_name, std::string& buffer, FT& functor, const bool ping_listen_key = 0);
 
-	RestSession* _rest_client = nullptr; 
-	WebsocketClient<T>* _ws_client = nullptr; 
+	RestSession* _rest_client = nullptr;
+	WebsocketClient<T>* _ws_client = nullptr;
 
 	~Client();
 
@@ -418,7 +418,7 @@ private:
 
 	// market data
 
-	bool v_ping_client();  
+	bool v_ping_client();
 	unsigned long long v_exchange_time();
 	Json::Value v_exchange_info();
 	Json::Value v_order_book(const Params* params_ptr);
@@ -488,7 +488,7 @@ public:
 
 	Json::Value mark_price(const Params* params_ptr = nullptr);
 	Json::Value public_liquidation_orders(const Params* params_ptr);
-	Json::Value open_interest(const Params* params_ptr); 
+	Json::Value open_interest(const Params* params_ptr);
 	Json::Value composite_index_symbol_info(const Params* params_ptr);
 
 
@@ -540,7 +540,7 @@ public:
 	unsigned int stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
 
 	template <typename FT>
-	unsigned int v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
+	unsigned int v_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key);
 
 
 
@@ -637,13 +637,13 @@ private:
 
 	template <typename FT>
 	unsigned int v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
-	
+
 	template <typename FT>
 	unsigned int v_stream_blvt_info(std::string& buffer, FT& functor, std::string token_name); // only USDT
-	
+
 	template <typename FT>
 	unsigned int v_stream_blvt_klines(std::string& buffer, FT& functor, std::string token_name, std::string interval); // only USDT
-	
+
 	template <typename FT>
 	unsigned int v_stream_composite_index_symbol(std::string& buffer, FT& functor, std::string token_name); // only USDT
 
@@ -657,7 +657,7 @@ private:
 	unsigned int v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval); // only coin
 
 	template <typename FT>
-	unsigned int v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
+	unsigned int v__stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key);
 
 	std::string v__get_listen_key();
 	Json::Value v__ping_listen_key();
@@ -736,8 +736,8 @@ private:
 	Json::Value v_get_income_history(const Params* params_ptr);
 	Json::Value v_get_leverage_bracket(const Params* params_ptr);
 	Json::Value v_users_force_orders(const Params* params_ptr = nullptr);
-	Json::Value v_pos_adl_quantile_est(const Params* params_ptr = nullptr); 
-	Json::Value v_get_user_comission_rate(const Params* params_ptr); 
+	Json::Value v_pos_adl_quantile_est(const Params* params_ptr = nullptr);
+	Json::Value v_get_user_comission_rate(const Params* params_ptr);
 	Json::Value v_api_quant_trading_rules(const Params* params_ptr = nullptr);
 	Json::Value v_get_blvt_kline_history(const Params* params_ptr);
 	Json::Value v_get_composite_index_symbol_info(const Params* params_ptr = nullptr);
@@ -755,7 +755,7 @@ private:
 
 	template <typename FT>
 	unsigned int v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
-	
+
 	template <typename FT>
 	unsigned int v_stream_blvt_info(std::string& buffer, FT& functor, std::string token_name); // only USDT
 
@@ -775,7 +775,7 @@ private:
 	unsigned int v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval); // only coin
 
 	template <typename FT>
-	unsigned int v__stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
+	unsigned int v__stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key);
 
 	std::string v__get_listen_key();
 	Json::Value v__ping_listen_key();
@@ -786,7 +786,7 @@ public:
 
 	FuturesClientCoin();
 	FuturesClientCoin(const std::string key, const std::string secret);
-	
+
 	~FuturesClientCoin();
 };
 
@@ -845,7 +845,7 @@ private:
 	void v_init_ws_session();
 
 	template <typename FT>
-	unsigned int v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key);
+	unsigned int v_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key);
 	std::string v_get_listen_key();
 	Json::Value v_ping_listen_key(const std::string& listen_key);
 	Json::Value v_revoke_listen_key(const std::string& listen_key);
@@ -895,13 +895,13 @@ private:
 	Json::Value v_query_order(const Params* params_ptr);
 	Json::Value v_open_orders(const Params* params_ptr);
 	Json::Value v_all_orders(const Params* params_ptr);
+	Json::Value v_account_trades_list(const Params* params_ptr = nullptr);
 
 	// crtp - missing endpoints
 
 	Json::Value v_public_trades_agg(const Params* params_ptr = nullptr);
 	Json::Value v_get_order_book_ticker(const Params* params_ptr = nullptr);
 	Json::Value v_daily_ticker_stats(const Params* params_ptr = nullptr);
-	Json::Value v_account_trades_list(const Params* params_ptr = nullptr);
 
 	// WS Streams
 
@@ -910,7 +910,7 @@ private:
 	void v_init_ws_session(); // todo: define (what is the port??? gzip used??)
 
 	template <typename FT>
-	unsigned int v_stream_userStream(std::string& buffer, FT& functor, const bool ping_listen_key); // todo: define
+	unsigned int v_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key); // todo: define
 
 	std::string v_get_listen_key();
 	Json::Value v_ping_listen_key(const std::string& listen_key);
@@ -925,8 +925,8 @@ private:
 
 
 	// crtp infrastructure end
-	
-;
+
+	;
 
 public:
 	friend Client;

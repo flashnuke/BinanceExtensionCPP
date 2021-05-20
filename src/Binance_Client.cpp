@@ -7740,6 +7740,19 @@ Json::Value OpsClient::v_all_orders(const Params* params_ptr)
 }
 
 /**
+	CRTP of account_trades_list()
+*/
+Json::Value OpsClient::v_account_trades_list(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_OPS : _BASE_REST_OPS_TESTNET;
+	full_path += "/vapi/v1/userTrades" + query;
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+
+	return response;
+}
+
+/**
 	CRTP of public_trades_agg()
 */
 Json::Value OpsClient::v_public_trades_agg(const Params* params_ptr)
@@ -7767,15 +7780,7 @@ Json::Value OpsClient::v_daily_ticker_stats(const Params* params_ptr)
 	e.append_to_traceback(std::string(__FUNCTION__));
 	throw(e);
 }
-/**
-	CRTP of account_trades_list()
-*/
-Json::Value OpsClient::v_account_trades_list(const Params* params_ptr)
-{
-	MissingEndpoint e{};
-	e.append_to_traceback(std::string(__FUNCTION__));
-	throw(e);
-}
+
 
 // WIP
 
