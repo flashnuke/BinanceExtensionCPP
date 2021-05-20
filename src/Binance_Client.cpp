@@ -7973,7 +7973,6 @@ template class Client<SpotClient>;
 template class Client<FuturesClient<FuturesClientUSDT>>;
 template Json::Value FuturesClient<FuturesClientUSDT>::get_position_mode(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::change_position_mode(const Params* params_ptr);
-template Json::Value FuturesClient<FuturesClientUSDT>::get_position_mode(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::batch_orders(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::cancel_batch_orders(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::cancel_all_orders_timer(const Params* params_ptr);
@@ -8008,7 +8007,6 @@ template Json::Value FuturesClient<FuturesClientUSDT>::taker_long_short_ratio(co
 template class Client<FuturesClient<FuturesClientCoin>>;
 template Json::Value FuturesClient<FuturesClientCoin>::get_position_mode(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::change_position_mode(const Params* params_ptr);
-template Json::Value FuturesClient<FuturesClientCoin>::get_position_mode(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::batch_orders(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::cancel_batch_orders(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::cancel_all_orders_timer(const Params* params_ptr);
