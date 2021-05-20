@@ -9,7 +9,7 @@ const std::string _BASE_REST_FUTURES_TESTNET{ "https://testnet.binancefuture.com
 const std::string _BASE_REST_SPOT{ "https://api.binance.com" };
 const std::string _BASE_REST_OPS{ "https://vapi.binance.com" };
 const std::string _BASE_REST_OPS_TESTNET{ "https://testnet.binanceops.com" };
-const std::string _WS_BASE_FUTURES_USDT{ "fstream.binance.com" };
+const std::string _WS_BASE_FUTURES_USDT{ "fstream2.binance.com" };
 const std::string _WS_BASE_FUTURES_USDT_TESTNET{ "stream.binancefuture.com" };
 const std::string _WS_BASE_FUTURES_COIN{ "dstream.binance.com" };
 const std::string _WS_BASE_FUTURES_COIN_TESTNET{ "dstream.binancefuture.com" };
