@@ -22,7 +22,7 @@ unsigned int Client<T>::MarginAccount::margin_stream_userstream(std::string& buf
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor, ping_listen_key);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor, ping_listen_key);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -94,7 +94,7 @@ unsigned int FuturesClient<CT>::stream_markprice(const std::string& symbol, std:
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -281,7 +281,7 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders(const std::string& sym
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -309,7 +309,7 @@ unsigned int FuturesClient<CT>::stream_liquidation_orders_all(std::string& buffe
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -701,7 +701,7 @@ unsigned int  Client<T>::stream_aggTrade(const std::string& symbol, std::string&
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -731,7 +731,7 @@ unsigned int Client<T>::stream_kline(const std::string& symbol, std::string& buf
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -760,7 +760,7 @@ unsigned int Client<T>::stream_ticker_ind_mini(const std::string& symbol, std::s
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -788,7 +788,7 @@ unsigned int Client<T>::stream_ticker_all_mini(std::string& buffer, FT& functor)
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -817,7 +817,7 @@ unsigned int Client<T>::stream_ticker_ind(const std::string& symbol, std::string
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -845,7 +845,7 @@ unsigned int Client<T>::stream_ticker_all(std::string& buffer, FT& functor)
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -874,7 +874,7 @@ unsigned int Client<T>::stream_ticker_ind_book(const std::string& symbol, std::s
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -902,7 +902,7 @@ unsigned int Client<T>::stream_ticker_all_book(std::string& buffer, FT& functor)
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -934,7 +934,7 @@ unsigned int Client<T>::stream_depth_partial(const std::string& symbol, std::str
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -964,7 +964,7 @@ unsigned int Client<T>::stream_depth_diff(const std::string& symbol, std::string
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor);
 		return this->_ws_client->running_streams[stream_query];
 	}
 	catch (ClientException e)
@@ -1015,7 +1015,7 @@ unsigned int Client<T>::custom_stream(const std::string stream_name, std::string
 		{
 			this->_ws_client->close_stream(stream_query);
 		}
-		this->_ws_client->_stream_manager<FT>(stream_name, stream_query, buffer, functor, ping_listen_key);
+		this->_ws_client->template _stream_manager<FT>(stream_name, stream_query, buffer, functor, ping_listen_key);
 		return this->_ws_client->running_streams[stream_query];
 
 	}
