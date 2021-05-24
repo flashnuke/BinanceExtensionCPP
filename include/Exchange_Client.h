@@ -289,7 +289,6 @@ public:
 		Json::Value margin_account_trades_list(const Params* params_ptr);
 		Json::Value margin_max_borrow(const Params* params_ptr);
 		Json::Value margin_max_transfer(const Params* params_ptr);
-		Json::Value margin_isolated_margin_create(const Params* params_ptr);
 		Json::Value margin_isolated_margin_transfer(const Params* params_ptr);
 		Json::Value margin_isolated_margin_transfer_history(const Params* params_ptr);
 		Json::Value margin_isolated_margin_account_info(const Params* params_ptr = nullptr);
@@ -490,16 +489,14 @@ public:
 	Json::Value public_liquidation_orders(const Params* params_ptr);
 	Json::Value open_interest(const Params* params_ptr);
 	Json::Value composite_index_symbol_info(const Params* params_ptr);
-
-
-	// note that the following four might be only for coin margined market data
 	Json::Value continues_klines(const Params* params_ptr);
 	Json::Value index_klines(const Params* params_ptr);
 	Json::Value mark_klines(const Params* params_ptr);
 
-	// note that the following four might be only for coin margined market data
-
+	// note that the following three methods are only for USDT margined market data
 	Json::Value funding_rate_history(const Params* params_ptr);
+	Json::Value change_multiasset_margin_mode(const Params* params_ptr);
+	Json::Value check_multiasset_margin_mode(const Params* params_ptr = nullptr);
 
 	// WS Streams
 
@@ -586,6 +583,8 @@ private:
 	Json::Value v_mark_klines(const Params* params_ptr);
 
 	Json::Value v_funding_rate_history(const Params* params_ptr);
+	Json::Value v_change_multiasset_margin_mode(const Params* params_ptr);
+	Json::Value v_check_multiasset_margin_mode(const Params* params_ptr = nullptr);
 
 
 	// trading endpoints
@@ -703,8 +702,13 @@ private:
 	Json::Value v_continues_klines(const Params* params_ptr);
 	Json::Value v_index_klines(const Params* params_ptr);
 	Json::Value v_mark_klines(const Params* params_ptr);
+	
+	// Missing endpoints for Coin margined 
 
 	Json::Value v_funding_rate_history(const Params* params_ptr);
+	Json::Value v_change_multiasset_margin_mode(const Params* params_ptr);
+	Json::Value v_check_multiasset_margin_mode(const Params* params_ptr = nullptr);
+
 
 	// trading endpoints
 
