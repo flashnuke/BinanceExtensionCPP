@@ -768,6 +768,7 @@ std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sig
 	{
 		BadQuery e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
