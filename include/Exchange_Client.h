@@ -486,7 +486,6 @@ public:
 	 // market Data
 
 	Json::Value mark_price(const Params* params_ptr = nullptr);
-	Json::Value public_liquidation_orders(const Params* params_ptr);
 	Json::Value open_interest(const Params* params_ptr);
 	Json::Value composite_index_symbol_info(const Params* params_ptr);
 	Json::Value continues_klines(const Params* params_ptr);
@@ -575,7 +574,6 @@ private:
 	// market Data
 
 	Json::Value v_mark_price(const Params* params_ptr);
-	Json::Value v_public_liquidation_orders(const Params* params_ptr);
 	Json::Value v_open_interest(const Params* params_ptr);
 	Json::Value v_composite_index_symbol_info(const Params* params_ptr = nullptr);
 	Json::Value v_continues_klines(const Params* params_ptr);
@@ -696,7 +694,6 @@ private:
 	// market Data
 
 	Json::Value v_mark_price(const Params* params_ptr);
-	Json::Value v_public_liquidation_orders(const Params* params_ptr);
 	Json::Value v_open_interest(const Params* params_ptr);
 	Json::Value v_composite_index_symbol_info(const Params* params_ptr = nullptr);
 	Json::Value v_continues_klines(const Params* params_ptr);
