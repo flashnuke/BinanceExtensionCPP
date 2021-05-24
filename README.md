@@ -83,7 +83,7 @@ In order to initialize a client that is not public, api-key and api-secret must 
     <br />ClientException base class contains a `what()` method which returns a `c-string` which is a 
     description of the problem and a traceback.
     <br />Each time an exception is thrown and a function inside the library catches it, the name of the method will be
-     appended to the traceback using the `__FUCNTION__` macro and later on also added to `what()` `c-string`.
+     appended to the traceback using the `__FUNCTION__` macro and later on also added to `what()` `c-string`.
     <br />
     <br />The main idea is to `catch(ClientException& e)` in order handle any exception which is one of the aforementioned,
     since they are all derived. It is also possible to `catch()` a specific exception.
@@ -142,12 +142,22 @@ Each time a client object is created, a websocket client is also instantiated. I
 		3. For options client streams, conversion from gzip to binary is performed when the stream is set up.
 		4. For all options websocket streams, only `interval = 0` is supported. Otherwise, no stream will be established
 
-### Optimizations
-For Microsoft compilers set the following flags for better runtime performance:
+### Compilation & Optimizations
+For Microsoft compilers (Visual Studio) set the following flags for better runtime performance:
 * Optimization: /O2
 * Instrinsic functions: /Oi
 * Favor speed: /Ot
 * Frame pointers: /Oy (if available)
+
+If compiling on Linux, make sure you have the following dependencies installed:
+* sudo apt-get install libboost-all-dev
+* sudo apt-get install libjsoncpp-dev
+* sudo apt-get install libcurl4-openssl-dev
+* sudo apt-get install libssl-dev
+
+</br >and use the following command to compile: `g++ src/* -o3 -lssl -lcrypto -lcurl -lpthread -ljsoncpp -o a.out` <br />
+Make sure your `.src` file that includes the `main()` function is inside `/src`. <br />
+If the following error is encountered: `fatal error: json/json.h: No such file or directory`, you should change `#include <json/json.h>` to `#include <jsoncpp/json/json.h>` inside `include/Binance_Client.h`.
 
 # Examples
 * `orderbook_manager.cpp` = Connecting to a symbol orderbook and fetching live data + getting initial snap via REST 
