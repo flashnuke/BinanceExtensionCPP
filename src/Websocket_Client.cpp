@@ -8,7 +8,7 @@
 */
 template <typename T>
 WebsocketClient<T>::WebsocketClient(T* exchange_client, const std::string host, const unsigned int port)
-    : _host{ host }, _port{ std::to_string(port) }, _reconnect_on_error{ 0 }, exchange_client { exchange_client }, _max_reconnect_count{ 20 }
+    : _host{ host }, _port{ std::to_string(port) }, _reconnect_on_error{ 0 }, exchange_client { exchange_client }, _max_reconnect_count{ 20 }, _gzip_conversion { 0 }
 {}
 
 /**
