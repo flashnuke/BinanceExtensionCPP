@@ -5291,6 +5291,46 @@ Json::Value FuturesClient<CT>::funding_rate_history(const Params* params_ptr)
 	}
 }
 
+/**
+	Change Multi-Assets Mode
+
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::change_multiasset_margin_mode(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_change_multiasset_margin_mode(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	Check Multi-Assets Mode
+
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::check_multiasset_margin_mode(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_change_multiasset_margin_mode(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
 //  ------------------------------ End | FuturesClient CRTP methods - Unique Endpoints
 
 
@@ -6180,6 +6220,30 @@ Json::Value FuturesClientUSDT::v_funding_rate_history(const Params* params_ptr)
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/fundingRate" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
+	return response;
+}
+
+/**
+	CRTP of change_multiasset_margin_mode() - Unique for USDT margined client
+*/
+Json::Value FuturesClientUSDT::v_change_multiasset_margin_mode(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/fapi/v1/multiAssetsMargin" + query);
+	Json::Value response = (this->_rest_client)->_postreq(full_path);
+	return response;
+}
+
+/**
+	CRTP of check_multiasset_margin_mode() - Unique for USDT margined client
+*/
+Json::Value FuturesClientUSDT::v_check_multiasset_margin_mode(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/fapi/v1/multiAssetsMargin" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7303,13 +7367,33 @@ Json::Value FuturesClientCoin::v_mark_klines(const Params* params_ptr)
 }
 
 
-// ~~~ Don't exist for this client
+// ~~~ Missing endpoints for this client
 
 
 /**
 	CRTP of funding_rate_history() - Missing endpoint for this client
 */
 Json::Value FuturesClientCoin::v_funding_rate_history(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
+	CRTP of change_multiasset_margin_mode() - Missing endpoint for this client
+*/
+Json::Value FuturesClientCoin::v_change_multiasset_margin_mode(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
+	CRTP of check_multiasset_margin_mode() - Missing endpoint for this client
+*/
+Json::Value FuturesClientCoin::v_check_multiasset_margin_mode(const Params* params_ptr)
 {
 	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
