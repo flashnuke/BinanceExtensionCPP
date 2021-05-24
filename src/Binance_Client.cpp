@@ -768,6 +768,7 @@ std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sig
 	{
 		BadQuery e{};
 		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
 	}
 }
 
@@ -5955,6 +5956,7 @@ FuturesClientUSDT::~FuturesClientUSDT()
 void FuturesClientUSDT::v__init_ws_session()
 {
 	this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
+	this->_ws_client->set_gzip_conversion(0);
 }
 
 /**
