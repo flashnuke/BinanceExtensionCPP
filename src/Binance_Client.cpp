@@ -5154,25 +5154,6 @@ Json::Value FuturesClient<CT>::mark_price(const Params* params_ptr)
 }
 
 /**
-	Get Public Liquidation Orders
-	@param params_ptr - a pointer to the request Params object
-	@return json returned by the request
-*/
-template<typename CT>
-Json::Value FuturesClient<CT>::public_liquidation_orders(const Params* params_ptr) 
-{
-	try
-	{
-		return static_cast<CT*>(this)->v_public_liquidation_orders(params_ptr);
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
-/**
 	Open Interest - Get present open interest of a specific symbol
 	@param params_ptr - a pointer to the request Params object
 	@return json returned by the request
@@ -6131,18 +6112,6 @@ Json::Value FuturesClientUSDT::v_mark_price(const Params* params_ptr)
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/fapi/v1/premiumIndex" + query);
-	Json::Value response = (this->_rest_client)->_getreq(full_path);
-	return response;
-}
-
-/**
-	CRTP of public_liquidation_orders()
-*/
-Json::Value FuturesClientUSDT::v_public_liquidation_orders(const Params* params_ptr)
-{
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_USDT : _BASE_REST_FUTURES_TESTNET;
-	full_path += ("/fapi/v1/allForceOrders" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
@@ -7289,18 +7258,6 @@ Json::Value FuturesClientCoin::v_mark_price(const Params* params_ptr)
 	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/premiumIndex" + query);
-	Json::Value response = (this->_rest_client)->_getreq(full_path);
-	return response;
-}
-
-/**
-	CRTP of public_liquidation_orders()
-*/
-Json::Value FuturesClientCoin::v_public_liquidation_orders(const Params* params_ptr)
-{
-	std::string query = params_ptr ? this->_generate_query(params_ptr) : "";
-	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
-	full_path += ("/dapi/v1/allForceOrders" + query);
 	Json::Value response = (this->_rest_client)->_getreq(full_path);
 	return response;
 }
