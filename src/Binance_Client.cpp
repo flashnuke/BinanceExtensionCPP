@@ -3099,30 +3099,6 @@ Json::Value Client<T>::MarginAccount::margin_max_transfer(const Params* params_p
 };
 
 /**
-	Isolated Margin Account Transfer
-
-	@param params_ptr - a pointer to the request Params object
-	@return the json returned by the request
-*/
-template <typename T>
-Json::Value Client<T>::MarginAccount::margin_isolated_margin_create(const Params* params_ptr)
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/create";
-		std::string query = user_client->_generate_query(params_ptr, 1);
-		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
-
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-};
-
-/**
 	Get Isolated Margin Transfer
 
 	@param params_ptr - a pointer to the request Params object
