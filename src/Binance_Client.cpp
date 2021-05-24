@@ -4608,7 +4608,6 @@ void SpotClient::v_init_ws_session()
 {
 
 	this->_ws_client->set_host_port(_WS_BASE_SPOT, _WS_PORT_SPOT);
-	this->_ws_client->set_gzip_conversion(0);
 }
 
 /**
@@ -5953,7 +5952,6 @@ FuturesClientUSDT::~FuturesClientUSDT()
 void FuturesClientUSDT::v__init_ws_session()
 {
 	this->_ws_client->set_host_port(_WS_BASE_FUTURES_USDT, _WS_PORT_FUTURES);
-	this->_ws_client->set_gzip_conversion(0);
 }
 
 /**
@@ -6674,7 +6672,6 @@ void FuturesClientCoin::v__init_ws_session()
 {
 
 	this->_ws_client->set_host_port(_WS_BASE_FUTURES_COIN, _WS_PORT_FUTURES);
-	this->_ws_client->set_gzip_conversion(0);
 }
 
 /**
