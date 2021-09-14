@@ -162,21 +162,15 @@ public:
 		explicit Wallet(const Client<T>& client);
 		~Wallet();
 
-		bool exchange_status();
 		Json::Value get_all_coins(const Params* params_ptr = nullptr);
 		Json::Value daily_snapshot(const Params* params_ptr);
 		Json::Value fast_withdraw_switch(const bool& state);
-		Json::Value withdraw_balances(const Params* params_ptr, const bool& SAPI = 0);
-		Json::Value deposit_history(const Params* params_ptr = nullptr, const bool& network = 0);
-		Json::Value withdraw_history(const Params* params_ptr = nullptr, const bool& network = 0);
-		Json::Value deposit_address(const Params* params_ptr, const bool& network = 0);
-		Json::Value account_status(const Params* params_ptr = nullptr);
-		Json::Value account_status_api(const Params* params_ptr = nullptr);
-		Json::Value dust_log(const Params* params_ptr = nullptr);
+		Json::Value withdraw_balances(const Params* params_ptr);
+		Json::Value deposit_history(const Params* params_ptr = nullptr);
+		Json::Value withdraw_history(const Params* params_ptr = nullptr);
+		Json::Value deposit_address(const Params* params_ptr);
 		Json::Value dust_transfer(const Params* params_ptr);
 		Json::Value asset_dividend_records(const Params* params_ptr = nullptr);
-		Json::Value asset_details(const Params* params_ptr = nullptr);
-		Json::Value trading_fees(const Params* params_ptr = nullptr);
 		Json::Value make_user_transfer_universal(const Params* params_ptr);
 		Json::Value query_user_transfer_universal(const Params* params_ptr);
 
@@ -219,16 +213,12 @@ public:
 
 		Json::Value create_virtual_subaccount(const Params* params_ptr);
 		Json::Value query_subaccount_list_sapi(const Params* params_ptr = nullptr);
-		Json::Value get_all_subaccounts(const Params* params_ptr = nullptr);
 
-		Json::Value transfer_master_history(const Params* params_ptr);
 		Json::Value transfer_spot_subaccount_history(const Params* params_ptr = nullptr);
-		Json::Value transfer_master_to_subaccount(const Params* params_ptr);
 
 		Json::Value futures_transfer_master_history(const Params* params_ptr);
 		Json::Value futures_transfer_master_to_subaccount(const Params* params_ptr);
 
-		Json::Value get_subaccount_balances(const Params* params_ptr);
 		Json::Value get_subaccount_balances_summary(const Params* params_ptr);
 		Json::Value get_subaccount_deposit_address(const Params* params_ptr);
 		Json::Value get_subaccount_deposit_history(const Params* params_ptr);

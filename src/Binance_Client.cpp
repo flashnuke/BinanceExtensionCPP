@@ -829,26 +829,6 @@ Client<T>::Wallet::~Wallet()
 
 // ------ Endpoint methods
 
-
-/**
-	Get exchange status
-	@return bool - 1 for active, 0 for inactive
-*/
-template <typename T>
-bool Client<T>::Wallet::exchange_status() 
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/systemStatus.html";
-		return user_client->_rest_client->_getreq(full_path)["response"]["status"].asBool();
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-}
-
 /**
 	Get all coins
 	@param params_ptr - a pointer to the request Params object
@@ -928,11 +908,11 @@ Json::Value Client<T>::Wallet::fast_withdraw_switch(const bool& state)
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::Wallet::withdraw_balances(const Params* params_ptr, const bool& SAPI)
+Json::Value Client<T>::Wallet::withdraw_balances(const Params* params_ptr)
 {
 	try
 	{
-		std::string endpoint = SAPI ? "/sapi/v1/capital/withdraw/apply" : "/wapi/v3/withdraw.html";
+		std::string endpoint = "/sapi/v1/capital/withdraw/apply";
 		std::string full_path = _BASE_REST_SPOT + endpoint;
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
@@ -953,11 +933,11 @@ Json::Value Client<T>::Wallet::withdraw_balances(const Params* params_ptr, const
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::Wallet::deposit_history(const Params* params_ptr, const bool& network)
+Json::Value Client<T>::Wallet::deposit_history(const Params* params_ptr)
 {
 	try
 	{
-		std::string endpoint = network ? "/sapi/v1/capital/deposit/hisrec" : "/wapi/v3/depositHistory.html";
+		std::string endpoint = "/sapi/v1/capital/deposit/hisrec";
 		std::string full_path = _BASE_REST_SPOT + endpoint;
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
@@ -978,11 +958,11 @@ Json::Value Client<T>::Wallet::deposit_history(const Params* params_ptr, const b
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::Wallet::withdraw_history(const Params* params_ptr, const bool& network)
+Json::Value Client<T>::Wallet::withdraw_history(const Params* params_ptr)
 {
 	try
 	{
-		std::string endpoint = network ? "/sapi/v1/capital/withdraw/history" : "/wapi/v3/withdrawHistory.html";
+		std::string endpoint = "/sapi/v1/capital/withdraw/history";
 		std::string full_path = _BASE_REST_SPOT + endpoint;
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
@@ -1003,81 +983,12 @@ Json::Value Client<T>::Wallet::withdraw_history(const Params* params_ptr, const 
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::Wallet::deposit_address(const Params* params_ptr, const bool& network)
+Json::Value Client<T>::Wallet::deposit_address(const Params* params_ptr)
 {
 	try
 	{
-		std::string endpoint = network ? "/sapi/v1/capital/deposit/address" : "/wapi/v3/depositAddress.html";
+		std::string endpoint = "/sapi/v1/capital/deposit/address";
 		std::string full_path = _BASE_REST_SPOT + endpoint;
-		std::string query = user_client->_generate_query(params_ptr, 1);
-		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
-
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-};
-
-/**
-	Fetch account status detail
-	@param params_ptr - a pointer to the request Params object
-	@return the json returned by the request
-*/
-template <typename T>
-Json::Value Client<T>::Wallet::account_status(const Params* params_ptr)
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/accountStatus.html";
-		std::string query = user_client->_generate_query(params_ptr, 1);
-		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
-
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-};
-
-/**
-	Fetch account api trading status detail
-	@param params_ptr - a pointer to the request Params object
-	@return the json returned by the request
-*/
-template <typename T>
-Json::Value Client<T>::Wallet::account_status_api(const Params* params_ptr)
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/apiTradingStatus.html";
-		std::string query = user_client->_generate_query(params_ptr, 1);
-		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
-
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-};
-
-/**
-	Fetch small amounts of assets exchanged BNB records
-	@param params_ptr - a pointer to the request Params object
-	@return the json returned by the request
-*/
-template <typename T>
-Json::Value Client<T>::Wallet::dust_log(const Params* params_ptr)
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/userAssetDribbletLog.html";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
@@ -1126,52 +1037,6 @@ Json::Value Client<T>::Wallet::asset_dividend_records(const Params* params_ptr)
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/asset/assetDividend";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
-
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-};
-
-/**
-	Fetch details of assets supported on Binance
-	@param params_ptr - a pointer to the request Params object
-	@return the json returned by the request
-*/
-template <typename T>
-Json::Value Client<T>::Wallet::asset_details(const Params* params_ptr)
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/assetDetail.html";
-		std::string query = user_client->_generate_query(params_ptr, 1);
-		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
-
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-};
-
-/**
-	Fetch trade fee, values in percentage
-	@param params_ptr - a pointer to the request Params object
-	@return the json returned by the request
-*/
-template <typename T>
-Json::Value Client<T>::Wallet::trading_fees(const Params* params_ptr)
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/tradeFee.html";
-		std::string query = user_client->_generate_query(params_ptr, 1);
-		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
@@ -1811,53 +1676,6 @@ Json::Value Client<T>::SubAccount::query_subaccount_list_sapi(const Params* para
 };
 
 /**
-	Query Sub-account List(For Master Account)
-
-	@param params_ptr - a pointer to the request Params object
-	@return the json returned by the request
-*/
-template <typename T>
-Json::Value Client<T>::SubAccount::get_all_subaccounts(const Params* params_ptr)
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/list.html";
-		std::string query = user_client->_generate_query(params_ptr, 1);
-		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
-
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-};
-
-/**
-	Query Sub-account Spot Asset Transfer History(For Master Account)
-	@param params_ptr - a pointer to the request Params object
-	@return the json returned by the request
-*/
-template <typename T>
-Json::Value Client<T>::SubAccount::transfer_master_history(const Params* params_ptr)
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/transfer/history.html";
-		std::string query = user_client->_generate_query(params_ptr, 1);
-		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
-
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-};
-
-/**
 	Query Sub-account Spot Asset Transfer History (SAPI For Master Account)
 	@param params_ptr - a pointer to the request Params object
 	@return the json returned by the request
@@ -1870,29 +1688,6 @@ Json::Value Client<T>::SubAccount::transfer_spot_subaccount_history(const Params
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/sub/transfer/history";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
-
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-};
-
-/**
-	Sub-account Spot Asset Transfer(For Master Account)
-	@param params_ptr - a pointer to the request Params object
-	@return the json returned by the request
-*/
-template <typename T>
-Json::Value Client<T>::SubAccount::transfer_master_to_subaccount(const Params* params_ptr)
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/transfer.html";
-		std::string query = user_client->_generate_query(params_ptr, 1);
-		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
 
 		return response;
 	}
@@ -1939,29 +1734,6 @@ Json::Value Client<T>::SubAccount::futures_transfer_master_to_subaccount(const P
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/sub-account/futures/internalTransfer";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
-
-		return response;
-	}
-	catch (ClientException e)
-	{
-		e.append_to_traceback(std::string(__FUNCTION__));
-		throw(e);
-	}
-};
-
-/**
-	Query Sub-account Assets(For Master Account)
-	@param params_ptr - a pointer to the request Params object
-	@return the json returned by the request
-*/
-template <typename T>
-Json::Value Client<T>::SubAccount::get_subaccount_balances(const Params* params_ptr)
-{
-	try
-	{
-		std::string full_path = _BASE_REST_SPOT + "/wapi/v3/sub-account/assets.html";
-		std::string query = user_client->_generate_query(params_ptr, 1);
-		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
 		return response;
 	}
