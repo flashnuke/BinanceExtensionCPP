@@ -7,6 +7,13 @@
 
 std::mutex ob_mutex;
 
+#ifdef __unix__
+# include <unistd.h>
+#elif defined _WIN32
+# include <windows.h>
+#define sleep(x) Sleep(1000 * (x))
+#endif
+
 class OrderbookManager
 {
     FuturesClientUSDT* user_client;
@@ -49,7 +56,7 @@ int main()
     while (1)
     {
         btcusdt_orderbook.print_top_layers();
-        Sleep(3000);
+        sleep(3);
     }
 
     t4.join();

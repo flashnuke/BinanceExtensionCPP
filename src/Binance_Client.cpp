@@ -8014,7 +8014,6 @@ template Json::Value FuturesClient<FuturesClientUSDT>::api_quant_trading_rules(c
 template Json::Value FuturesClient<FuturesClientUSDT>::get_blvt_kline_history(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::get_composite_index_symbol_info(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::mark_price(const Params* params_ptr);
-template Json::Value FuturesClient<FuturesClientUSDT>::public_liquidation_orders(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::open_interest(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::composite_index_symbol_info(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::continues_klines(const Params* params_ptr);
@@ -8048,7 +8047,6 @@ template Json::Value FuturesClient<FuturesClientCoin>::api_quant_trading_rules(c
 template Json::Value FuturesClient<FuturesClientCoin>::get_blvt_kline_history(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::get_composite_index_symbol_info(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::mark_price(const Params* params_ptr);
-template Json::Value FuturesClient<FuturesClientCoin>::public_liquidation_orders(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::open_interest(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::composite_index_symbol_info(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::continues_klines(const Params* params_ptr);
