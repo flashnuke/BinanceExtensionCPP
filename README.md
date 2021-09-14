@@ -155,7 +155,14 @@ If compiling on Linux, make sure you have the following dependencies installed:
 * sudo apt-get install libcurl4-openssl-dev
 * sudo apt-get install libssl-dev
 
-</br >and use the following command to compile: `g++ src/* -o3 -lssl -lcrypto -lcurl -lpthread -ljsoncpp -o a.out` <br />
+If compiling on MacOS, install the dependencies using Homebrew:
+* brew install boost
+* brew install jsoncpp
+* brew install openssl
+
+Note for compiling on MacOS, if during compilation an error of missing `openssl` files is encountered, add the following flags to the compilation line: ` -L/usr/local/opt/openssl/lib -I/usr/local/opt/openssl/include`
+
+</br >and use the following command to compile: `g++ -std=c++11 src/* -o3 -lssl -lcrypto -lcurl -lpthread -ljsoncpp -o a.out` <br />
 Make sure your `.src` file that includes the `main()` function is inside `/src`. <br />
 If the following error is encountered: `fatal error: json/json.h: No such file or directory`, you should change `#include <json/json.h>` to `#include <jsoncpp/json/json.h>` inside `include/Binance_Client.h`.
 
