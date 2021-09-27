@@ -188,7 +188,7 @@ If the following error is encountered: `fatal error: json/json.h: No such file o
 
 
 # Release Notes
-### Latest version release - 2.1
+### Latest version release - 2.3
 Please see release notes here https://github.com/adanikel/BinanceExtensionCPP/releases/
 
 # Links
