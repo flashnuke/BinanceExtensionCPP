@@ -1,5 +1,5 @@
 #include "../include/Binance_Client.h"
-#include <iostream>
+
 Json::CharReaderBuilder _J_BUILDER;
 Json::CharReader* _J_READER = _J_BUILDER.newCharReader();
 static long _IDLE_TIME_TCP = 120L;
@@ -20,7 +20,9 @@ unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb
 };
 
 /**
- 	Parse into JSON. Returns 0 is request was unsuccessful
+ 	Parse request response string to JSON
+	@param req - RestSesssion object of the request
+	@return 0 is request was unsuccessful
  */
 unsigned int _PARSE_AND_VALIDATE(RestSession::RequestHandler* req)
 {
@@ -35,17 +37,14 @@ unsigned int _PARSE_AND_VALIDATE(RestSession::RequestHandler* req)
 	if (req->req_status != CURLE_OK || req->req_status == CURLE_HTTP_RETURNED_ERROR)
 	{
 		req->req_json["response"] = req->req_raw;
-		std::cout << req->req_status << std::endl;
 		return 0;
 	}
 	else if (!parse_status)
 	{
 		req->req_json["parse_status"] = parse_errors;
-		std::cout << 2 << std::endl;
 	}
 	else if (req->req_json.isMember("code") && req->req_json["code"] != 200)
 	{
-		std::cout << 3 << std::endl;
 		return 0;
 	}
 	req->req_json["request_status"] = 1;
