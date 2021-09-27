@@ -388,7 +388,9 @@ public:
 		Json::Value request_quote(const Params* params_ptr);
 		Json::Value make_swap(const Params* params_ptr);
 		Json::Value get_swap_history(const Params* params_ptr);
-
+		Json::Value get_pool_configure(const Params* params_ptr = nullptr);
+		Json::Value add_liquidity_preview(const Params* params_ptr);
+		Json::Value remove_liquidity_preview(const Params* params_ptr);
 	};
 
     struct Fiat
