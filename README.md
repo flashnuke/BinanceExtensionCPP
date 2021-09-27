@@ -184,7 +184,7 @@ If the following error is encountered: `fatal error: json/json.h: No such file o
 # Lined up
 * constexpr for endpoints + api base after the release of c++20 (constexpr support for `std::string`)
 
-**Latest `Version` update: `2021-24-05` (Binance API Changelogs have been implemented up to this date)**
+**Latest `Version` update: `2021-27-09` (Binance API Changelogs have been implemented up to this date)**
 
 
 # Release Notes
