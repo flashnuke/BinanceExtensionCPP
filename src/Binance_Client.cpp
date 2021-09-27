@@ -5791,6 +5791,26 @@ Json::Value FuturesClient<CT>::modify_batch_orders(const Params* params_ptr)
 	}
 }
 
+
+/**
+	Get Order Modify History
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::modify_batch_orders_history(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_modify_batch_orders_history(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
 /**
 	Cancel Multiple Orders - Cancel all open orders of the specified symbol at the end of the specified countdown.
 	@param params_ptr - a pointer to the request Params object
@@ -6743,6 +6763,16 @@ Json::Value FuturesClientUSDT::v_modify_batch_orders(const Params* params_ptr)
 }
 
 /**
+	CRTP of modify_batch_orders()
+*/
+Json::Value FuturesClientUSDT::v_modify_batch_orders_history(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
 	CRTP of cancel_batch_orders()
 */
 Json::Value FuturesClientUSDT::v_cancel_batch_orders(const Params* params_ptr)
@@ -7368,6 +7398,19 @@ Json::Value FuturesClientCoin::v_modify_batch_orders(const Params* params_ptr)
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/batchOrders" + query);
 	Json::Value response = (this->_rest_client)->_putreq(full_path);
+
+	return response;
+}
+
+/**
+	CRTP of modify_batch_orders()
+*/
+Json::Value FuturesClientCoin::v_modify_batch_orders_history(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/dapi/v1/orderAmendment" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
 	return response;
 }
