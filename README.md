@@ -32,12 +32,15 @@ Many endpoints are divided by category into different structs inside `Client`. I
 - Mining
 - BLVT
 - BSWAP
-They should be initialized from within other Client classes, and by passing the Client object to the constructor.					
+- Fiat
+- C2C
+
+<br>They should be initialized from within other Client classes, and by passing the Client object to the constructor.					
 i.e:
  >SpotClient::Wallet my_wallet{ my_client_obj }. 
  
 ## Exchange client
-In order to initialize a client that is not public, api-key and api-secret must be passed in std::string format to the constructor.
+In order to initialize a client that is not public, api-key and api-secret must be passed in `std::string` format to the constructor.
 > FuturesClientUSDT(api_key, api_secret)
 > 
 <br />Futures and Options clients may be set in testnet mode by using the method "set_testnet_mode(bool)". SpotClient has 'test_new_order' method but no testnet mode endpoints.
