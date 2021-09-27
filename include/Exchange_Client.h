@@ -89,6 +89,7 @@ public:
 
 	Json::Value test_new_order(const Params* params_ptr);
 	Json::Value new_order(const Params* params_ptr);
+    Json::Value modify_order(const Params* params_ptr);
 	Json::Value cancel_order(const Params* params_ptr);
 	Json::Value cancel_all_orders(const Params* params_ptr);
 	Json::Value query_order(const Params* params_ptr);
@@ -462,6 +463,7 @@ private:
 
 	Json::Value v_test_new_order(const Params* params_ptr);
 	Json::Value v_new_order(const Params* params_ptr);
+    Json::Value v_modify_order(const Params* params_ptr);
 	Json::Value v_cancel_order(const Params* params_ptr);
 	Json::Value v_cancel_all_orders(const Params* params_ptr);
 	Json::Value v_query_order(const Params* params_ptr);
@@ -617,6 +619,7 @@ private:
 	// -- mutual with spot
 
 	Json::Value v__new_order(const Params* params_ptr);
+    Json::Value v__modify_order(const Params* params_ptr);
 	Json::Value v__cancel_order(const Params* params_ptr);
 	Json::Value v__cancel_all_orders(const Params* params_ptr);
 	Json::Value v__query_order(const Params* params_ptr);
@@ -739,6 +742,7 @@ private:
 	// -- mutual with spot
 
 	Json::Value v__new_order(const Params* params_ptr);
+    Json::Value v__modify_order(const Params* params_ptr);
 	Json::Value v__cancel_order(const Params* params_ptr);
 	Json::Value v__cancel_all_orders(const Params* params_ptr);
 	Json::Value v__query_order(const Params* params_ptr);
@@ -846,6 +850,7 @@ private:
 
 	Json::Value v_test_new_order(const Params* params_ptr);
 	Json::Value v_new_order(const Params* params_ptr);
+    Json::Value v_modify_order(const Params* params_ptr);
 	Json::Value v_cancel_order(const Params* params_ptr);
 	Json::Value v_cancel_all_orders(const Params* params_ptr);
 	Json::Value v_query_order(const Params* params_ptr);
@@ -918,6 +923,7 @@ private:
 	Json::Value v_account_info(const Params* params_ptr = nullptr);
 	Json::Value v_test_new_order(const Params* params_ptr);
 	Json::Value v_new_order(const Params* params_ptr);
+    Json::Value v_modify_order(const Params* params_ptr);
 	Json::Value v_cancel_order(const Params* params_ptr);
 	Json::Value v_cancel_all_orders(const Params* params_ptr);
 	Json::Value v_query_order(const Params* params_ptr);
@@ -969,6 +975,7 @@ public:
 	Json::Value holding_info(const Params* params_ptr = nullptr);
 	Json::Value account_funding_flow(const Params* params_ptr);
 	Json::Value batch_orders(const Params* params_ptr);
+    Json::Value modify_batch_orders(const Params* params_ptr);
 	Json::Value cancel_batch_orders(const Params* params_ptr);
 
 	bool _testnet_mode;

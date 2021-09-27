@@ -402,6 +402,25 @@ Json::Value Client<T>::new_order(const Params* params_ptr)
 }
 
 /**
+	Modify order
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template<typename T>
+Json::Value Client<T>::modify_order(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<T*>(this)->v_modify_order(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
 	Cancel an order
 	@param params_ptr - a pointer to the request Params object
 	@return the json returned by the request
@@ -5105,6 +5124,16 @@ Json::Value SpotClient::v_new_order(const Params* params_ptr)
 }
 
 /**
+	CRTP of modify_order()
+*/
+Json::Value SpotClient::v_modify_order(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
 	CRTP of cancel_order()
 */
 Json::Value SpotClient::v_cancel_order(const Params* params_ptr)
@@ -5637,6 +5666,12 @@ template<typename CT>
 Json::Value FuturesClient<CT>::v_new_order(const Params* params_ptr) { return static_cast<CT*>(this)->v__new_order(params_ptr); }
 
 /**
+	CRTP of modify_order()
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::v_modify_order(const Params* params_ptr) { return static_cast<CT*>(this)->v__modify_order(params_ptr); }
+
+/**
 	CRTP of cancel_order()
 */
 template<typename CT>
@@ -5729,6 +5764,25 @@ Json::Value FuturesClient<CT>::batch_orders(const Params* params_ptr)
 	try
 	{
 		return static_cast<CT*>(this)->v_batch_orders(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	Modify Multiple Order
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::modify_batch_orders(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_modify_batch_orders(params_ptr);
 	}
 	catch (ClientException e)
 	{
@@ -6536,6 +6590,16 @@ Json::Value FuturesClientUSDT::v__new_order(const Params* params_ptr)
 }
 
 /**
+	CRTP of v_modify_order()
+*/
+Json::Value FuturesClientUSDT::v__modify_order(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
 	CRTP of v_cancel_order()
 */
 Json::Value FuturesClientUSDT::v__cancel_order(const Params* params_ptr)
@@ -6666,6 +6730,16 @@ Json::Value FuturesClientUSDT::v_batch_orders(const Params* params_ptr)
 	Json::Value response = (this->_rest_client)->_postreq(full_path); // should be spot?
 
 	return response;
+}
+
+/**
+	CRTP of modify_batch_orders()
+*/
+Json::Value FuturesClientUSDT::v_modify_batch_orders(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 /**
@@ -7140,6 +7214,19 @@ Json::Value FuturesClientCoin::v__new_order(const Params* params_ptr)
 }
 
 /**
+	CRTP of v_modify_order()
+*/
+Json::Value FuturesClientCoin::v__modify_order(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/dapi/v1/order" + query);
+	Json::Value response = (this->_rest_client)->_putreq(full_path);
+
+	return response;
+}
+
+/**
 	CRTP of v_cancel_order()
 */
 Json::Value FuturesClientCoin::v__cancel_order(const Params* params_ptr)
@@ -7268,6 +7355,19 @@ Json::Value FuturesClientCoin::v_batch_orders(const Params* params_ptr)
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/batchOrders" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+/**
+	CRTP of modify_batch_orders()
+*/
+Json::Value FuturesClientCoin::v_modify_batch_orders(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/dapi/v1/batchOrders" + query);
+	Json::Value response = (this->_rest_client)->_putreq(full_path);
 
 	return response;
 }
@@ -7989,6 +8089,16 @@ Json::Value OpsClient::v_new_order(const Params* params_ptr)
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
 
 	return response;
+}
+
+/**
+	CRTP of modify_order()
+*/
+Json::Value OpsClient::v_modify_order(const Params* params_ptr)
+{
+    MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 /**
