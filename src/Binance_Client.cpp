@@ -402,6 +402,25 @@ Json::Value Client<T>::new_order(const Params* params_ptr)
 }
 
 /**
+	Modify order
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template<typename T>
+Json::Value Client<T>::modify_order(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<T*>(this)->v_modify_order(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
 	Cancel an order
 	@param params_ptr - a pointer to the request Params object
 	@return the json returned by the request
@@ -2913,6 +2932,127 @@ Json::Value Client<T>::MarginAccount::margin_account_all_orders(const Params* pa
 };
 
 /**
+	Margin Account New OCO
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_new_oco_order(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/order/oco";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Margin Account Cancel OCO
+	*Canceling an individual leg will cancel the entire OCO
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_cancel_oco_order(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/orderList";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_deletereq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Query Margin Account's OCO
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_query_oco_orders(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/orderList";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Query Margin Account's all OCO
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_query_oco_all_orders(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/allOrderList";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Query Margin Account's Open OCO
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_query_oco_open_orders(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/openOrderList";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
 	Query Margin Account's Trade List
 	*If fromId is set, it will get trades >= that fromId. Otherwise most recent trades are returned.
 	
@@ -3050,6 +3190,78 @@ Json::Value Client<T>::MarginAccount::margin_isolated_margin_account_info(const 
 	try
 	{
 		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/account";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Disable Isolated Margin Account
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_isolated_margin_disable_account(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/account";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_deletereq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Enable Isolated Margin Account
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_isolated_margin_enable_account(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/account";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Query Enabled Isolated Margin Account Limit
+
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::MarginAccount::margin_isolated_margin_query_account_limits(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/margin/isolated/accountLimit";
 		std::string query = user_client->_generate_query(params_ptr, 1);
 		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
 
@@ -4452,6 +4664,75 @@ Json::Value Client<T>::BSwap::get_swap_history(const Params* params_ptr)
 	}
 };
 
+/**
+	Get Pool Configure
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::get_pool_configure(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/poolConfigure";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Add Liquidity Preview
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::add_liquidity_preview(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/addLiquidityPreview";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Remove Liquidity Preview
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::BSwap::remove_liquidity_preview(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/bswap/removeLiquidityPreview";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
 //  ------------------------------ End | Client BSwap - User Mining Endpoints
 
 
@@ -4840,6 +5121,16 @@ Json::Value SpotClient::v_new_order(const Params* params_ptr)
 	Json::Value response = (this->_rest_client)->_postreq(full_path + query);
 
 	return response;
+}
+
+/**
+	CRTP of modify_order()
+*/
+Json::Value SpotClient::v_modify_order(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 /**
@@ -5375,6 +5666,12 @@ template<typename CT>
 Json::Value FuturesClient<CT>::v_new_order(const Params* params_ptr) { return static_cast<CT*>(this)->v__new_order(params_ptr); }
 
 /**
+	CRTP of modify_order()
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::v_modify_order(const Params* params_ptr) { return static_cast<CT*>(this)->v__modify_order(params_ptr); }
+
+/**
 	CRTP of cancel_order()
 */
 template<typename CT>
@@ -5467,6 +5764,45 @@ Json::Value FuturesClient<CT>::batch_orders(const Params* params_ptr)
 	try
 	{
 		return static_cast<CT*>(this)->v_batch_orders(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+/**
+	Modify Multiple Order
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::modify_batch_orders(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_modify_batch_orders(params_ptr);
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+}
+
+
+/**
+	Get Order Modify History
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template<typename CT>
+Json::Value FuturesClient<CT>::modify_batch_orders_history(const Params* params_ptr)
+{
+	try
+	{
+		return static_cast<CT*>(this)->v_modify_batch_orders_history(params_ptr);
 	}
 	catch (ClientException e)
 	{
@@ -6274,6 +6610,16 @@ Json::Value FuturesClientUSDT::v__new_order(const Params* params_ptr)
 }
 
 /**
+	CRTP of v_modify_order()
+*/
+Json::Value FuturesClientUSDT::v__modify_order(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
 	CRTP of v_cancel_order()
 */
 Json::Value FuturesClientUSDT::v__cancel_order(const Params* params_ptr)
@@ -6404,6 +6750,26 @@ Json::Value FuturesClientUSDT::v_batch_orders(const Params* params_ptr)
 	Json::Value response = (this->_rest_client)->_postreq(full_path); // should be spot?
 
 	return response;
+}
+
+/**
+	CRTP of modify_batch_orders()
+*/
+Json::Value FuturesClientUSDT::v_modify_batch_orders(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
+	CRTP of modify_batch_orders()
+*/
+Json::Value FuturesClientUSDT::v_modify_batch_orders_history(const Params* params_ptr)
+{
+	MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
 }
 
 /**
@@ -6878,6 +7244,19 @@ Json::Value FuturesClientCoin::v__new_order(const Params* params_ptr)
 }
 
 /**
+	CRTP of v_modify_order()
+*/
+Json::Value FuturesClientCoin::v__modify_order(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/dapi/v1/order" + query);
+	Json::Value response = (this->_rest_client)->_putreq(full_path);
+
+	return response;
+}
+
+/**
 	CRTP of v_cancel_order()
 */
 Json::Value FuturesClientCoin::v__cancel_order(const Params* params_ptr)
@@ -7006,6 +7385,32 @@ Json::Value FuturesClientCoin::v_batch_orders(const Params* params_ptr)
 	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
 	full_path += ("/dapi/v1/batchOrders" + query);
 	Json::Value response = (this->_rest_client)->_postreq(full_path);
+
+	return response;
+}
+
+/**
+	CRTP of modify_batch_orders()
+*/
+Json::Value FuturesClientCoin::v_modify_batch_orders(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/dapi/v1/batchOrders" + query);
+	Json::Value response = (this->_rest_client)->_putreq(full_path);
+
+	return response;
+}
+
+/**
+	CRTP of modify_batch_orders()
+*/
+Json::Value FuturesClientCoin::v_modify_batch_orders_history(const Params* params_ptr)
+{
+	std::string query = this->_generate_query(params_ptr, 1);
+	std::string full_path = !this->_testnet_mode ? _BASE_REST_FUTURES_COIN : _BASE_REST_FUTURES_TESTNET;
+	full_path += ("/dapi/v1/orderAmendment" + query);
+	Json::Value response = (this->_rest_client)->_getreq(full_path);
 
 	return response;
 }
@@ -7730,6 +8135,16 @@ Json::Value OpsClient::v_new_order(const Params* params_ptr)
 }
 
 /**
+	CRTP of modify_order()
+*/
+Json::Value OpsClient::v_modify_order(const Params* params_ptr)
+{
+    MissingEndpoint e{};
+	e.append_to_traceback(std::string(__FUNCTION__));
+	throw(e);
+}
+
+/**
 	CRTP of cancel_order()
 */
 Json::Value OpsClient::v_cancel_order(const Params* params_ptr)
@@ -8034,6 +8449,8 @@ template class Client<FuturesClient<FuturesClientUSDT>>;
 template Json::Value FuturesClient<FuturesClientUSDT>::get_position_mode(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::change_position_mode(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::batch_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::modify_batch_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientUSDT>::modify_batch_orders_history(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::cancel_batch_orders(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::cancel_all_orders_timer(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientUSDT>::query_open_order(const Params* params_ptr);
@@ -8067,6 +8484,8 @@ template class Client<FuturesClient<FuturesClientCoin>>;
 template Json::Value FuturesClient<FuturesClientCoin>::get_position_mode(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::change_position_mode(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::batch_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::modify_batch_orders(const Params* params_ptr);
+template Json::Value FuturesClient<FuturesClientCoin>::modify_batch_orders_history(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::cancel_batch_orders(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::cancel_all_orders_timer(const Params* params_ptr);
 template Json::Value FuturesClient<FuturesClientCoin>::query_open_order(const Params* params_ptr);
