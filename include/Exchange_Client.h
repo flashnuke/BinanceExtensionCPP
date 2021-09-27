@@ -281,6 +281,12 @@ public:
 		Json::Value margin_account_order(const Params* params_ptr);
 		Json::Value margin_account_open_orders(const Params* params_ptr = nullptr);
 		Json::Value margin_account_all_orders(const Params* params_ptr);
+        Json::Value margin_new_oco_order(const Params* params_ptr);
+        Json::Value margin_cancel_oco_order(const Params* params_ptr);
+        Json::Value margin_query_oco_orders(const Params* params_ptr);
+        Json::Value margin_query_oco_all_orders(const Params* params_ptr);
+        Json::Value margin_query_oco_open_orders(const Params* params_ptr);
+
 		Json::Value margin_account_trades_list(const Params* params_ptr);
 		Json::Value margin_max_borrow(const Params* params_ptr);
 		Json::Value margin_max_transfer(const Params* params_ptr);
