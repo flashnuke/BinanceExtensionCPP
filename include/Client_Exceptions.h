@@ -23,7 +23,7 @@ public:
 	BadSetupSessionREST();
 };
 
-class BadRequestREST : public ClientException // for trying methods where auth is needed but keys are missing
+class BadRequestREST : public ClientException
 {
 public:
 	BadRequestREST();
