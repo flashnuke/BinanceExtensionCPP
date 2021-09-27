@@ -42,6 +42,7 @@ unsigned int _PARSE_AND_VALIDATE(RestSession::RequestHandler* req)
 	else if (!parse_status)
 	{
 		req->req_json["parse_status"] = parse_errors;
+		return 0;
 	}
 	else if (req->req_json.isMember("code") && req->req_json["code"] != 200)
 	{
@@ -49,7 +50,7 @@ unsigned int _PARSE_AND_VALIDATE(RestSession::RequestHandler* req)
 	}
 	req->req_json["request_status"] = 1;
 	return 1;
-}
+};
 
 /**
 	Default Constructor
