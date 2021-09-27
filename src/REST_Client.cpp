@@ -11,7 +11,7 @@ static long _INTVL_TIME_TCP = 60L;
 	@param size - size of text
 	@param nmemb - number of elements
 	@param req - RestSession object of the request
-	@return number of bytes that are processed
+	@return 0 if error, 1 if success
 */
 unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req) 
 {
@@ -63,7 +63,7 @@ RestSession::RestSession() // except handles in rest_init exchange client level
 	curl_easy_setopt(this->_get_handle, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(this->_get_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
 	curl_easy_setopt(this->_get_handle, CURLOPT_FAILONERROR, 0); 
-	if (!(this->_get_handle)) throw("GET_SETUP"); // handle exc
+
 
 	_post_handle = curl_easy_init();
 	curl_easy_setopt(this->_post_handle, CURLOPT_POST, 1L);
@@ -71,7 +71,6 @@ RestSession::RestSession() // except handles in rest_init exchange client level
 	curl_easy_setopt(this->_post_handle, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(this->_post_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
 	curl_easy_setopt(this->_post_handle, CURLOPT_FAILONERROR, 0);
-	if (!(this->_post_handle)) throw("POST_SETUP"); // handle exc
 
 	_put_handle = curl_easy_init();
 	curl_easy_setopt(this->_put_handle, CURLOPT_UPLOAD, 1L);
@@ -79,7 +78,6 @@ RestSession::RestSession() // except handles in rest_init exchange client level
 	curl_easy_setopt(this->_put_handle, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(this->_put_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
 	curl_easy_setopt(this->_put_handle, CURLOPT_FAILONERROR, 0);
-	if (!(this->_put_handle)) throw("PUT_SETUP"); // handle exc
 
 	_delete_handle = curl_easy_init();
 	curl_easy_setopt(this->_delete_handle, CURLOPT_CUSTOMREQUEST, "DELETE");
@@ -87,9 +85,12 @@ RestSession::RestSession() // except handles in rest_init exchange client level
 	curl_easy_setopt(this->_delete_handle, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(this->_delete_handle, CURLOPT_WRITEFUNCTION, _REQ_CALLBACK);
 	curl_easy_setopt(this->_delete_handle, CURLOPT_FAILONERROR, 0);
-	if (!(this->_delete_handle)) throw("DELETE_SETUP"); // handle exc
 
 
+	if (!(this->_get_handle)) throw("exc"); // handle exc
+	if (!(this->_post_handle)) throw("exc"); // handle exc
+	if (!(this->_put_handle)) throw("exc"); // handle exc
+	if (!(this->_delete_handle)) throw("exc"); // handle exc
 
 
 	this->status = 1;
