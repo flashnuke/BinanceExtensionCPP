@@ -173,6 +173,8 @@ public:
 		Json::Value asset_dividend_records(const Params* params_ptr = nullptr);
 		Json::Value make_user_transfer_universal(const Params* params_ptr);
 		Json::Value query_user_transfer_universal(const Params* params_ptr);
+		Json::Value funding_wallet(const Params* params_ptr = nullptr);
+		Json::Value get_api_key_permission(const Params* params_ptr = nullptr);
 
 	};
 
@@ -378,6 +380,28 @@ public:
 		Json::Value request_quote(const Params* params_ptr);
 		Json::Value make_swap(const Params* params_ptr);
 		Json::Value get_swap_history(const Params* params_ptr);
+
+	};
+
+    struct Fiat
+	{
+		const Client<T>* user_client;
+		explicit Fiat(Client<T>& client);
+		explicit Fiat(const Client<T>& client);
+		~Fiat();
+
+        Json::Value get_fiat_deposit_withdrawal_history(const Params* params_ptr);
+        Json::Value get_fiat_payments_history(const Params* params_ptr);
+	};
+
+    struct C2C
+	{
+		const Client<T>* user_client;
+		explicit C2C(Client<T>& client);
+		explicit C2C(const Client<T>& client);
+		~C2C();
+
+        Json::Value get_c2c_trades_history(const Params* params_ptr);
 	};
 
 	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);

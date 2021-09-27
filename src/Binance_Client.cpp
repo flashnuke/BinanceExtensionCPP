@@ -1093,6 +1093,52 @@ Json::Value Client<T>::Wallet::query_user_transfer_universal(const Params* param
 	}
 };
 
+/**
+	Funding Wallet
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Wallet::funding_wallet(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/asset/get-funding-asset";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_postreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+/**
+	Get API Key Permission
+	@param params_ptr - a pointer to the request Params object
+	@return the json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Wallet::get_api_key_permission(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/account/apiRestrictions";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
 //  ------------------------------ End | Client Wallet - User Wallet Endpoints
 
 // ***************************************************************************
@@ -4406,7 +4452,155 @@ Json::Value Client<T>::BSwap::get_swap_history(const Params* params_ptr)
 	}
 };
 
-//  ------------------------------ End | Client BLVT - User Mining Endpoints
+//  ------------------------------ End | Client BSwap - User Mining Endpoints
+
+
+//  ------------------------------ Start | Client Fiat - User Mining Endpoints
+
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
+template <typename T>
+Client<T>::Fiat::Fiat(Client<T>& client_obj)
+	: user_client{ &client_obj }
+{
+	if (user_client->_public_client)
+	{
+		MissingCredentials e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
+}
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
+template <typename T>
+Client<T>::Fiat::Fiat(const Client<T>& client_obj)
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
+{
+	if (user_client->_public_client)
+	{
+		MissingCredentials e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
+}
+
+/**
+	Destructor
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
+template <typename T>
+Client<T>::Fiat::~Fiat()
+{
+	user_client = nullptr;
+}
+
+// ------ Endpoint methods
+
+/**
+	Get Fiat Deposit/Withdraw History
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::Fiat::get_fiat_deposit_withdrawal_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/fiat/order";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+//  ------------------------------ End | Client Fiat - User Mining Endpoints
+
+
+//  ------------------------------ Start | Client C2C - User Mining Endpoints
+
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object
+*/
+template <typename T>
+Client<T>::C2C::C2C(Client<T>& client_obj)
+	: user_client{ &client_obj }
+{
+	if (user_client->_public_client)
+	{
+		MissingCredentials e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
+}
+
+/**
+	A constructor - called directly by the user
+	@param client_obj - the exchange client object (constant)
+*/
+template <typename T>
+Client<T>::C2C::C2C(const Client<T>& client_obj)
+	: user_client{ &client_obj } // snatching pointer and releasing later on to avoid deleting this reference
+{
+	if (user_client->_public_client)
+	{
+		MissingCredentials e{};
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	};
+}
+
+/**
+	Destructor
+	set 'user_client' as nullptr to avoid deleting the exchange client
+	object passed from outside the class (reference)
+*/
+template <typename T>
+Client<T>::C2C::~C2C()
+{
+	user_client = nullptr;
+}
+
+// ------ Endpoint methods
+
+/**
+	Get C2C Trade History
+	@param params_ptr - a pointer to the request Params object
+	@return json returned by the request
+*/
+template <typename T>
+Json::Value Client<T>::C2C::get_c2c_trades_history(const Params* params_ptr)
+{
+	try
+	{
+		std::string full_path = _BASE_REST_SPOT + "/sapi/v1/c2c/orderMatch/listUserOrderHistory";
+		std::string query = user_client->_generate_query(params_ptr, 1);
+		Json::Value response = (user_client->_rest_client)->_getreq(full_path + query);
+
+		return response;
+	}
+	catch (ClientException e)
+	{
+		e.append_to_traceback(std::string(__FUNCTION__));
+		throw(e);
+	}
+};
+
+//  ------------------------------ End | Client C2C - User Mining Endpoints
 
 
 // =======================================================================================================
