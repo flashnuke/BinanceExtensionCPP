@@ -1,5 +1,5 @@
 #include "../include/Binance_Client.h"
-
+#include <iostream>
 Json::CharReaderBuilder _J_BUILDER;
 Json::CharReader* _J_READER = _J_BUILDER.newCharReader();
 static long _IDLE_TIME_TCP = 120L;
@@ -13,10 +13,10 @@ static long _INTVL_TIME_TCP = 60L;
 	@param req - RestSession object of the request
 	@return 0 if error, 1 if success
 */
-void _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req) 
+unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req) 
 {
 	(&req->req_raw)->append((char*)contents, size * nmemb);
-	req->locker->unlock();
+	return size * nmemb;
 };
 
 /**
@@ -26,23 +26,26 @@ unsigned int _PARSE_AND_VALIDATE(RestSession::RequestHandler* req)
 {
 	std::string parse_errors{};
 	bool parse_status;
-
+	
 	parse_status = _J_READER->parse(req->req_raw.c_str(),
 					req->req_raw.c_str() + req->req_raw.size(),
 					&req->req_json["response"],
 					&parse_errors);
-
+	
 	if (req->req_status != CURLE_OK || req->req_status == CURLE_HTTP_RETURNED_ERROR)
 	{
 		req->req_json["response"] = req->req_raw;
+		std::cout << req->req_status << std::endl;
 		return 0;
 	}
 	else if (!parse_status)
 	{
 		req->req_json["parse_status"] = parse_errors;
+		std::cout << 2 << std::endl;
 	}
 	else if (req->req_json.isMember("code") && req->req_json["code"] != 200)
 	{
+		std::cout << 3 << std::endl;
 		return 0;
 	}
 	req->req_json["request_status"] = 1;
@@ -125,6 +128,7 @@ Json::Value RestSession::_getreq(std::string full_path)
 
 		request.req_status = curl_easy_perform(this->_get_handle);
 		_PARSE_AND_VALIDATE(&request);
+		request.locker->unlock();
 
 		return request.req_json;
 	}
@@ -155,6 +159,7 @@ Json::Value RestSession::_postreq(std::string full_path)
 
 		request.req_status = curl_easy_perform(this->_post_handle);
 		_PARSE_AND_VALIDATE(&request); 
+		request.locker->unlock();
 
 		return request.req_json;
 	}
@@ -185,6 +190,7 @@ Json::Value RestSession::_putreq(std::string full_path)
 
 		request.req_status = curl_easy_perform(this->_put_handle);
 		_PARSE_AND_VALIDATE(&request); 
+		request.locker->unlock();
 
 		return request.req_json;
 	}
@@ -215,6 +221,7 @@ Json::Value RestSession::_deletereq(std::string full_path)
 
 		request.req_status = curl_easy_perform(this->_delete_handle);
 		_PARSE_AND_VALIDATE(&request); 
+		request.locker->unlock();
 
 		return request.req_json;
 	}

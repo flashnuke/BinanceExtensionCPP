@@ -44,7 +44,7 @@ public:
 	bool close();
 	void set_verbose(const long int state);
 
-	friend void _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req);
+	friend unsigned int _REQ_CALLBACK(void* contents, unsigned int size, unsigned int nmemb, RestSession::RequestHandler* req);
 	friend unsigned int _PARSE_AND_VALIDATE(RestSession::RequestHandler* req);
 	~RestSession();
 };
