@@ -17,13 +17,13 @@ public:
 
 // REST Client Exceptions
 
-class BadSetupSessionREST : public ClientException // for bad REST requests
+class BadSetupSessionREST : public ClientException
 {
 public:
 	BadSetupSessionREST();
 };
 
-class BadRequestREST : public ClientException // for trying methods where auth is needed but keys are missing
+class BadRequestREST : public ClientException
 {
 public:
 	BadRequestREST();
