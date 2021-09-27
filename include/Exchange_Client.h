@@ -246,6 +246,9 @@ public:
 		Json::Value get_summary_subaccount_futures(const Params* params_ptr);
 		Json::Value get_positionrisk_subaccount_futures(const Params* params_ptr);
 		Json::Value enable_leverage_token_subaccount(const Params* params_ptr);
+		Json::Value deposit_asset_subaccount(const Params* params_ptr);
+		Json::Value query_asset_subaccount(const Params* params_ptr);
+		Json::Value withdraw_asset_subaccount(const Params* params_ptr);
 
 	};
 
