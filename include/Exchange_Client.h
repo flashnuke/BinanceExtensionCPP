@@ -286,13 +286,15 @@ public:
         Json::Value margin_query_oco_orders(const Params* params_ptr);
         Json::Value margin_query_oco_all_orders(const Params* params_ptr);
         Json::Value margin_query_oco_open_orders(const Params* params_ptr);
-
 		Json::Value margin_account_trades_list(const Params* params_ptr);
 		Json::Value margin_max_borrow(const Params* params_ptr);
 		Json::Value margin_max_transfer(const Params* params_ptr);
 		Json::Value margin_isolated_margin_transfer(const Params* params_ptr);
 		Json::Value margin_isolated_margin_transfer_history(const Params* params_ptr);
 		Json::Value margin_isolated_margin_account_info(const Params* params_ptr = nullptr);
+        Json::Value margin_isolated_margin_disable_account(const Params* params_ptr);
+        Json::Value margin_isolated_margin_enable_account(const Params* params_ptr);
+        Json::Value margin_isolated_margin_query_account_limits(const Params* params_ptr = nullptr);
 		Json::Value margin_isolated_margin_symbol(const Params* params_ptr);
 		Json::Value margin_isolated_margin_symbol_all(const Params* params_ptr = nullptr);
 		Json::Value toggle_bnb_burn(const Params* params_ptr = nullptr);
