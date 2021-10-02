@@ -7,7 +7,7 @@ BinanceExtensionCPP
 
 This library is an extension for the API of Binance. It is designed for writing trading algorithms on Binance. 
 <br />The design is delibaretly attempting to reduce execution time during runtime, by using methods such as CRTP and the `Params` object; no virtual classes/methods are used in this library.
-<br /> More performance boosting features are planned to be added in the future. One of them is `constexpr` for string concatenation after the release of C++20.
+
 # Dependencies
 
 1. [JsonCPP](https://github.com/open-source-parsers/jsoncpp) (latest version tested: **jsoncpp 1.9.3**) 
@@ -181,15 +181,14 @@ If the following error is encountered: `fatal error: json/json.h: No such file o
 * `futures_user_stream.cpp` = Start a userstream for Futures account
 
 
-# Lined up
-* constexpr for endpoints + api base after the release of c++20 (constexpr support for `std::string`)
-
-**Latest `Version` update: `2021-27-09` (Binance API Changelogs have been implemented up to this date)**
-
 
 # Release Notes
+
 ### Latest version release - 2.3
 Please see release notes here https://github.com/adanikel/BinanceExtensionCPP/releases/
+
+**Latest changelog updates: `2021-27-09` (Binance API Changelogs have been implemented up to this date)**
+
 
 # Links
 * [CRTP Method - Info](https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern)
