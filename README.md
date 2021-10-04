@@ -43,7 +43,7 @@ i.e:
 In order to initialize a client that is not public, api-key and api-secret must be passed in `std::string` format to the constructor.
 > FuturesClientUSDT(api_key, api_secret)
 > 
-<br />Futures and Options clients may be set in testnet mode by using the method "set_testnet_mode(bool)". SpotClient has 'test_new_order' method but no testnet mode endpoints.
+<br />Futures and Options clients may be set in testnet mode by using the method `set_testnet_mode(bool)`. SpotClient has `test_new_order()` method but no testnet mode endpoints.
 
 - #### CRTP implementation
 	The CRTP is implemented as follows:
@@ -116,8 +116,8 @@ All (except for ones that don't have mandatory parameters) REST request methods 
 - #### Debugging
 	You can set verbose mode for debugging, which will make all rest requests verbose. `my_client.rest_set_verbose(1);`
 - #### Notes
-   		 1. There are four curl handles that are alive throughout the entire life of a RestSession object, one for each request type: PUT, DELETE, POST, GET.
-   		 2. In order to avoid race conditions by using the same handle at the same time for different requests, mutex is used.
+   		 1. There are four curl handles that are alive throughout the entire life of a RestSession object, one for each request type: GET, POST, PUT and DELETE.
+   		 2. In order to avoid a race condition by using the same handle at the same time for different requests, mutex is used.
 		 3. Passing an `std::string` format to `set_param()` method is quicker, because conversion-to-string is required.
 		 4. Passing `const char*` to `set_param()` is currently not supported, please use `std::string`, as shown in the examples.
 
@@ -125,7 +125,7 @@ All (except for ones that don't have mandatory parameters) REST request methods 
 Each time a client object is created, a websocket client is also instantiated. In fact, the websocket client accepts the Client object as an argument.
 
 <br /> The websocket client holds a map of all stream connection names and their current status. **symbol@stream_name** (i.e: btc@aggTrade). This is very crucial to know in order to be able to close a stream by using the `close_stream()` method.
-<br />Not all streams accept the same arguments list, but all of them accept an std::string buffer and a functor object to use as callback.
+<br />Not all streams accept the same arguments list, but all of them accept an `std::string` buffer and a functor object to use as callback.
 
 - #### Callback functor
 	All streams accepts a reference to std::string buffer and a reference to a functor object. This is implemented using templates, therefore the template type of the stream, when called, should be the type of the functor object. 
