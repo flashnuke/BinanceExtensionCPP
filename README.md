@@ -18,7 +18,7 @@ These 3 must be installed in order to use the library.
 
 
 # Documentation
-In order to use this library, you must have all dependencies installed. Only one `#include` statement is required - `#include "include/Binance_Client.h"`, and add all content of `/src` directory should be added to the Source files. 
+In order to use this library, you must have all dependencies installed. Only one `#include` statement is required - `#include "include/Binance_Client.h"`, and all source files are inside the `/src` directory (You can copy an example from `/examples` into `/src` and compile using the compilation lines provided below). 
 <br />Note that `.inl` files are included inside the main header.
 <br /> <br />
 <br />You must initialize a `Client` object, which is one of the following: *[SpotClient, FuturesClientUSDT, FuturesClientCoin, OpsClient]*
