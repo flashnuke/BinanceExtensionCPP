@@ -29,7 +29,6 @@ class OrderbookManager
 
 public:
     const std::string symbol;
-    std::string msg_buffer;
 
     std::vector<std::pair<double, double>> bids;
     std::vector<std::pair<double, double>> asks;
@@ -50,7 +49,7 @@ int main()
     FuturesClientUSDT public_client{};
     OrderbookManager btcusdt_orderbook{ "btcusdt", public_client };
 
-    std::thread t4(&FuturesClientUSDT::stream_depth_partial<OrderbookManager>, std::ref(public_client), btcusdt_orderbook.symbol, std::ref(btcusdt_orderbook.msg_buffer), std::ref(btcusdt_orderbook), 5, 100);
+    std::thread t4(&FuturesClientUSDT::stream_depth_partial<OrderbookManager>, std::ref(public_client), btcusdt_orderbook.symbol, std::ref(btcusdt_orderbook), 5, 100);
     btcusdt_orderbook.setup_initial_snap();
 
     while (1)
@@ -65,7 +64,7 @@ int main()
 
 
 OrderbookManager::OrderbookManager(const std::string ticker_symbol, FuturesClientUSDT& client_init)
-    : symbol{ ticker_symbol }, user_client{ &client_init }, msg_buffer{ "" }, parse_errors{ }, charreader{ charbuilder.newCharReader() }
+    : symbol{ ticker_symbol }, user_client{ &client_init }, parse_errors{ }, charreader{ charbuilder.newCharReader() }
 {}
 
 void OrderbookManager::reset_order_book(std::vector<std::pair<double, double>>& side)
