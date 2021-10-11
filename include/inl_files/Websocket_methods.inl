@@ -11,7 +11,7 @@
 */
 template <typename T>
 template <typename FT>
-unsigned int Client<T>::MarginAccount::margin_stream_userstream(FT& functor, const bool ping_listen_key, const bool& isolated_margin_type)
+unsigned int Client<T>::MarginAccount::margin_stream_userstream(FT& functor, const bool ping_listen_key, const bool isolated_margin_type)
 {
 	try
 	{

@@ -30,7 +30,7 @@ public:
 	template <typename FT>
 	void _stream_manager(std::string stream_map_name, const std::string stream_path, FT& functor, const bool ping_listen_key = 0);
 
-	void _set_reconnect(const bool& reconnect);
+	void _set_reconnect(const bool reconnect);
 
 	void set_host_port(const std::string new_host, const unsigned int new_port);
 	void set_gzip_conversion(const unsigned int state);

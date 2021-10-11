@@ -71,7 +71,7 @@ bool WebsocketClient<T>::is_open(const std::string& full_stream_name) const
 	@param reconnect - 1 to enable reconnect, 0 to disable
 */
 template <typename T>
-void WebsocketClient<T>::_set_reconnect(const bool& reconnect)
+void WebsocketClient<T>::_set_reconnect(const bool reconnect)
 {
 	this->_reconnect_on_error = reconnect;
 }
