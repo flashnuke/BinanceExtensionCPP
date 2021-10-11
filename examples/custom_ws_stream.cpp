@@ -7,11 +7,10 @@ struct SomeFunctor
     Json::CharReaderBuilder charbuilder;
     Json::CharReader* charreader;
     std::string parse_errors;
-    std::string msg_buffer;
     Json::Value stream_msg;
 
     SomeFunctor()
-        : msg_buffer{ "" }, parse_errors{ }, charreader{ charbuilder.newCharReader() }
+        : parse_errors{ }, charreader{ charbuilder.newCharReader() }
     {}
 
 
@@ -40,7 +39,7 @@ int main()
         SomeFunctor ws_stream_read{};
 
         std::string cust_stream = "btcusdt@aggTrade/ethusdt@aggTrade";
-        std::thread t1(&SpotClient::custom_stream<SomeFunctor>, std::ref(my_client), cust_stream, std::ref(ws_stream_read.msg_buffer), std::ref(ws_stream_read), 0);
+        std::thread t1(&SpotClient::custom_stream<SomeFunctor>, std::ref(my_client), cust_stream, std::ref(ws_stream_read), 0);
 
         t1.join();
     }

@@ -7,11 +7,10 @@ struct SomeFunctor
     Json::CharReaderBuilder charbuilder;
     Json::CharReader* charreader;
     std::string parse_errors;
-    std::string msg_buffer;
     Json::Value stream_msg;
 
     SomeFunctor()
-        : msg_buffer{ "" }, parse_errors{ }, charreader{ charbuilder.newCharReader() }
+        : parse_errors{ }, charreader{ charbuilder.newCharReader() }
     {}
 
 
@@ -40,7 +39,7 @@ int main()
         SomeFunctor ws_stream_read{};
 
         std::string symbol = "BTC-210430-56000-C";
-        std::thread t1(&OpsClient::stream_Trade<SomeFunctor>, std::ref(my_client), symbol, std::ref(ws_stream_read.msg_buffer), std::ref(ws_stream_read));
+        std::thread t1(&OpsClient::stream_Trade<SomeFunctor>, std::ref(my_client), symbol, std::ref(ws_stream_read));
 
         t1.join();
     }

@@ -101,40 +101,40 @@ public:
 	// WS Streams
 
 	template <typename FT>
-	unsigned int stream_aggTrade(const std::string& symbol, std::string& buffer, FT& functor);
+	unsigned int stream_aggTrade(const std::string& symbol, FT& functor);
 
 	template <typename FT>
-	unsigned int stream_Trade(const std::string& symbol, std::string& buffer, FT& functor);
+	unsigned int stream_Trade(const std::string& symbol, FT& functor);
 
 	template <typename FT>
-	unsigned int stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h");
+	unsigned int stream_kline(const std::string& symbol, FT& functor, std::string interval = "1h");
 
 	template <typename FT>
-	unsigned int stream_ticker_ind_mini(const std::string& symbol, std::string& buffer, FT& functor);
+	unsigned int stream_ticker_ind_mini(const std::string& symbol, FT& functor);
 
 	template <typename FT>
-	unsigned int stream_ticker_all_mini(std::string& buffer, FT& functor);
+	unsigned int stream_ticker_all_mini(FT& functor);
 
 	template <typename FT>
-	unsigned int stream_ticker_ind(const std::string& symbol, std::string& buffer, FT& functor);
+	unsigned int stream_ticker_ind(const std::string& symbol, FT& functor);
 
 	template <typename FT>
-	unsigned int stream_ticker_all(std::string& buffer, FT& functor);
+	unsigned int stream_ticker_all(FT& functor);
 
 	template <typename FT>
-	unsigned int stream_ticker_ind_book(const std::string& symbol, std::string& buffer, FT& functor);
+	unsigned int stream_ticker_ind_book(const std::string& symbol, FT& functor);
 
 	template <typename FT>
-	unsigned int stream_ticker_all_book(std::string& buffer, FT& functor);
+	unsigned int stream_ticker_all_book(FT& functor);
 
 	template <typename FT>
-	unsigned int stream_depth_partial(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int levels = 5, const unsigned int interval = 100);
+	unsigned int stream_depth_partial(const std::string& symbol, FT& functor, const unsigned int levels = 5, const unsigned int interval = 100);
 
 	template <typename FT>
-	unsigned int stream_depth_diff(const std::string& symbol, std::string& buffer, FT& functor, const unsigned int interval = 100);
+	unsigned int stream_depth_diff(const std::string& symbol, FT& functor, const unsigned int interval = 100);
 
 	template <typename FT>
-	unsigned int stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key = 0);
+	unsigned int stream_userstream(FT& functor, const bool ping_listen_key = 0);
 
 	std::string get_listen_key();
 	Json::Value ping_listen_key(const std::string& listen_key = ""); // only spot requires key
@@ -303,7 +303,7 @@ public:
 		Json::Value query_margin_interest_rate_history(const Params* params_ptr);
 
 		template <typename FT>
-		unsigned int margin_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key = 0, const bool& isolated_margin_type = 0);
+		unsigned int margin_stream_userstream(FT& functor, const bool ping_listen_key = 0, const bool& isolated_margin_type = 0);
 		std::string margin_get_listen_key();
 		std::string margin_isolated_get_listen_key(const std::string symbol);
 		Json::Value margin_ping_listen_key(const std::string& listen_key);
@@ -421,7 +421,7 @@ public:
 	Json::Value custom_delete_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);
 
 	template <typename FT>
-	unsigned int custom_stream(const std::string stream_name, std::string& buffer, FT& functor, const bool ping_listen_key = 0);
+	unsigned int custom_stream(const std::string stream_name, FT& functor, const bool ping_listen_key = 0);
 
 	RestSession* _rest_client = nullptr;
 	WebsocketClient<T>* _ws_client = nullptr;
@@ -475,7 +475,7 @@ private:
 	// -- Global that are going deeper to USDT and COIN
 
 	template <typename FT>
-	unsigned int v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor);
+	unsigned int v_stream_Trade(const std::string& symbol, FT& functor);
 
 public:
 	friend Client<FuturesClient<CT>>;
@@ -531,43 +531,43 @@ public:
 	// WS Streams
 
 	template <typename FT>
-	unsigned int stream_markprice(const std::string& symbol, std::string& buffer, FT& functor, unsigned int interval = 1000);
+	unsigned int stream_markprice(const std::string& symbol, FT& functor, unsigned int interval = 1000);
 
 	template <typename FT>
-	unsigned int stream_liquidation_orders(const std::string& symbol, std::string& buffer, FT& functor);
+	unsigned int stream_liquidation_orders(const std::string& symbol, FT& functor);
 
 	template <typename FT>
-	unsigned int stream_liquidation_orders_all(std::string& buffer, FT& functor);
+	unsigned int stream_liquidation_orders_all(FT& functor);
 
 	template <typename FT>
-	unsigned int stream_blvt_info(std::string& buffer, FT& functor, std::string token_name);
+	unsigned int stream_blvt_info(FT& functor, std::string token_name);
 
 	template <typename FT>
-	unsigned int stream_blvt_klines(std::string& buffer, FT& functor, std::string token_name, std::string interval);
+	unsigned int stream_blvt_klines(FT& functor, std::string token_name, std::string interval);
 
 	template <typename FT>
-	unsigned int stream_composite_index_symbol(std::string& buffer, FT& functor, std::string token_name);
+	unsigned int stream_composite_index_symbol(FT& functor, std::string token_name);
 
 	template <typename FT>
-	unsigned int stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor); // only USDT
+	unsigned int stream_markprice_all(const std::string& pair, FT& functor); // only USDT
 
 	template <typename FT>
-	unsigned int stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only Coin
+	unsigned int stream_indexprice(const std::string& pair, FT& functor, unsigned int interval = 1000); // only Coin
 
 	template <typename FT>
-	unsigned int stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval = 1000); // only coin
+	unsigned int stream_markprice_by_pair(const std::string& pair, FT& functor, unsigned int interval = 1000); // only coin
 
 	template <typename FT>
-	unsigned int stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+	unsigned int stream_kline_contract(const std::string& pair_and_type, FT& functor, std::string interval = "1h"); // only coin
 
 	template <typename FT>
-	unsigned int stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+	unsigned int stream_kline_index(const std::string& pair, FT& functor, std::string interval = "1h"); // only coin
 
 	template <typename FT>
-	unsigned int stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h"); // only coin
+	unsigned int stream_kline_markprice(const std::string& symbol, FT& functor, std::string interval = "1h"); // only coin
 
 	template <typename FT>
-	unsigned int v_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key);
+	unsigned int v_stream_userstream(FT& functor, const bool ping_listen_key);
 
 
 
@@ -661,34 +661,34 @@ private:
 
 
 	template <typename FT>
-	unsigned int v_stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor); // only USDT
+	unsigned int v_stream_markprice_all(const std::string& pair, FT& functor); // only USDT
 
 	template <typename FT>
-	unsigned int v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
+	unsigned int v_stream_indexprice(const std::string& pair, FT& functor, unsigned int interval); // only Coin
 
 	template <typename FT>
-	unsigned int v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
+	unsigned int v_stream_markprice_by_pair(const std::string& pair, FT& functor, unsigned int interval); // only coin
 
 	template <typename FT>
-	unsigned int v_stream_blvt_info(std::string& buffer, FT& functor, std::string token_name); // only USDT
+	unsigned int v_stream_blvt_info(FT& functor, std::string token_name); // only USDT
 
 	template <typename FT>
-	unsigned int v_stream_blvt_klines(std::string& buffer, FT& functor, std::string token_name, std::string interval); // only USDT
+	unsigned int v_stream_blvt_klines(FT& functor, std::string token_name, std::string interval); // only USDT
 
 	template <typename FT>
-	unsigned int v_stream_composite_index_symbol(std::string& buffer, FT& functor, std::string token_name); // only USDT
+	unsigned int v_stream_composite_index_symbol(FT& functor, std::string token_name); // only USDT
 
 	template <typename FT>
-	unsigned int v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_contract(const std::string& pair_and_type, FT& functor, std::string interval); // only coin
 
 	template <typename FT>
-	unsigned int v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_index(const std::string& pair, FT& functor, std::string interval); // only coin
 
 	template <typename FT>
-	unsigned int v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_markprice(const std::string& symbol, FT& functor, std::string interval); // only coin
 
 	template <typename FT>
-	unsigned int v__stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key);
+	unsigned int v__stream_userstream(FT& functor, const bool ping_listen_key);
 
 	std::string v__get_listen_key();
 	Json::Value v__ping_listen_key();
@@ -786,34 +786,34 @@ private:
 	// -- going deeper...
 
 	template <typename FT>
-	unsigned int v_stream_markprice_all(const std::string& pair, std::string& buffer, FT& functor); // only USDT
+	unsigned int v_stream_markprice_all(const std::string& pair, FT& functor); // only USDT
 
 	template <typename FT>
-	unsigned int v_stream_indexprice(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only Coin
+	unsigned int v_stream_indexprice(const std::string& pair, FT& functor, unsigned int interval); // only Coin
 
 	template <typename FT>
-	unsigned int v_stream_markprice_by_pair(const std::string& pair, std::string& buffer, FT& functor, unsigned int interval); // only coin
+	unsigned int v_stream_markprice_by_pair(const std::string& pair, FT& functor, unsigned int interval); // only coin
 
 	template <typename FT>
-	unsigned int v_stream_blvt_info(std::string& buffer, FT& functor, std::string token_name); // only USDT
+	unsigned int v_stream_blvt_info(FT& functor, std::string token_name); // only USDT
 
 	template <typename FT>
-	unsigned int v_stream_blvt_klines(std::string& buffer, FT& functor, std::string token_name, std::string interval); // only USDT
+	unsigned int v_stream_blvt_klines(FT& functor, std::string token_name, std::string interval); // only USDT
 
 	template <typename FT>
-	unsigned int v_stream_composite_index_symbol(std::string& buffer, FT& functor, std::string token_name); // only USDT
+	unsigned int v_stream_composite_index_symbol(FT& functor, std::string token_name); // only USDT
 
 	template <typename FT>
-	unsigned int v_stream_kline_contract(const std::string& pair_and_type, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_contract(const std::string& pair_and_type, FT& functor, std::string interval); // only coin
 
 	template <typename FT>
-	unsigned int v_stream_kline_index(const std::string& pair, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_index(const std::string& pair, FT& functor, std::string interval); // only coin
 
 	template <typename FT>
-	unsigned int v_stream_kline_markprice(const std::string& symbol, std::string& buffer, FT& functor, std::string interval); // only coin
+	unsigned int v_stream_kline_markprice(const std::string& symbol, FT& functor, std::string interval); // only coin
 
 	template <typename FT>
-	unsigned int v__stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key);
+	unsigned int v__stream_userstream(FT& functor, const bool ping_listen_key);
 
 	std::string v__get_listen_key();
 	Json::Value v__ping_listen_key();
@@ -876,7 +876,7 @@ private:
 	// WS Streams
 
 	template <typename FT>
-	unsigned int v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor);
+	unsigned int v_stream_Trade(const std::string& symbol, FT& functor);
 
 
 	// crtp infrastructure start
@@ -884,7 +884,7 @@ private:
 	void v_init_ws_session();
 
 	template <typename FT>
-	unsigned int v_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key);
+	unsigned int v_stream_userstream(FT& functor, const bool ping_listen_key);
 	std::string v_get_listen_key();
 	Json::Value v_ping_listen_key(const std::string& listen_key);
 	Json::Value v_revoke_listen_key(const std::string& listen_key);
@@ -950,7 +950,7 @@ private:
 	void v_init_ws_session(); // todo: define (what is the port??? gzip used??)
 
 	template <typename FT>
-	unsigned int v_stream_userstream(std::string& buffer, FT& functor, const bool ping_listen_key); // todo: define
+	unsigned int v_stream_userstream(FT& functor, const bool ping_listen_key); // todo: define
 
 	std::string v_get_listen_key();
 	Json::Value v_ping_listen_key(const std::string& listen_key);
@@ -958,10 +958,10 @@ private:
 
 
 	template <typename FT>
-	unsigned int v_stream_Trade(const std::string& symbol, std::string& buffer, FT& functor);
+	unsigned int v_stream_Trade(const std::string& symbol, FT& functor);
 
 	template <typename FT>
-	unsigned int v_stream_kline(const std::string& symbol, std::string& buffer, FT& functor, std::string interval = "1h");
+	unsigned int v_stream_kline(const std::string& symbol, FT& functor, std::string interval = "1h");
 
 
 	// crtp infrastructure end

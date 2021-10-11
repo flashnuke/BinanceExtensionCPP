@@ -125,19 +125,18 @@ All (except for ones that don't have mandatory parameters) REST request methods 
 Each time a client object is created, a websocket client is also instantiated. In fact, the websocket client accepts the Client object as an argument.
 
 <br /> The websocket client holds a map of all stream connection names and their current status. **symbol@stream_name** (i.e: btc@aggTrade). This is very crucial to know in order to be able to close a stream by using the `close_stream()` method.
-<br />Not all streams accept the same arguments list, but all of them accept an `std::string` buffer and a functor object to use as callback.
+<br />Not all streams accept the same arguments list, but all of them accept a functor object to use as callback.
 
 - #### Callback functor
-	All streams accepts a reference to std::string buffer and a reference to a functor object. This is implemented using templates, therefore the template type of the stream, when called, should be the type of the functor object. 
-	>client_obj.stream_aggTrade<typename SomeFunctor\>(symbol, buff, functor_obj)
+	All streams accept a reference to a functor object. This is implemented using templates, therefore the template type of the stream, when called, should be the type of the functor object. 
+	>client_obj.stream_aggTrade<typename SomeFunctor\>(symbol, functor_obj)
 
-	<br /> It would be good practice to set the buffer as a member of the functor object.
 - #### Stream Manager
 	The WebsocketClient class has a `stream_manager` method, which is responsible for the stream connection. It is possible to set `reconnect_on_error` by using Client's `ws_auto_reconnect()` method, and also specify the number of attempts by using `set_max_reconnect_count()` method.
 <br />The `stream_manager` method closes a stream when the stream status is set to zero by the `close_stream()` method, or if any other error was encountered (unless `reconnect_on_error` is true).
 <br /> The stream manager also accepts a `bool` for whether or not to ping a listen key periodically. The ping interval is 30 minutes by default, and can be set using `set_refresh_key_interval()` method (in `Client`).
 - #### Custom Streams
-	Custom streams are possible by using `Client`'s `custom_stream()` method. This method accepts 4 arguments: `stream_path` std::string, `buffer` std::string, `functor` functor, and `ping_listen_key` bool (when true, pings listen key periodically).
+	Custom streams are possible by using `Client`'s `custom_stream()` method. This method accepts 3 arguments: `stream_path`, std::string, `functor` functor, and `ping_listen_key` bool (when true, pings listen key periodically).
 
 - #### Notes
 		1. Default arguments are not allowed with threads. The argument must be specified

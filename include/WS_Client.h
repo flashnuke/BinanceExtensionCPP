@@ -13,7 +13,7 @@ private:
 
 
 	template <typename FT>
-	void _connect_to_endpoint(const std::string stream_map_name, const std::string stream_path, std::string& buf, FT& functor, const bool ping_listen_key);
+	void _connect_to_endpoint(const std::string stream_map_name, const std::string stream_path, FT& functor, const bool ping_listen_key);
 
 public:
 	unsigned int _max_reconnect_count;
@@ -28,7 +28,7 @@ public:
 	bool is_open(const std::string& stream_name) const;
 
 	template <typename FT>
-	void _stream_manager(std::string stream_map_name, const std::string stream_path, std::string& buf, FT& functor, const bool ping_listen_key = 0);
+	void _stream_manager(std::string stream_map_name, const std::string stream_path, FT& functor, const bool ping_listen_key = 0);
 
 	void _set_reconnect(const bool& reconnect);
 

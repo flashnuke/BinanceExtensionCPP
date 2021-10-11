@@ -7,11 +7,10 @@ struct SomeFunctor
     Json::CharReaderBuilder charbuilder;
     Json::CharReader* charreader;
     std::string parse_errors;
-    std::string msg_buffer;
     Json::Value stream_msg;
 
     SomeFunctor()
-        : msg_buffer{ "" }, parse_errors{ }, charreader{ charbuilder.newCharReader() }
+        : parse_errors{ }, charreader{ charbuilder.newCharReader() }
     {}
 
 
@@ -43,7 +42,7 @@ int main()
         FuturesClientUSDT my_client{ api_key, api_secret };
         SomeFunctor ws_stream_read{};
 
-        std::thread t1(&FuturesClientUSDT::stream_userStream<SomeFunctor>, std::ref(my_client), std::ref(ws_stream_read.msg_buffer), std::ref(ws_stream_read), 1);
+        std::thread t1(&FuturesClientUSDT::stream_userStream<SomeFunctor>, std::ref(my_client), std::ref(ws_stream_read), 1);
 
         t1.join();
     }

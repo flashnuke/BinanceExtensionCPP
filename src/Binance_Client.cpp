@@ -7638,7 +7638,7 @@ Json::Value FuturesClientCoin::v_get_composite_index_symbol_info(const Params* p
 	CRTP of stream_markprice_all()
 */
 template <typename FT>
-unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol, std::string& buffer, FT& functor) // here
+unsigned int FuturesClientCoin::v_stream_markprice_all(const std::string& symbol, FT& functor) // here
 {
 	MissingEndpoint e{};
 	e.append_to_traceback(std::string(__FUNCTION__));
