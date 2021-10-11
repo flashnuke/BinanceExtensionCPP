@@ -31,7 +31,7 @@ struct Params
 
 	bool delete_param(const std::string& key);
 
-	void set_recv(const bool& set_always, const unsigned int& recv_val = 0);
+	void set_recv(const bool set_always, const unsigned int recv_val = 0);
 
 	void flush_params();
 	bool empty() const;
@@ -58,7 +58,7 @@ public:
 	bool const _public_client;
 	unsigned int refresh_listenkey_interval;
 
-	std::string _generate_query(const Params* params_ptr, const bool& sign_query = 0) const;
+	std::string _generate_query(const Params* params_ptr, const bool sign_query = 0) const;
 	void close_stream(const std::string& stream_name);
 	bool is_stream_open(const std::string& stream_name);
 	std::vector<std::string> get_open_streams();
@@ -151,7 +151,7 @@ public:
 
 	bool init_rest_session();
 	bool set_headers(RestSession* rest_client);
-	void rest_set_verbose(const bool& state);
+	void rest_set_verbose(const bool state);
 
 	// Global requests (wallet, account etc)
 
@@ -165,7 +165,7 @@ public:
 
 		Json::Value get_all_coins(const Params* params_ptr = nullptr);
 		Json::Value daily_snapshot(const Params* params_ptr);
-		Json::Value fast_withdraw_switch(const bool& state);
+		Json::Value fast_withdraw_switch(const bool state);
 		Json::Value withdraw_balances(const Params* params_ptr);
 		Json::Value deposit_history(const Params* params_ptr = nullptr);
 		Json::Value withdraw_history(const Params* params_ptr = nullptr);
@@ -303,7 +303,7 @@ public:
 		Json::Value query_margin_interest_rate_history(const Params* params_ptr);
 
 		template <typename FT>
-		unsigned int margin_stream_userstream(FT& functor, const bool ping_listen_key = 0, const bool& isolated_margin_type = 0);
+		unsigned int margin_stream_userstream(FT& functor, const bool ping_listen_key = 0, const bool isolated_margin_type = 0);
 		std::string margin_get_listen_key();
 		std::string margin_isolated_get_listen_key(const std::string symbol);
 		Json::Value margin_ping_listen_key(const std::string& listen_key);
@@ -415,10 +415,10 @@ public:
         Json::Value get_c2c_trades_history(const Params* params_ptr);
 	};
 
-	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);
-	Json::Value custom_post_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);
-	Json::Value custom_put_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);
-	Json::Value custom_delete_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature = 0);
+	Json::Value custom_get_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool signature = 0);
+	Json::Value custom_post_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool signature = 0);
+	Json::Value custom_put_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool signature = 0);
+	Json::Value custom_delete_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool signature = 0);
 
 	template <typename FT>
 	unsigned int custom_stream(const std::string stream_name, FT& functor, const bool ping_listen_key = 0);

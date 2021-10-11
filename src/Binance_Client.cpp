@@ -603,7 +603,7 @@ bool Client<T>::init_rest_session()
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::custom_get_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
+Json::Value Client<T>::custom_get_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool signature)
 {
 	try
 	{
@@ -627,7 +627,7 @@ Json::Value Client<T>::custom_get_req(const std::string& base, const std::string
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::custom_post_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
+Json::Value Client<T>::custom_post_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool signature)
 {
 	try
 	{
@@ -651,7 +651,7 @@ Json::Value Client<T>::custom_post_req(const std::string& base, const std::strin
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::custom_put_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
+Json::Value Client<T>::custom_put_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool signature)
 {
 	try
 	{
@@ -675,7 +675,7 @@ Json::Value Client<T>::custom_put_req(const std::string& base, const std::string
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::custom_delete_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool& signature)
+Json::Value Client<T>::custom_delete_req(const std::string& base, const std::string& endpoint, const Params* params_ptr, const bool signature)
 {
 	try
 	{
@@ -730,7 +730,7 @@ bool Client<T>::set_headers(RestSession* rest_client)
 	@param state - a bool for enabling (1) or disabling (0)
 */
 template <typename T>
-void Client<T>::rest_set_verbose(const bool& state)
+void Client<T>::rest_set_verbose(const bool state)
 {
 	if (state) this->_rest_client->set_verbose(1L);
 	else this->_rest_client->set_verbose(0);
@@ -743,7 +743,7 @@ void Client<T>::rest_set_verbose(const bool& state)
 	@return string - the query generated
 */
 template <typename T>
-std::string Client<T>::_generate_query(const Params* params_ptr, const bool& sign_query) const
+std::string Client<T>::_generate_query(const Params* params_ptr, const bool sign_query) const
 {
 	try
 	{
@@ -901,7 +901,7 @@ Json::Value Client<T>::Wallet::daily_snapshot(const Params* params_ptr)
 	@return the json returned by the request
 */
 template <typename T>
-Json::Value Client<T>::Wallet::fast_withdraw_switch(const bool& state)
+Json::Value Client<T>::Wallet::fast_withdraw_switch(const bool state)
 {
 	try
 	{
@@ -8409,7 +8409,7 @@ bool Params::delete_param(const std::string& key)
 	@param set_always - a bool for whether to keep after flush
 	@param recv_val - recvWindow value
 */
-void Params::set_recv(const bool& set_always, const unsigned int& recv_val)
+void Params::set_recv(const bool set_always, const unsigned int recv_val)
 {
 	this->default_recv = set_always;
 	if (set_always)
